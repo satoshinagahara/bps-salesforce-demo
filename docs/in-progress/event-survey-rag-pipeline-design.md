@@ -138,7 +138,7 @@ LLM出力のJSONをパースし、Needs_Card__c レコードを作成：
    - 自動でDMOマッピング + 取り込み完了（Account 23件等）
    - Data Cloudの個人データ構造: Lead/ContactのFirst/Last Name → Individual DMO、Email → Contact Point Email DMO
 5. ⚠️ **データストリーム作り直し（DLO分割）** — 次のステップ
-   - **経緯**: 当初EventSurveyを「エンゲージメント」カテゴリ1つのDLOで作成したが、エンゲージメントカテゴリではIndividual/Contact Point EmailにマッピングできずID解決に参加できない制約が判明（詳細: `docs/data-cloud-lessons-learned.md`）
+   - **経緯**: 当初EventSurveyを「エンゲージメント」カテゴリ1つのDLOで作成したが、エンゲージメントカテゴリではIndividual/Contact Point EmailにマッピングできずID解決に参加できない制約が判明（詳細: `docs/reference/data-cloud-lessons-learned.md`）
    - **対応**: 既存のEventSurveyデータストリームを削除し、DLOを2つに分割して再作成
      - **プロファイルDLO**（プロファイルカテゴリ）: `attendee_email` + `attendee_name` → Individual DMO + Contact Point Email DMO にマッピング → ID解決の対象になる
      - **エンゲージメントDLO**（エンゲージメントカテゴリ）: 回答内容（pain_points, comments, interest_area, product_interest等）→ カスタムDMO `EventSurvey` にマッピング → Contact Point Emailへのリレーションで紐付け
