@@ -1,0 +1,220 @@
+<template>
+    <lightning-card>
+        <div slot="title">
+            <lightning-icon icon-name="standard:account" size="small" class="slds-m-right_x-small"></lightning-icon>
+            取引先ダッシュボード
+        </div>
+
+        <div class="dash-wrap">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="error-box">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Main -->
+            <template lwc:else>
+
+                <!-- Account Meta Header -->
+                <div class="acct-header">
+                    <template for:each={accountDetails} for:item="d">
+                        <span key={d.key} class="meta-chip">
+                            <lightning-icon icon-name={d.icon} size="xx-small" class="chip-icon"></lightning-icon>
+                            {d.value}
+                        </span>
+                    </template>
+                </div>
+
+                <!-- KPI Tiles -->
+                <div class="kpi-row">
+                    <div class="kpi-tile" style="--kpi-clr:#0176d3">
+                        <div class="kpi-num">{oppTotal}</div>
+                        <div class="kpi-lbl">商談数</div>
+                        <div class="kpi-sub">{oppOpen}件 進行中</div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#2e844a">
+                        <div class="kpi-num">{oppAmountFormatted}</div>
+                        <div class="kpi-lbl">商談金額合計</div>
+                        <div class="kpi-sub">受注 {oppWon}件</div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#fe9339">
+                        <div class="kpi-num">{caseTotal}</div>
+                        <div class="kpi-lbl">ケース数</div>
+                        <div class="kpi-sub">{caseOpen}件 未解決</div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#9050e9">
+                        <div class="kpi-num">{contactCount}</div>
+                        <div class="kpi-lbl">担当者数</div>
+                        <div class="kpi-sub">活動 {recentTasks}件/90日</div>
+                    </div>
+                </div>
+
+                <!-- Chart Row 1: Opportunity -->
+                <div class="chart-row">
+
+                    <!-- Stage Donut -->
+                    <div class="chart-card">
+                        <div class="chart-title">商談 ステージ別</div>
+                        <template lwc:if={hasOppData}>
+                            <div class="donut-wrap">
+                                <svg viewBox="0 0 120 120" width="130" height="130" style="overflow:visible">
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e8e8e8" stroke-width="12"/>
+                                    <template for:each={oppStageSegments} for:item="seg">
+                                        <circle key={seg.key}
+                                            cx="60" cy="60" r="54"
+                                            fill="none" stroke-width="12"
+                                            style={seg.circleStyle}>
+                                        </circle>
+                                    </template>
+                                    <text x="60" y="56" text-anchor="middle" class="donut-big">{oppTotal}</text>
+                                    <text x="60" y="71" text-anchor="middle" class="donut-sm">商談</text>
+                                </svg>
+                                <div class="legend-list">
+                                    <template for:each={oppStageSegments} for:item="seg">
+                                        <div key={seg.key} class="legend-row">
+                                            <span class="legend-dot" style={seg.dotStyle}></span>
+                                            <span class="legend-name">{seg.label}</span>
+                                            <span class="legend-cnt">{seg.count}件 {seg.pct}%</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <p class="no-data">商談データなし</p>
+                        </template>
+                    </div>
+
+                    <!-- Win/Loss + Amount bars -->
+                    <div class="chart-card">
+                        <div class="chart-title">商談 勝敗・進捗</div>
+                        <template lwc:if={hasOppData}>
+                            <div class="prog-list">
+                                <div class="prog-row">
+                                    <span class="prog-lbl">受注</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill" style={winBarStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{oppWon}件 {winRate}%</span>
+                                </div>
+                                <div class="prog-row">
+                                    <span class="prog-lbl">進行中</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill prog-blue" style={openBarStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{oppOpen}件 {openRate}%</span>
+                                </div>
+                                <div class="prog-row">
+                                    <span class="prog-lbl">失注</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill prog-red" style={lossBarStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{oppLost}件 {lossRate}%</span>
+                                </div>
+                            </div>
+                            <div class="section-divider"></div>
+                            <div class="chart-subtitle">ステージ別金額</div>
+                            <template for:each={stageAmountBars} for:item="bar">
+                                <div key={bar.key} class="prog-row">
+                                    <span class="prog-lbl">{bar.label}</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill" style={bar.barStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{bar.amountFormatted}</span>
+                                </div>
+                            </template>
+                        </template>
+                        <template lwc:else>
+                            <p class="no-data">商談データなし</p>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Chart Row 2: Case -->
+                <div class="chart-row">
+
+                    <!-- Case Status bars -->
+                    <div class="chart-card">
+                        <div class="chart-title">ケース 状況別</div>
+                        <template lwc:if={hasCaseData}>
+                            <div class="prog-list">
+                                <div class="prog-row">
+                                    <span class="prog-lbl">未解決</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill prog-red" style={openCaseBarStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{caseOpen}件</span>
+                                </div>
+                                <div class="prog-row">
+                                    <span class="prog-lbl">解決済</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill" style={closedCaseBarStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{caseClosed}件</span>
+                                </div>
+                            </div>
+                            <div class="section-divider"></div>
+                            <div class="chart-subtitle">ステータス別</div>
+                            <template for:each={caseStatusBars} for:item="bar">
+                                <div key={bar.key} class="prog-row">
+                                    <span class="prog-lbl">{bar.label}</span>
+                                    <div class="prog-track">
+                                        <div class="prog-fill" style={bar.barStyle}></div>
+                                    </div>
+                                    <span class="prog-cnt">{bar.count}件</span>
+                                </div>
+                            </template>
+                        </template>
+                        <template lwc:else>
+                            <p class="no-data">ケースデータなし</p>
+                        </template>
+                    </div>
+
+                    <!-- Case Priority Donut -->
+                    <div class="chart-card">
+                        <div class="chart-title">ケース 優先度別</div>
+                        <template lwc:if={hasCaseData}>
+                            <div class="donut-wrap">
+                                <svg viewBox="0 0 120 120" width="130" height="130" style="overflow:visible">
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e8e8e8" stroke-width="12"/>
+                                    <template for:each={casePrioritySegments} for:item="seg">
+                                        <circle key={seg.key}
+                                            cx="60" cy="60" r="54"
+                                            fill="none" stroke-width="12"
+                                            style={seg.circleStyle}>
+                                        </circle>
+                                    </template>
+                                    <text x="60" y="56" text-anchor="middle" class="donut-big">{caseTotal}</text>
+                                    <text x="60" y="71" text-anchor="middle" class="donut-sm">ケース</text>
+                                </svg>
+                                <div class="legend-list">
+                                    <template for:each={casePrioritySegments} for:item="seg">
+                                        <div key={seg.key} class="legend-row">
+                                            <span class="legend-dot" style={seg.dotStyle}></span>
+                                            <span class="legend-name">{seg.label}</span>
+                                            <span class="legend-cnt">{seg.count}件 {seg.pct}%</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <p class="no-data">ケースデータなし</p>
+                        </template>
+                    </div>
+                </div>
+
+            </template>
+        </div>
+    </lightning-card>
+</template>

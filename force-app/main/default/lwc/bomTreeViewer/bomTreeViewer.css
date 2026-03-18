@@ -1,0 +1,129 @@
+:host { display: block; }
+
+.tree-wrap {
+    padding: 0 0.75rem 1rem;
+}
+
+.center-pad {
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.msg-box {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    color: #706e6b;
+    font-size: 0.85rem;
+}
+
+.msg-error { color: #ba0517; }
+
+/* ── Summary bar ───────────────────────────────────────────────────────── */
+.summary-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: #f4f6f9;
+    border-radius: 8px;
+}
+
+.summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+}
+
+.summary-item.cost {
+    flex: 1.5;
+    border-color: #0176d3;
+    border-width: 2px;
+}
+
+.summary-item.shared {
+    border-color: #e8a427;
+}
+
+.summary-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #181818;
+    line-height: 1.3;
+}
+
+.summary-item.cost .summary-value {
+    color: #0176d3;
+}
+
+.summary-item.shared .summary-value {
+    color: #9a5f00;
+}
+
+.summary-label {
+    font-size: 0.7rem;
+    color: #706e6b;
+    margin-top: 0.15rem;
+    letter-spacing: 0.03em;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────── */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+
+.search-box {
+    flex: 1;
+}
+
+.depth-filter {
+    flex-shrink: 0;
+}
+
+/* ── Level legend ────────────────────────────────────────────────────────  */
+.legend-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.lv-badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.lv1 { background: #d4e6ff; color: #0176d3; border: 1px solid #aacbf5; }
+.lv2 { background: #d4f5e2; color: #2e844a; border: 1px solid #97d6b0; }
+.lv3 { background: #fff0d4; color: #9a5f00; border: 1px solid #f5c86a; }
+.lv4 { background: #ead4ff; color: #6d27a8; border: 1px solid #c88fef; }
+
+.shared-badge {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #e8a427;
+}
+
+/* ── Row level label colors (applied via cellAttributes.class) ───────── */
+:host .lv1-label { color: #0176d3; font-weight: 700; }
+:host .lv2-label { color: #2e844a; font-weight: 600; }
+:host .lv3-label { color: #9a5f00; }
+:host .lv4-label { color: #6d27a8; }
+
+/* ── Shared part highlight ──────────────────────────────────────────────  */
+:host .shared-part {
+    background: #fff8e1;
+    border-radius: 3px;
+    padding: 0 4px;
+}

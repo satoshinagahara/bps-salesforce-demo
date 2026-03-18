@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <canEscalate>false</canEscalate>
+    <description>This topic is chosen when a user requests a comprehensive summary of an account, including details about opportunities, cases, and other related records.</description>
+    <developerName>p_16jIe0000008OwN_Account_Summary_Generation</developerName>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__GetRecordDetails</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__SummarizeRecord</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>svc_emp_intelligence__SummarizeTicketForEmployee</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__AnswerQuestionsWithKnowledge</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>X6ba408c1_9d86_debb_5c1d_e58db3720dc6_179Ie000000wnCO</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>X4c85d22e_878a_e815_2c1b_4004e8d8b811_179Ie000000wnCO</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>Xe48f2776_76b9_c340_9503_aa1efaec105a_179Ie000000wnCO</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>X3a62693d_7eb7_032d_50ff_af157c2a88a9_179Ie000000wnCO</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the query is about retrieving account details, use EmployeeCopilot__GetRecordDetails.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the query is about summarizing support cases, use svc_emp_intelligence__SummarizeTicketForEmployee.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>1</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the query is about summarizing account-related opportunities, use EmployeeCopilot__SummarizeRecord.</description>
+        <developerName>instruction_2</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_2</masterLabel>
+        <sortOrder>2</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jIe0000008OwN_Account_Summary_Generation</localDeveloperName>
+    <masterLabel>Account Summary Generation</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to only compile and generate a detailed account summary, including opportunities, cases, and key contacts. You aren&apos;t able to make updates to account records.</scope>
+</GenAiPlugin>

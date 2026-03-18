@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Business_Unit__c</fullName>
+    <label>ビジネスユニット</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>エネルギー＆インダストリー</fullName><default>false</default><label>エネルギー＆インダストリー</label></value>
+            <value><fullName>デジタルシステムズ</fullName><default>false</default><label>デジタルシステムズ</label></value>
+            <value><fullName>プロフェッショナルサービス</fullName><default>false</default><label>プロフェッショナルサービス</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

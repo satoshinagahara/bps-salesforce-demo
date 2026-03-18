@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RFQ__c</fullName>
+    <label>見積依頼</label>
+    <type>MasterDetail</type>
+    <referenceTo>RFQ__c</referenceTo>
+    <relationshipLabel>見積回答</relationshipLabel>
+    <relationshipName>Quotes</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Supplier__c</fullName>
+    <label>サプライヤー</label>
+    <type>Lookup</type>
+    <referenceTo>Account</referenceTo>
+    <relationshipName>Supplier_Audits</relationshipName>
+    <relationshipLabel>サプライヤー監査</relationshipLabel>
+    <required>false</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

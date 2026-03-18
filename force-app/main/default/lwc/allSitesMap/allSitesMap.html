@@ -1,0 +1,433 @@
+<template>
+    <lightning-card icon-name="standard:location">
+        <div slot="title">製造拠点マップ — サプライチェーン全体</div>
+        <div slot="actions">
+            <lightning-button
+                label={simModeButtonLabel}
+                variant={simModeButtonVariant}
+                icon-name={simModeButtonIcon}
+                onclick={handleToggleSimMode}>
+            </lightning-button>
+        </div>
+
+        <div class="card-body">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="msg-box msg-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Empty -->
+            <template lwc:elseif={isEmpty}>
+                <div class="msg-box">
+                    <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                    <span class="slds-m-left_x-small">製造拠点が登録されていません。</span>
+                </div>
+            </template>
+
+            <!-- ============ SIMULATION MODE ============ -->
+            <template lwc:elseif={simMode}>
+
+                <!-- Scenario selector -->
+                <div class="sim-controls">
+                    <div class="sim-header">
+                        <lightning-icon icon-name="utility:warning" size="small" variant="warning"></lightning-icon>
+                        <span class="sim-title">災害影響シミュレーション</span>
+                    </div>
+                    <div class="sim-selector-row">
+                        <lightning-combobox
+                            label="災害シナリオ"
+                            value={simPreset}
+                            options={disasterPresets}
+                            onchange={handlePresetChange}
+                            variant="label-hidden"
+                            class="sim-combo">
+                        </lightning-combobox>
+                        <lightning-button
+                            label="シミュレーション実行"
+                            variant="destructive"
+                            icon-name="utility:play"
+                            onclick={handleRunSimulation}
+                            disabled={cannotRunSim}>
+                        </lightning-button>
+                    </div>
+                    <template lwc:if={simSelectedPrefs.length}>
+                        <div class="sim-pref-tags">
+                            <span class="sim-pref-label">被災想定エリア:</span>
+                            <template for:each={simSelectedPrefs} for:item="pref">
+                                <span key={pref} class="sim-pref-tag">{pref}</span>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Sim loading -->
+                <template lwc:if={simLoading}>
+                    <div class="center-pad">
+                        <lightning-spinner alternative-text="分析中" size="medium"></lightning-spinner>
+                    </div>
+                </template>
+
+                <!-- Sim results -->
+                <template lwc:elseif={hasSimResult}>
+
+                    <!-- Alert banner -->
+                    <div class="sim-alert">
+                        <lightning-icon icon-name="utility:warning" size="small" variant="error"></lightning-icon>
+                        <span class="sim-alert-text">
+                            {simAffectedPrefLabel} で大規模災害が発生した場合の影響分析結果
+                        </span>
+                    </div>
+
+                    <!-- Impact summary -->
+                    <div class="sim-summary">
+                        <div class="sim-summary-item own">
+                            <div class="sim-summary-value">{simOwnSites}</div>
+                            <div class="sim-summary-label">自社拠点 被災</div>
+                        </div>
+                        <div class="sim-summary-item supplier">
+                            <div class="sim-summary-value">{simSupplierSites}</div>
+                            <div class="sim-summary-label">供給元 被災</div>
+                        </div>
+                        <div class="sim-summary-item product">
+                            <div class="sim-summary-value">{simTotalProducts}</div>
+                            <div class="sim-summary-label">影響製品</div>
+                        </div>
+                        <div class="sim-summary-item cost">
+                            <div class="sim-summary-value">{simTotalRiskCost}</div>
+                            <div class="sim-summary-label">リスク額</div>
+                        </div>
+                        <div class="sim-summary-item safe">
+                            <div class="sim-summary-value">{simSafeOwnSites}</div>
+                            <div class="sim-summary-label">安全な自社拠点</div>
+                        </div>
+                        <template lwc:if={hasOffloadOptions}>
+                            <div class="sim-summary-item offload" onclick={handleScrollToOffload}>
+                                <div class="sim-summary-value">{offloadProposals.length}</div>
+                                <div class="sim-summary-label">代替提案 ▼</div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Map + results layout -->
+                    <div class="main-layout">
+                        <div class="map-col">
+                            <div class="map-container">
+                                <lightning-map
+                                    map-markers={mapMarkers}
+                                    center={mapCenter}
+                                    zoom-level="6"
+                                    list-view="hidden"
+                                    onmarkerselect={handleMarkerSelect}>
+                                </lightning-map>
+                            </div>
+
+                            <!-- Affected sites list -->
+                            <div class="sim-sites-section">
+                                <div class="sim-section-title">被災拠点</div>
+                                <div class="sim-sites-list">
+                                    <template for:each={simAffectedSiteList} for:item="site">
+                                        <div key={site.id} class="sim-site-chip">
+                                            <span class={site.typeClass}>{site.typeLabel}</span>
+                                            <span class="sim-site-name">{site.name}</span>
+                                            <span class="sim-site-owner">{site.supplierName}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="side-col">
+                            <div class="sim-section-title">製品別影響分析</div>
+                            <div class="sim-product-list">
+                                <template for:each={simProductCards} for:item="prod">
+                                    <div key={prod.key} class="sim-product-card"
+                                         data-id={prod.productId}
+                                         onclick={handleProductCardClick}>
+                                        <div class="sim-prod-header">
+                                            <span class="sim-prod-name">{prod.displayName}</span>
+                                            <span class={prod.riskClass}>{prod.riskLevel}</span>
+                                        </div>
+
+                                        <!-- BOM overview + alternative status -->
+                                        <div class="sim-prod-bom-overview">
+                                            <span class="sim-label">{prod.bomCountLabel}</span>
+                                            <span class={prod.altClass}>{prod.altLabel}</span>
+                                        </div>
+
+                                        <!-- Supply dependency bar -->
+                                        <div class="sim-prod-supply">
+                                            <div class="sim-dep-header">
+                                                <span class="sim-label">供給依存度:</span>
+                                                <span class="sim-dep-pct">{prod.depPct}</span>
+                                                <span class="sim-dep-cost">{prod.costLabel}</span>
+                                            </div>
+                                            <div class="dep-bar-track">
+                                                <div class={prod.depBarClass} style={prod.depBarStyle}></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Affected parts count -->
+                                        <div class="sim-prod-parts-summary">
+                                            <span class="sim-label">影響部品:</span>
+                                            <span>{prod.affectedPartCount} 点</span>
+                                        </div>
+
+                                        <!-- Expanded: BOM breakdown + affected parts -->
+                                        <template lwc:if={prod.isExpanded}>
+                                            <template lwc:if={prod.hasBomBreakdown}>
+                                                <div class="sim-bom-breakdown">
+                                                    <div class="sim-bom-breakdown-title">BOM別影響分析</div>
+                                                    <template for:each={prod.bomCards} for:item="bom">
+                                                        <div key={bom.key} class={bom.statusClass}>
+                                                            <div class="bom-row-header">
+                                                                <span class="bom-number">{bom.bomNumber}</span>
+                                                                <span class="bom-site">{bom.siteLabel}</span>
+                                                                <span class="bom-status-label">{bom.status}</span>
+                                                            </div>
+                                                            <template lwc:if={bom.hasAffectedParts}>
+                                                                <div class="bom-parts-detail">
+                                                                    <template for:each={bom.affectedParts} for:item="part">
+                                                                        <div key={part.partNumber} class="sim-part-row">
+                                                                            <span class="sim-part-num">{part.partNumber}</span>
+                                                                            <span class="sim-part-name">{part.partName}</span>
+                                                                            <span class="sim-part-site">{part.siteName}</span>
+                                                                        </div>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Offload proposals (after map + product analysis) -->
+                    <template lwc:if={hasOffloadOptions}>
+                        <div class="offload-section" data-id="offload-anchor">
+                            <div class="offload-header-bar">
+                                <lightning-icon icon-name="utility:routing_offline" size="x-small" variant="success"></lightning-icon>
+                                <span class="offload-title">代替拠点オフロード提案</span>
+                                <span class="offload-count">{offloadProposals.length} 件</span>
+                            </div>
+                            <div class="offload-grid">
+                                <template for:each={offloadProposals} for:item="prop">
+                                    <div key={prop.key} class="offload-card">
+                                        <div class="offload-part-header">
+                                            <span class="offload-part-number">{prop.affectedPart}</span>
+                                            <span class="offload-part-name">{prop.affectedPartName}</span>
+                                            <span class={prop.supplierTagClass}>{prop.supplierTag}</span>
+                                        </div>
+                                        <div class="offload-flow">
+                                            <div class="offload-from">
+                                                <span class="offload-site-label">被災</span>
+                                                <span class="offload-site-name">{prop.affectedSite}</span>
+                                                <span class="offload-site-cap">月産 {prop.affectedCapFmt}</span>
+                                            </div>
+                                            <div class="offload-arrow-block">
+                                                <span class="offload-arrow-line"></span>
+                                                <span class={prop.canOffloadClass}>{prop.offloadPctFmt}</span>
+                                            </div>
+                                            <div class="offload-to">
+                                                <span class="offload-site-label to">代替</span>
+                                                <span class="offload-site-name">{prop.alternativeSite}</span>
+                                                <span class="offload-site-cap">余剰 {prop.spareFmt}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                </template>
+
+                <!-- No sim yet -->
+                <template lwc:else>
+                    <div class="sim-placeholder">
+                        <lightning-icon icon-name="utility:touch_action" size="small"></lightning-icon>
+                        <span class="slds-m-left_x-small">
+                            災害シナリオを選択して「シミュレーション実行」を押してください。
+                        </span>
+                    </div>
+                </template>
+
+            </template>
+
+            <!-- ============ NORMAL MODE ============ -->
+            <template lwc:else>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <lightning-combobox
+                        label="サプライヤー"
+                        value={filterSupplier}
+                        options={supplierOptions}
+                        onchange={handleSupplierFilter}
+                        variant="label-hidden"
+                        class="filter-combo">
+                    </lightning-combobox>
+                    <lightning-combobox
+                        label="都道府県"
+                        value={filterPrefecture}
+                        options={prefectureOptions}
+                        onchange={handlePrefectureFilter}
+                        variant="label-hidden"
+                        class="filter-combo">
+                    </lightning-combobox>
+                    <template lwc:if={hasActiveFilter}>
+                        <lightning-button
+                            label="クリア"
+                            variant="destructive-text"
+                            icon-name="utility:close"
+                            onclick={handleClearFilters}
+                            class="filter-clear">
+                        </lightning-button>
+                    </template>
+                </div>
+
+                <!-- Summary -->
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <div class="summary-value">{totalSuppliers}</div>
+                        <div class="summary-label">サプライヤー</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalSites}</div>
+                        <div class="summary-label">製造拠点</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalParts}</div>
+                        <div class="summary-label">供給部品</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalProducts}</div>
+                        <div class="summary-label">影響製品</div>
+                    </div>
+                    <div class="summary-item cost">
+                        <div class="summary-value">{totalCost}</div>
+                        <div class="summary-label">供給総額</div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend-bar">
+                    <template for:each={supplierLegend} for:item="sup">
+                        <span key={sup.id} class="legend-chip">
+                            <span class="legend-dot" style={sup.dotStyle}></span>
+                            <span class="legend-name">{sup.name}</span>
+                            <span class="legend-count">{sup.siteCount}</span>
+                        </span>
+                    </template>
+                </div>
+
+                <!-- Main layout -->
+                <div class="main-layout">
+                    <div class="map-col">
+                        <div class="map-container">
+                            <lightning-map
+                                map-markers={mapMarkers}
+                                center={mapCenter}
+                                zoom-level="6"
+                                list-view="hidden"
+                                onmarkerselect={handleMarkerSelect}>
+                            </lightning-map>
+                        </div>
+                    </div>
+                    <div class="side-col">
+                        <template lwc:if={hasSiteSelected}>
+                            <div class="site-detail">
+                                <div class="back-link">
+                                    <lightning-button label="一覧に戻る" variant="base"
+                                        icon-name="utility:back" onclick={handleBackToList}>
+                                    </lightning-button>
+                                </div>
+                                <div class="site-header">
+                                    <div class="site-title">
+                                        <lightning-icon icon-name="standard:location" size="small"></lightning-icon>
+                                        <span class="site-name">{selectedSiteName}</span>
+                                        <template lwc:if={selectedSiteIsAssembly}>
+                                            <span class="site-type-tag assembly">組立拠点</span>
+                                        </template>
+                                    </div>
+                                    <div class="site-address">{selectedSiteAddress}</div>
+                                    <div class="site-supplier">
+                                        <a href="#" onclick={handleNavigateSupplier}>
+                                            <lightning-icon icon-name="standard:account" size="xx-small"></lightning-icon>
+                                            <span class="slds-m-left_xx-small">{selectedSiteSupplier}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="site-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value">{selectedSitePartCount}</span>
+                                        <span class="stat-label">部品</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">{selectedSiteProductCount}</span>
+                                        <span class="stat-label">製品</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">{selectedSiteTotalCost}</span>
+                                        <span class="stat-label">供給額</span>
+                                    </div>
+                                </div>
+                                <template lwc:if={hasSelectedSiteCapacity}>
+                                    <div class="site-cap-info">
+                                        <lightning-icon icon-name="utility:trending" size="xx-small"></lightning-icon>
+                                        <span>キャパシティ管理: {selectedSiteCapCount} 品目</span>
+                                    </div>
+                                </template>
+                                <div class="site-products">
+                                    <span class="products-label">影響製品:</span>
+                                    <span class="products-list">{selectedSiteProducts}</span>
+                                </div>
+                                <div class="parts-table">
+                                    <lightning-datatable key-field="id" data={selectedSiteParts}
+                                        columns={partColumns} hide-checkbox-column>
+                                    </lightning-datatable>
+                                </div>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <div class="site-cards-list">
+                                <template for:each={siteCards} for:item="card">
+                                    <div key={card.id} class={card.cardClass} style={card.borderColor}
+                                         data-id={card.id} onclick={handleSiteCardClick}>
+                                        <div class="card-top">
+                                            <span class="card-name">{card.name}</span>
+                                            <template lwc:if={card.siteTypeLabel}>
+                                                <span class={card.siteTypeClass}>{card.siteTypeLabel}</span>
+                                            </template>
+                                        </div>
+                                        <div class="card-supplier">{card.supplierName}</div>
+                                        <div class="card-stats">
+                                            <span>{card.partCount} 部品</span>
+                                            <span>{card.productCount} 製品</span>
+                                            <span>{card.costLabel}</span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Enterprise</fullName>
+        <default>false</default>
+        <label>Enterprise</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Mid-Market</fullName>
+        <default>false</default>
+        <label>Mid-Market</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Small Business</fullName>
+        <default>false</default>
+        <label>Small Business</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Partner</fullName>
+        <default>false</default>
+        <isActive>false</isActive>
+        <label>Partner</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Person</fullName>
+        <default>false</default>
+        <label>Person</label>
+    </standardValue>
+</StandardValueSet>

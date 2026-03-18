@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先の基本情報・商談・ケース・責任者・活動を一括取得し、総合的な分析データを返します。「この取引先を分析して」と言われた時に使用してください。</description>
+    <invocationTarget>AccountInsightFullAnalysis</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>取引先総合分析</masterLabel>
+</GenAiFunction>

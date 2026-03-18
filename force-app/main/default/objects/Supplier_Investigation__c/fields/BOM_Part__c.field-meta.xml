@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>BOM_Part__c</fullName>
+    <label>調査対象部品</label>
+    <type>Lookup</type>
+    <referenceTo>BOM_Part__c</referenceTo>
+    <relationshipLabel>サプライヤー調査</relationshipLabel>
+    <relationshipName>Supplier_Investigations</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

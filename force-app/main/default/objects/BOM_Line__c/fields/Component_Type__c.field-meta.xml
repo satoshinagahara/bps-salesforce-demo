@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Component_Type__c</fullName>
+    <label>種別</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>アセンブリ</fullName><default>false</default><label>アセンブリ</label></value>
+            <value><fullName>部品</fullName><default>true</default><label>部品</label></value>
+            <value><fullName>素材</fullName><default>false</default><label>素材</label></value>
+            <value><fullName>ファントム</fullName><default>false</default><label>ファントム</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

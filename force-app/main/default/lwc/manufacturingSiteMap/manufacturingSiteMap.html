@@ -1,0 +1,120 @@
+<template>
+    <lightning-card icon-name="standard:location">
+        <div slot="title">製造拠点マップ</div>
+
+        <div class="card-body">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="msg-box msg-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Empty -->
+            <template lwc:elseif={isEmpty}>
+                <div class="msg-box">
+                    <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                    <span class="slds-m-left_x-small">この取引先の製造拠点は登録されていません。</span>
+                </div>
+            </template>
+
+            <!-- Data -->
+            <template lwc:else>
+
+                <!-- Summary -->
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <div class="summary-value">{totalSites}</div>
+                        <div class="summary-label">製造拠点</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalParts}</div>
+                        <div class="summary-label">供給部品数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalProducts}</div>
+                        <div class="summary-label">影響製品数</div>
+                    </div>
+                    <div class="summary-item cost">
+                        <div class="summary-value">{totalCost}</div>
+                        <div class="summary-label">供給総額</div>
+                    </div>
+                </div>
+
+                <!-- Map -->
+                <div class="map-container">
+                    <lightning-map
+                        map-markers={mapMarkers}
+                        center={mapCenter}
+                        zoom-level="6"
+                        list-view="hidden"
+                        onmarkerselect={handleMarkerSelect}>
+                    </lightning-map>
+                </div>
+
+                <!-- Selected site detail -->
+                <template lwc:if={hasSiteSelected}>
+                    <div class="site-detail">
+                        <div class="site-header">
+                            <div class="site-title">
+                                <lightning-icon icon-name="standard:location" size="small"></lightning-icon>
+                                <span class="site-name">{selectedSiteName}</span>
+                                <span class={selectedSiteRiskClass}>{selectedSiteRiskLevel}</span>
+                            </div>
+                            <div class="site-address">{selectedSiteAddress}</div>
+                        </div>
+
+                        <div class="site-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">{selectedSitePartCount}</span>
+                                <span class="stat-label">部品</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">{selectedSiteProductCount}</span>
+                                <span class="stat-label">製品</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">{selectedSiteTotalCost}</span>
+                                <span class="stat-label">供給額</span>
+                            </div>
+                        </div>
+
+                        <div class="site-products">
+                            <span class="products-label">影響製品:</span>
+                            <span class="products-list">{selectedSiteProducts}</span>
+                        </div>
+
+                        <div class="parts-table">
+                            <lightning-datatable
+                                key-field="id"
+                                data={selectedSiteParts}
+                                columns={partColumns}
+                                hide-checkbox-column>
+                            </lightning-datatable>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Hint -->
+                <template lwc:if={hasSiteSelected}>
+                </template>
+                <template lwc:else>
+                    <div class="msg-box hint">
+                        <lightning-icon icon-name="utility:touch_action" size="small"></lightning-icon>
+                        <span class="slds-m-left_x-small">地図上のピンをクリックすると、拠点の供給部品を表示します。</span>
+                    </div>
+                </template>
+
+            </template>
+        </div>
+    </lightning-card>
+</template>

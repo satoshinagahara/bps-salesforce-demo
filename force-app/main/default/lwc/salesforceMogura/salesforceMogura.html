@@ -1,0 +1,133 @@
+<template>
+    <div class="mogura-container">
+        <!-- ===== START SCREEN ===== -->
+        <template lwc:if={isStartScreen}>
+            <div class="start-screen">
+                <div class="title-icon">🔨</div>
+                <h1 class="title">Salesforce<br/>モグラたたき</h1>
+                <p class="subtitle">Salesforceキャラクターをたたけ！</p>
+
+                <div class="characters-preview">
+                    <template for:each={characterList} for:item="ch">
+                        <div key={ch.name} class="preview-item">
+                            <span class="preview-emoji">{ch.emoji}</span>
+                            <span class="preview-label">{ch.name}</span>
+                            <span class="preview-pts">{ch.pointLabel}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">難易度</label>
+                    <div class="difficulty-buttons">
+                        <template for:each={difficulties} for:item="diff">
+                            <button
+                                key={diff.value}
+                                class={diff.className}
+                                data-value={diff.value}
+                                onclick={handleDifficultySelect}
+                            >{diff.label}</button>
+                        </template>
+                    </div>
+                </div>
+
+                <button class="start-button" onclick={handleStart}>🎮 スタート</button>
+            </div>
+        </template>
+
+        <!-- ===== GAME SCREEN ===== -->
+        <template lwc:if={isGameScreen}>
+            <div class="game-screen">
+                <!-- Header -->
+                <div class="game-header">
+                    <div class="header-item">
+                        <span class="header-label">スコア</span>
+                        <span class="header-value score-value">🔥 {score}</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-label">コンボ</span>
+                        <span class={comboClass}>{comboDisplay}</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-label">レベル</span>
+                        <span class="header-value">Lv.{level}</span>
+                    </div>
+                    <div class="header-item">
+                        <span class="header-label">残り時間</span>
+                        <span class={timerClass}>⏱ {timeLeft}s</span>
+                    </div>
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="timer-bar-container">
+                    <div class={timerBarClass} style={timerBarStyle}></div>
+                </div>
+
+                <!-- Hit Effect -->
+                <template lwc:if={showHitEffect}>
+                    <div class="hit-effect" style={hitEffectStyle}>+{hitPoints}</div>
+                </template>
+
+                <!-- Game Grid -->
+                <div class="game-grid">
+                    <template for:each={holes} for:item="hole">
+                        <div key={hole.id} class="hole-wrapper">
+                            <div class={hole.holeClass} data-id={hole.id} onclick={handleWhack}>
+                                <template lwc:if={hole.isActive}>
+                                    <div class={hole.moleClass}>
+                                        <span class="mole-emoji">{hole.emoji}</span>
+                                    </div>
+                                </template>
+                                <template lwc:else>
+                                    <div class="hole-empty"></div>
+                                </template>
+                            </div>
+                            <div class="hole-base"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- ===== RESULT SCREEN ===== -->
+        <template lwc:if={isResultScreen}>
+            <div class="result-screen">
+                <h2 class="result-title">⏱ タイムアップ！</h2>
+
+                <div class="result-score">
+                    <div class="final-score">{score}</div>
+                    <div class="final-score-label">SCORE</div>
+                </div>
+
+                <div class="result-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">たたいた数</span>
+                        <span class="stat-value">{totalHits}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">ミス</span>
+                        <span class="stat-value">{totalMisses}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">最大コンボ</span>
+                        <span class="stat-value">{maxCombo}x</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">到達レベル</span>
+                        <span class="stat-value">Lv.{level}</span>
+                    </div>
+                </div>
+
+                <div class="rank-display">
+                    <div class="rank-badge">{rankEmoji}</div>
+                    <div class="rank-name">{rankName}</div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="retry-button" onclick={handleRetry}>もう一度</button>
+                    <button class="change-button" onclick={handleBack}>タイトルに戻る</button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

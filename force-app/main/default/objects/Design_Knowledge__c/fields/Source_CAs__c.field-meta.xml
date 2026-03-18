@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Source_CAs__c</fullName>
+    <label>参照元の是正措置</label>
+    <required>false</required>
+    <type>LongTextArea</type>
+    <length>5000</length>
+    <visibleLines>4</visibleLines>
+</CustomField>

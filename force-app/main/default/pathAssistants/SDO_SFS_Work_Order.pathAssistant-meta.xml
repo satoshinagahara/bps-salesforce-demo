@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>WorkOrder</entityName>
+    <fieldName>Status</fieldName>
+    <masterLabel>SFS - Work Order</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Address</fieldNames>
+        <fieldNames>ContactId</fieldNames>
+        <info>&lt;ol&gt;&lt;li&gt;Verify address and contact info with customer to confirm service location and contact&lt;/li&gt;&lt;li&gt;Add any additional knowledge articles for technician while on-site&lt;/li&gt;&lt;li&gt;Add additional product required if necessary&lt;/li&gt;&lt;li&gt;Book Appointment with customer for preferred appointment time&lt;/li&gt;&lt;/ol&gt;</info>
+        <picklistValueName>New</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>__MASTER__</recordTypeName>
+</PathAssistant>

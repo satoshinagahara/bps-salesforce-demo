@@ -1,0 +1,83 @@
+<template>
+    <lightning-card icon-name="standard:product_request">
+        <span slot="title">製品ロードマップ</span>
+        <span slot="actions" if:true={familyLabel}>
+            <span class="family-tag">{familyLabel}</span>
+        </span>
+
+        <template if:true={isLoading}>
+            <div class="slds-p-around_medium">
+                <lightning-spinner alternative-text="読み込み中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:true={error}>
+                <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+            </template>
+
+            <template if:false={hasData}>
+                <div class="slds-p-around_medium slds-text-color_weak empty-msg">
+                    この商談の製品に関連する施策・開発プロジェクトはありません
+                </div>
+            </template>
+
+            <template if:true={hasData}>
+                <!-- 施策セクション -->
+                <template if:true={hasInitiatives}>
+                    <div class="section-header">
+                        <lightning-icon icon-name="standard:goals" size="x-small"></lightning-icon>
+                        <span class="section-title">検討中の施策 ({initiativeCount})</span>
+                    </div>
+                    <div class="card-list">
+                        <template for:each={initiatives} for:item="item">
+                            <div key={item.id} class="road-card" data-id={item.id} onclick={navigateToRecord}>
+                                <div class="road-card__header">
+                                    <span class="road-card__priority">{item.priorityIcon}</span>
+                                    <span class="road-card__name">{item.name}</span>
+                                    <span class={item.statusClass}>{item.status}</span>
+                                </div>
+                                <div class="road-card__title">{item.title}</div>
+                                <div class="road-card__meta">
+                                    <span class="road-card__product">{item.product}</span>
+                                    <span class="road-card__date">{item.dateRange}</span>
+                                </div>
+                                <template if:true={item.description}>
+                                    <div class="road-card__desc">{item.description}</div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- 設計プロジェクトセクション -->
+                <template if:true={hasProjects}>
+                    <div class="section-header">
+                        <lightning-icon icon-name="standard:drafts" size="x-small"></lightning-icon>
+                        <span class="section-title">設計開発プロジェクト ({projectCount})</span>
+                    </div>
+                    <div class="card-list">
+                        <template for:each={designProjects} for:item="item">
+                            <div key={item.id} class="road-card" data-id={item.id} onclick={navigateToRecord}>
+                                <div class="road-card__header">
+                                    <span class="road-card__name">{item.name}</span>
+                                    <span class={item.statusClass}>{item.status}</span>
+                                </div>
+                                <div class="road-card__title">{item.projectName}</div>
+                                <div class="road-card__meta">
+                                    <span class="road-card__product">{item.product}</span>
+                                    <span class="road-card__date">{item.dateRange}</span>
+                                </div>
+                                <template if:true={item.hasInitiative}>
+                                    <div class="road-card__initiative">
+                                        施策: {item.initiative}
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </template>
+        </template>
+    </lightning-card>
+</template>

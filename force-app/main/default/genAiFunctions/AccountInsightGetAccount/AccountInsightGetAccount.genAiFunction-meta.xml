@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先IDから基本情報（業種・売上・従業員数・所在地）と関連レコード数の統計を取得します。取引先レコードページで使用してください。</description>
+    <invocationTarget>AccountInsightGetAccount</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>取引先概要取得</masterLabel>
+</GenAiFunction>

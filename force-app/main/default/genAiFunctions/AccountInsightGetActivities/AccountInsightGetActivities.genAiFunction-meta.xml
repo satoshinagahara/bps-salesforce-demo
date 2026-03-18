@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先の商談に紐づく活動(Task)と行動(Event)を分析し、エンゲージメント状況・未完了タスク・今後の予定を返します。</description>
+    <invocationTarget>AccountInsightGetActivities</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>商談関連活動・行動分析</masterLabel>
+</GenAiFunction>

@@ -1,0 +1,175 @@
+/* サマリーカード */
+.kpi-summary {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    flex-wrap: wrap;
+}
+
+.kpi-card {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 16px 8px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e1e5eb;
+}
+
+.kpi-card--danger {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 16px 8px;
+    border-radius: 8px;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #1a1a2e;
+}
+
+.kpi-value--danger {
+    color: #e74c3c;
+}
+
+.kpi-value--warning {
+    color: #f39c12;
+}
+
+.kpi-value--success {
+    color: #27ae60;
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* セクション */
+.kpi-section {
+    padding: 0 16px 16px;
+}
+
+.kpi-section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* 重大度バッジ */
+.severity-row {
+    display: flex;
+    gap: 10px;
+}
+
+.severity-badge {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-radius: 8px;
+    color: #fff;
+}
+
+.severity-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.severity-label {
+    font-size: 0.7rem;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+
+/* フェーズチャート */
+.phase-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.phase-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 22px;
+}
+
+.phase-label {
+    width: 24px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #4a5568;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.phase-bar-container {
+    flex: 1;
+    height: 16px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.phase-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+    min-width: 0;
+}
+
+.phase-count {
+    width: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* カテゴリリスト */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.category-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.category-name {
+    flex: 1;
+    font-size: 0.8rem;
+    color: #374151;
+}
+
+.category-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+}

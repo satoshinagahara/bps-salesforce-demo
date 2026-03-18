@@ -1,0 +1,121 @@
+.stats-bar {
+    display: flex;
+    gap: 1.5rem;
+    background: #f4f6f9;
+    border-radius: 8px;
+    margin: 0 1rem;
+    flex-wrap: wrap;
+}
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 60px;
+}
+.stat-label {
+    font-size: 0.68rem;
+    color: #706e6b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #181818;
+}
+.stat-value.good {
+    color: #04844b;
+}
+.stat-value.warn {
+    color: #c23934;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 0.5rem;
+}
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+.history-table th {
+    background: #f4f6f9;
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 2px solid #d8dde6;
+    white-space: nowrap;
+}
+.history-table td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid #e0e5ee;
+    vertical-align: middle;
+}
+.history-row {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.history-row:hover {
+    background: #f0f4ff;
+}
+.selected-row {
+    background: #eef6e6 !important;
+}
+.num-col {
+    text-align: right;
+}
+.rfq-cell {
+    max-width: 200px;
+}
+.rfq-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+.rfq-title {
+    font-size: 0.72rem;
+    color: #706e6b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.diff-good {
+    color: #04844b;
+    font-weight: 600;
+}
+.diff-bad {
+    color: #c23934;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-pending {
+    background: #f3f2f2;
+    color: #706e6b;
+}
+.status-responded {
+    background: #e1f5fe;
+    color: #0070d2;
+}
+.status-declined {
+    background: #fbe4e4;
+    color: #c23934;
+}
+.status-adopted {
+    background: #eef6e6;
+    color: #04844b;
+}
+.status-rejected {
+    background: #f3f2f2;
+    color: #999;
+}

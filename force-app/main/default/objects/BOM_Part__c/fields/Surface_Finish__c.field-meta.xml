@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Surface_Finish__c</fullName>
+    <label>表面処理</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>生地</fullName><default>true</default><label>生地</label></value>
+            <value><fullName>メッキ（ニッケル）</fullName><default>false</default><label>メッキ（ニッケル）</label></value>
+            <value><fullName>メッキ（亜鉛）</fullName><default>false</default><label>メッキ（亜鉛）</label></value>
+            <value><fullName>塗装</fullName><default>false</default><label>塗装</label></value>
+            <value><fullName>アルマイト</fullName><default>false</default><label>アルマイト</label></value>
+            <value><fullName>その他</fullName><default>false</default><label>その他</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,134 @@
+<template>
+    <lightning-card icon-name="standard:flow">
+        <div slot="title">サプライヤー供給インパクト</div>
+
+        <div class="card-body">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="msg-box msg-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Empty -->
+            <template lwc:elseif={isEmpty}>
+                <div class="msg-box">
+                    <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                    <span class="slds-m-left_x-small">この取引先からの供給部品はありません。</span>
+                </div>
+            </template>
+
+            <!-- Data -->
+            <template lwc:else>
+
+                <!-- KPI Summary -->
+                <div class="summary-bar">
+                    <div class="summary-item cost">
+                        <div class="summary-value">{totalSupplyCost}</div>
+                        <div class="summary-label">供給総額</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalParts}</div>
+                        <div class="summary-label">供給部品数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{totalProducts}</div>
+                        <div class="summary-label">影響製品数</div>
+                    </div>
+                    <div class="summary-item shared">
+                        <div class="summary-value">{sharedPartCount}</div>
+                        <div class="summary-label">共通部品</div>
+                    </div>
+                </div>
+
+                <!-- Risk Warning -->
+                <template lwc:if={hasRiskWarning}>
+                    <div class="risk-warning">
+                        <lightning-icon icon-name="utility:warning" size="x-small" variant="warning"></lightning-icon>
+                        <span class="slds-m-left_x-small">{riskWarningMessage}</span>
+                    </div>
+                </template>
+
+                <template lwc:if={hasCapacityAlerts}>
+                    <div class="capacity-warning">
+                        <lightning-icon icon-name="utility:clock" size="x-small" variant="error"></lightning-icon>
+                        <span class="slds-m-left_x-small">{capacityAlertMessage}</span>
+                    </div>
+                </template>
+
+                <!-- Dependency Chart -->
+                <div class="section-title">製品別サプライヤー依存度</div>
+                <div class="chart-legend">
+                    <span class="legend-item legend-low">低リスク (&lt;30%)</span>
+                    <span class="legend-item legend-medium">中リスク (30-50%)</span>
+                    <span class="legend-item legend-high">高リスク (&ge;50%)</span>
+                </div>
+                <div class="chart-area">
+                    <template for:each={productBars} for:item="prod">
+                        <div key={prod.productId} class="chart-row">
+                            <a class="product-name" href={prod.productUrl}>
+                                <span class="product-code">{prod.productCode}</span>
+                                {prod.productName}
+                            </a>
+                            <div class="bar-container">
+                                <div class="threshold-line threshold-30"></div>
+                                <div class="threshold-line threshold-50"></div>
+                                <div class={prod.barClass} style={prod.barWidth}>
+                                    <span class="bar-label">{prod.dependencyLabel}</span>
+                                </div>
+                            </div>
+                            <div class="chart-meta">
+                                <span class="meta-cost">{prod.supplierCostLabel}</span>
+                                <span class="meta-parts">{prod.partCount}部品</span>
+                            </div>
+                            <div class="badge-slot">
+                                <template lwc:if={prod.hasRiskBadge}>
+                                    <span class={prod.riskBadgeClass}>{prod.riskLabel}</span>
+                                </template>
+                            </div>
+                            <template lwc:if={prod.hasCapAlerts}>
+                                <div class="cap-alert-slot">
+                                    <span class="cap-alert-badge">{prod.capAlertLabel}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Parts Toggle -->
+                <div class="parts-toggle">
+                    <lightning-button
+                        label={partsToggleLabel}
+                        icon-name={partsToggleIcon}
+                        icon-position="right"
+                        variant="base"
+                        onclick={handleToggleParts}>
+                    </lightning-button>
+                </div>
+
+                <!-- Parts Table -->
+                <template lwc:if={showParts}>
+                    <div class="parts-table">
+                        <lightning-datatable
+                            key-field="id"
+                            data={partRows}
+                            columns={partColumns}
+                            hide-checkbox-column
+                            show-row-number-column>
+                        </lightning-datatable>
+                    </div>
+                </template>
+
+            </template>
+        </div>
+    </lightning-card>
+</template>

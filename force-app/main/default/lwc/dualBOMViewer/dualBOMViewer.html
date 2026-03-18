@@ -1,0 +1,151 @@
+<template>
+    <lightning-card>
+        <div slot="title">
+            <lightning-icon icon-name="standard:hierarchy" size="small" class="slds-m-right_x-small"></lightning-icon>
+            BOM構成比較
+        </div>
+
+        <div class="dual-wrap">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="error-box">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Main -->
+            <template lwc:elseif={hasData}>
+
+                <!-- Legend -->
+                <div class="legend-row">
+                    <span class="risk-badge legend-risk">!</span>
+                    <span class="legend-text">は是正措置に関連する部品（リスクあり）を示します。クリックで該当の是正措置へ遷移できます。</span>
+                </div>
+
+                <div class="pane-grid">
+
+                    <!-- Base (M-BOM) Pane -->
+                    <div class="pane">
+                        <div class="pane-header base-header">
+                            <div class="pane-label">ベース製品（M-BOM）</div>
+                            <div class="pane-product">{baseTitle}</div>
+                            <div class="pane-bom-info">{baseBomInfo}</div>
+                            <template lwc:if={hasBaseBOM}>
+                                <div class="pane-stats">{baseLineCount} ライン ・ {basePartCount} 部品</div>
+                            </template>
+                        </div>
+                        <div class="pane-body">
+                            <template lwc:if={hasBaseBOM}>
+                                <template for:each={baseLines} for:item="row">
+                                    <div key={row.key} class="tree-row" data-type={row.type}>
+                                        <template lwc:if={row.isLine}>
+                                            <div class="tree-node indent-0" data-id={row.id} onclick={handleToggleBase}>
+                                                <span class="tree-icon">{row.icon}</span>
+                                                <span class="tree-name">{row.name}</span>
+                                                <template lwc:if={row.hasRisk}>
+                                                    <span class="risk-badge" title="関連する是正措置あり">!</span>
+                                                </template>
+                                                <span class="tree-detail">{row.detail}</span>
+                                            </div>
+                                        </template>
+                                        <template lwc:elseif={row.isSub}>
+                                            <div class="tree-node indent-1" data-id={row.id} onclick={handleToggleBase}>
+                                                <span class="tree-icon">{row.icon}</span>
+                                                <span class="tree-name">{row.name}</span>
+                                                <template lwc:if={row.hasRisk}>
+                                                    <span class="risk-badge" title="関連する是正措置あり">!</span>
+                                                </template>
+                                                <span class="tree-detail">{row.detail}</span>
+                                            </div>
+                                        </template>
+                                        <template lwc:elseif={row.isPart}>
+                                            <div class="tree-node indent-2">
+                                                <span class="tree-icon part-dot">{row.icon}</span>
+                                                <span class="tree-name">{row.name}</span>
+                                                <template lwc:if={row.hasRisk}>
+                                                    <span class="risk-badge risk-clickable" title={row.riskTooltip}>!</span>
+                                                    <template for:each={row.risks} for:item="r">
+                                                        <span key={r.id} class="risk-ca" data-id={r.id} onclick={handleNavigateCA}>{r.name}</span>
+                                                    </template>
+                                                </template>
+                                                <span class="tree-detail">{row.detail}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </template>
+                            <template lwc:else>
+                                <p class="empty-msg">ベースBOM未設定</p>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- New (E-BOM) Pane -->
+                    <div class="pane">
+                        <div class="pane-header new-header">
+                            <div class="pane-label">新製品（E-BOM）</div>
+                            <div class="pane-product">{newTitle}</div>
+                            <div class="pane-bom-info">{newBomInfo}</div>
+                            <template lwc:if={hasNewBOM}>
+                                <div class="pane-stats">{newLineCount} ライン ・ {newPartCount} 部品</div>
+                            </template>
+                        </div>
+                        <div class="pane-body">
+                            <template lwc:if={newTreeEmpty}>
+                                <div class="empty-design">
+                                    <lightning-icon icon-name="utility:edit" size="large" class="empty-icon"></lightning-icon>
+                                    <p class="empty-title">設計BOM 未確定</p>
+                                    <p class="empty-sub">製品設計フェーズで構成を確定予定</p>
+                                </div>
+                            </template>
+                            <template lwc:else>
+                                <template for:each={newLines} for:item="row">
+                                    <div key={row.key} class="tree-row" data-type={row.type}>
+                                        <template lwc:if={row.isLine}>
+                                            <div class="tree-node indent-0" data-id={row.id} onclick={handleToggleNew}>
+                                                <span class="tree-icon">{row.icon}</span>
+                                                <span class="tree-name">{row.name}</span>
+                                                <span class="tree-detail">{row.detail}</span>
+                                            </div>
+                                        </template>
+                                        <template lwc:elseif={row.isSub}>
+                                            <div class="tree-node indent-1" data-id={row.id} onclick={handleToggleNew}>
+                                                <span class="tree-icon">{row.icon}</span>
+                                                <span class="tree-name">{row.name}</span>
+                                                <span class="tree-detail">{row.detail}</span>
+                                            </div>
+                                        </template>
+                                        <template lwc:elseif={row.isPart}>
+                                            <div class="tree-node indent-2">
+                                                <span class="tree-icon part-dot">{row.icon}</span>
+                                                <span class="tree-name">{row.name}</span>
+                                                <span class="tree-detail">{row.detail}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </template>
+                        </div>
+                    </div>
+
+                </div>
+
+            </template>
+
+            <!-- No Data -->
+            <template lwc:else>
+                <p class="no-data">プロジェクトデータがありません</p>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,113 @@
+<template>
+    <lightning-card title={cardTitle} icon-name="standard:work_order">
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="読み込み中"></lightning-spinner>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:false={hasData}>
+                <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                    この案件に紐づく是正処置はありません
+                </div>
+            </template>
+
+            <template if:true={hasData}>
+                <div class="slds-p-around_small">
+                    <template for:each={correctiveActions} for:item="ca">
+                        <div key={ca.id} class="ca-card slds-m-bottom_small">
+                            <!-- Header -->
+                            <div class="ca-header">
+                                <div class="ca-header-left">
+                                    <span class={ca.severityBadgeClass}>{ca.severity}</span>
+                                    <a class="ca-title" data-id={ca.id} onclick={handleNavigateToCA}>
+                                        {ca.name} — {ca.title}
+                                    </a>
+                                </div>
+                                <div class="ca-header-right">
+                                    <template if:true={ca.isCompleted}>
+                                        <span class="completed-badge">完了</span>
+                                    </template>
+                                    <template if:false={ca.isCompleted}>
+                                        <span class="phase-label">{ca.phase}</span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- 8D Progress Bar -->
+                            <div class="phase-progress">
+                                <div class="phase-bar-track">
+                                    <div class="phase-bar-fill" style={ca.progressBarStyle}></div>
+                                </div>
+                                <div class="phase-steps">
+                                    <template for:each={ca.phases} for:item="phase">
+                                        <div key={phase.key} class={phase.stepClass} title={phase.full}>
+                                            <span class="phase-dot"></span>
+                                            <span class="phase-text">{phase.label}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Detail Info -->
+                            <div class="ca-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">区分</span>
+                                    <span class="detail-value">{ca.category}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">製品</span>
+                                    <span class="detail-value">{ca.productName}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">原因部品</span>
+                                    <span class="detail-value">{ca.partName}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">サプライヤー</span>
+                                    <span class="detail-value">{ca.supplierName}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">リーダー</span>
+                                    <span class="detail-value">{ca.teamLeadName}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">目標完了</span>
+                                    <span class="detail-value">
+                                        <lightning-formatted-date-time value={ca.targetCloseDate}></lightning-formatted-date-time>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Impact Scope -->
+                            <template if:true={ca.impactScope}>
+                                <div class="impact-scope">
+                                    <span class="detail-label">影響範囲</span>
+                                    <span class="scope-tags">{ca.impactScope}</span>
+                                </div>
+                            </template>
+
+                            <!-- Supplier Investigations -->
+                            <template if:true={ca.hasInvestigations}>
+                                <div class="si-section">
+                                    <div class="si-header">サプライヤー調査</div>
+                                    <template for:each={ca.investigations} for:item="si">
+                                        <div key={si.record.Id} class="si-row">
+                                            <span class={si.statusBadgeClass}>{si.record.Status__c}</span>
+                                            <a class="si-link" data-id={si.record.Id} onclick={handleNavigateToSI}>
+                                                {si.record.Name}
+                                            </a>
+                                            <span class="si-supplier">{si.supplierName}</span>
+                                            <template if:true={si.overdueLabel}>
+                                                <span class="overdue-badge">{si.overdueLabel}</span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

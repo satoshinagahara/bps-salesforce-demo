@@ -1,0 +1,167 @@
+<template>
+    <div class="quiz-container">
+        <!-- ===== START SCREEN ===== -->
+        <template lwc:if={isStartScreen}>
+            <div class="start-screen">
+                <div class="title-section">
+                    <div class="title-icon">⚡</div>
+                    <h1 class="title">Salesforce認定試験<br/>クイズバトル</h1>
+                    <p class="subtitle">AIが生成する問題に挑戦しよう</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="setting-group">
+                        <label class="setting-label">カテゴリ</label>
+                        <div class="category-buttons">
+                            <template for:each={categories} for:item="cat">
+                                <button
+                                    key={cat.value}
+                                    class={cat.className}
+                                    data-value={cat.value}
+                                    onclick={handleCategorySelect}
+                                >{cat.icon} {cat.label}</button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="setting-label">難易度</label>
+                        <div class="difficulty-buttons">
+                            <template for:each={difficulties} for:item="diff">
+                                <button
+                                    key={diff.value}
+                                    class={diff.className}
+                                    data-value={diff.value}
+                                    onclick={handleDifficultySelect}
+                                >{diff.label}</button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="start-button" onclick={handleStart}>
+                    🎮 スタート
+                </button>
+            </div>
+        </template>
+
+        <!-- ===== LOADING SCREEN ===== -->
+        <template lwc:if={isLoading}>
+            <div class="loading-screen">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">AIがクイズを生成中...</p>
+                <p class="loading-sub">{selectedCategoryLabel} / {selectedDifficultyLabel}</p>
+            </div>
+        </template>
+
+        <!-- ===== QUIZ SCREEN ===== -->
+        <template lwc:if={isQuizScreen}>
+            <div class="quiz-screen">
+                <!-- Header -->
+                <div class="quiz-header">
+                    <span class="quiz-progress">Q{currentQuestionNum} / {totalQuestions}</span>
+                    <span class="quiz-timer">⏱ {formattedTime}</span>
+                    <span class="quiz-score">🔥 {totalScore}pt</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style={progressBarStyle}></div>
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="timer-bar-container">
+                    <div class={timerBarClass} style={timerBarStyle}></div>
+                </div>
+
+                <!-- Question -->
+                <div class="question-card">
+                    <p class="question-text">{currentQuestion.question}</p>
+                </div>
+
+                <!-- Choices -->
+                <div class="choices-container">
+                    <template for:each={currentChoices} for:item="choice">
+                        <button
+                            key={choice.label}
+                            class={choice.className}
+                            data-label={choice.label}
+                            onclick={handleAnswer}
+                            disabled={isAnswered}
+                        >
+                            <span class="choice-label">{choice.label}</span>
+                            <span class="choice-text">{choice.text}</span>
+                            <template lwc:if={choice.icon}>
+                                <span class="choice-icon">{choice.icon}</span>
+                            </template>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Result Feedback -->
+                <template lwc:if={isAnswered}>
+                    <div class={feedbackClass}>
+                        <div class="feedback-header">
+                            <template lwc:if={isCorrect}>
+                                <span class="feedback-icon">✅</span>
+                                <span class="feedback-title">正解！ +{questionScore}pt</span>
+                                <template lwc:if={hasBonus}>
+                                    <span class="bonus-text">（⏱ 早答えボーナス +{bonusScore}pt）</span>
+                                </template>
+                            </template>
+                            <template lwc:else>
+                                <span class="feedback-icon">❌</span>
+                                <span class="feedback-title">不正解... 正解は {currentQuestion.answer}</span>
+                            </template>
+                        </div>
+                        <p class="explanation">💡 {currentQuestion.explanation}</p>
+                        <button class="next-button" onclick={handleNext}>
+                            {nextButtonLabel} →
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- ===== RESULT SCREEN ===== -->
+        <template lwc:if={isResultScreen}>
+            <div class="result-screen">
+                <h2 class="result-title">🏆 結果発表 🏆</h2>
+
+                <div class="result-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">スコア</span>
+                        <span class="stat-value">{totalScore}<span class="stat-unit"> / {maxScore}</span></span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">正答率</span>
+                        <span class="stat-value">{correctCount}<span class="stat-unit"> / {totalQuestions} ({correctRate}%)</span></span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">平均回答時間</span>
+                        <span class="stat-value">{avgAnswerTime}<span class="stat-unit">秒</span></span>
+                    </div>
+                </div>
+
+                <div class="rank-display">
+                    <div class="rank-badge">{rankEmoji}</div>
+                    <div class="rank-name">{rankName}</div>
+                </div>
+
+                <div class="rank-table">
+                    <template for:each={rankList} for:item="r">
+                        <div key={r.name} class={r.className}>
+                            <span>{r.stars} {r.name}</span>
+                            <span class="rank-req">{r.requirement}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="result-actions">
+                    <button class="retry-button" onclick={handleRetry}>もう一度</button>
+                    <button class="change-button" onclick={handleChangeCategory}>カテゴリを変えて挑戦</button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

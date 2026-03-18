@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Gate_Result__c</fullName>
+    <label>ゲートレビュー結果</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>合格</fullName>
+                <default>false</default>
+                <label>合格</label>
+            </value>
+            <value>
+                <fullName>条件付合格</fullName>
+                <default>false</default>
+                <label>条件付合格</label>
+            </value>
+            <value>
+                <fullName>差戻し</fullName>
+                <default>false</default>
+                <label>差戻し</label>
+            </value>
+            <value>
+                <fullName>未実施</fullName>
+                <default>true</default>
+                <label>未実施</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

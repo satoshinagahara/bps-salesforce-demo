@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>false</agentDSLEnabled>
+    <agentTemplate>AiCopilot__AgentforceAgent</agentTemplate>
+    <agentType>EinsteinServiceAgent</agentType>
+    <botMlDomain>
+        <label>AccountSummaryEmployeeAgent</label>
+        <name>AccountSummaryEmployeeAgent</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Employee Agent to help sales representatives collect and summarize account information from Salesforce.</description>
+    <label>AccountSummaryEmployeeAgent</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

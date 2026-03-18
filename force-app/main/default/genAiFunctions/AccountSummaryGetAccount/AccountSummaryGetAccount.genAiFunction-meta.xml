@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先名をもとに取引先の基本情報（業種・売上・従業員数・所在地など）を検索して返します。</description>
+    <invocationTarget>AccountSummaryGetAccount</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>取引先基本情報取得</masterLabel>
+</GenAiFunction>

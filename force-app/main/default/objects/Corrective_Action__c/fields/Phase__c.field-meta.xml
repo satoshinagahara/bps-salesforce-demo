@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Phase__c</fullName>
+    <label>フェーズ</label>
+    <type>Picklist</type>
+    <required>true</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>D1 チーム編成</fullName><default>true</default><label>D1 チーム編成</label></value>
+            <value><fullName>D2 問題定義</fullName><default>false</default><label>D2 問題定義</label></value>
+            <value><fullName>D3 暫定対応</fullName><default>false</default><label>D3 暫定対応</label></value>
+            <value><fullName>D4 原因分析</fullName><default>false</default><label>D4 原因分析</label></value>
+            <value><fullName>D5 恒久対策立案</fullName><default>false</default><label>D5 恒久対策立案</label></value>
+            <value><fullName>D6 実施・検証</fullName><default>false</default><label>D6 実施・検証</label></value>
+            <value><fullName>D7 再発防止</fullName><default>false</default><label>D7 再発防止</label></value>
+            <value><fullName>D8 完了</fullName><default>false</default><label>D8 完了</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

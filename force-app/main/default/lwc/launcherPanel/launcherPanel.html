@@ -1,0 +1,49 @@
+<template>
+    <lightning-card title="Launcher">
+        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+            <!-- Search -->
+            <div class="search-bar">
+                <lightning-input
+                    type="search"
+                    placeholder="検索..."
+                    value={searchTerm}
+                    onchange={handleSearch}
+                    variant="label-hidden"
+                ></lightning-input>
+            </div>
+
+            <template if:true={error}>
+                <div class="slds-text-color_error slds-p-around_small">{error}</div>
+            </template>
+
+            <template if:true={noResults}>
+                <div class="slds-text-color_weak slds-p-around_medium slds-text-align_center">
+                    一致する項目がありません
+                </div>
+            </template>
+
+            <!-- Categories -->
+            <template for:each={categories} for:item="cat">
+                <div key={cat.name} class="category-section">
+                    <div class="category-header" data-category={cat.name} onclick={toggleCategory}>
+                        <span class={cat.chevronClass}>&#9656;</span>
+                        <span class="category-label">{cat.name}</span>
+                    </div>
+                    <div class={cat.sectionClass}>
+                        <template for:each={cat.items} for:item="item">
+                            <button
+                                key={item.key}
+                                class="launcher-btn"
+                                data-id={item.Id}
+                                onclick={handleClick}
+                                title={item.Description__c}
+                            >
+                                {item.Name}
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

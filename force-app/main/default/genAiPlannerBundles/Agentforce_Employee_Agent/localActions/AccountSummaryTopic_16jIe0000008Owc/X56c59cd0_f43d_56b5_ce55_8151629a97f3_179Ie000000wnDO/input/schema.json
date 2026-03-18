@@ -1,0 +1,14 @@
+{
+  "required" : [ "accountName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "accountName" : {
+      "title" : "取引先名",
+      "description" : "検索する取引先の名前（部分一致）",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

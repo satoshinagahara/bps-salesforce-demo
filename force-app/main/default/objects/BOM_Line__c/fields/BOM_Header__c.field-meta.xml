@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>BOM_Header__c</fullName>
+    <label>BOM Header</label>
+    <referenceTo>BOM_Header__c</referenceTo>
+    <relationshipLabel>BOM Lines</relationshipLabel>
+    <relationshipName>BOM_Lines</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <trackHistory>false</trackHistory>
+    <type>MasterDetail</type>
+</CustomField>

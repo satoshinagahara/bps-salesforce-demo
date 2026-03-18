@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>true</enableActivities>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <label>購買見積回答</label>
+    <nameField>
+        <displayFormat>QT-{0000}</displayFormat>
+        <label>購買見積回答番号</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>購買見積回答</pluralLabel>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

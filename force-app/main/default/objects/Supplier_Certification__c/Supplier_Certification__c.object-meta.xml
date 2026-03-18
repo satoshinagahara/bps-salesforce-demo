@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>サプライヤー認証</label>
+    <pluralLabel>サプライヤー認証</pluralLabel>
+    <nameField>
+        <label>認証番号</label>
+        <type>AutoNumber</type>
+        <displayFormat>CERT-{0000}</displayFormat>
+        <startingNumber>1</startingNumber>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

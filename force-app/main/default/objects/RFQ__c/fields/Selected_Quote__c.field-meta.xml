@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Selected_Quote__c</fullName>
+    <label>採用見積</label>
+    <type>Lookup</type>
+    <referenceTo>RFQ_Quote__c</referenceTo>
+    <relationshipLabel>採用された見積依頼</relationshipLabel>
+    <relationshipName>SelectedRFQs</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+</CustomField>

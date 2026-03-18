@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Procurement_Guideline__c</fullName>
+    <label>調達指針</label>
+    <type>Html</type>
+    <length>32768</length>
+    <visibleLines>25</visibleLines>
+</CustomField>

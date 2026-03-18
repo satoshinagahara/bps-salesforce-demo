@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <interviewLabel>ニーズカード抽出 {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>ニーズカード抽出</label>
+    <processType>Flow</processType>
+    <status>Active</status>
+    <runInMode>DefaultMode</runInMode>
+
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Start_Screen</targetReference>
+        </connector>
+    </start>
+
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <variables>
+        <name>resultMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <variables>
+        <name>createdCount</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+    </variables>
+
+    <variables>
+        <name>mergedCount</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+    </variables>
+
+    <variables>
+        <name>skippedCount</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+    </variables>
+
+    <variables>
+        <name>errorMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <actionCalls>
+        <name>Extract_Needs</name>
+        <label>ニーズ抽出実行</label>
+        <locationX>176</locationX>
+        <locationY>240</locationY>
+        <actionName>NeedsCardExtractionAction</actionName>
+        <actionType>apex</actionType>
+        <connector>
+            <targetReference>Check_Error</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Fault_Screen</targetReference>
+        </faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>meetingRecordId</name>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputParameters>
+        <outputParameters>
+            <assignToReference>resultMessage</assignToReference>
+            <name>resultMessage</name>
+        </outputParameters>
+        <outputParameters>
+            <assignToReference>createdCount</assignToReference>
+            <name>createdCount</name>
+        </outputParameters>
+        <outputParameters>
+            <assignToReference>mergedCount</assignToReference>
+            <name>mergedCount</name>
+        </outputParameters>
+        <outputParameters>
+            <assignToReference>skippedCount</assignToReference>
+            <name>skippedCount</name>
+        </outputParameters>
+        <outputParameters>
+            <assignToReference>errorMessage</assignToReference>
+            <name>errorMessage</name>
+        </outputParameters>
+    </actionCalls>
+
+    <decisions>
+        <name>Check_Error</name>
+        <label>エラーチェック</label>
+        <locationX>176</locationX>
+        <locationY>360</locationY>
+        <defaultConnector>
+            <targetReference>Result_Screen</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>成功</defaultConnectorLabel>
+        <rules>
+            <name>Has_Error</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>errorMessage</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Error_Screen</targetReference>
+            </connector>
+            <label>エラーあり</label>
+        </rules>
+    </decisions>
+
+    <screens>
+        <name>Start_Screen</name>
+        <label>ニーズカード抽出</label>
+        <locationX>176</locationX>
+        <locationY>80</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <connector>
+            <targetReference>Extract_Needs</targetReference>
+        </connector>
+        <nextOrFinishButtonLabel>ニーズを抽出する</nextOrFinishButtonLabel>
+        <fields>
+            <name>startInstructions</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;ニーズカード抽出&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;この面談記録のサマリー・文字起こしから、顧客のニーズをAIで自動抽出し、&lt;b&gt;ニーズカード&lt;/b&gt;として構造化します。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;既存のニーズカードとの重複チェックも自動で行います。&lt;/p&gt;&lt;p&gt;処理には数秒〜十数秒かかる場合があります。&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+
+    <screens>
+        <name>Result_Screen</name>
+        <label>抽出結果</label>
+        <locationX>176</locationX>
+        <locationY>480</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>resultDisplay</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;抽出完了&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;{!resultMessage}&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;抽出されたニーズカードは「ニーズカード」タブまたは取引先の関連リストから確認できます。&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+
+    <screens>
+        <name>Error_Screen</name>
+        <label>エラー</label>
+        <locationX>440</locationX>
+        <locationY>360</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>errorDisplay</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;color: rgb(186, 5, 23);&quot;&gt;ニーズ抽出中にエラーが発生しました。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;{!errorMessage}&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+
+    <screens>
+        <name>Fault_Screen</name>
+        <label>システムエラー</label>
+        <locationX>440</locationX>
+        <locationY>240</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>faultDisplay</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;color: rgb(186, 5, 23);&quot;&gt;予期しないエラーが発生しました。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;{!$Flow.FaultMessage}&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+</Flow>

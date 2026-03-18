@@ -1,0 +1,95 @@
+<template>
+    <lightning-card title="調達ステータスボード" icon-name="standard:orders">
+
+        <!-- サマリーカード -->
+        <div class="kpi-summary">
+            <div class="kpi-card">
+                <div class="kpi-value">{openCount}</div>
+                <div class="kpi-label">オープンRFQ</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value kpi-value--warning">{evaluatingCount}</div>
+                <div class="kpi-label">評価中</div>
+            </div>
+            <div class={dueSoonClass}>
+                <div class="kpi-value kpi-value--danger">{dueSoonCount}</div>
+                <div class="kpi-label">期限間近/超過</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value kpi-value--success">{decidedCount}</div>
+                <div class="kpi-label">決定済</div>
+            </div>
+        </div>
+
+        <!-- カテゴリ別 -->
+        <template if:true={hasCategories}>
+            <div class="kpi-section">
+                <h3 class="section-title">調達カテゴリ（オープン中）</h3>
+                <div class="category-row">
+                    <template for:each={categoryItems} for:item="item">
+                        <div key={item.label} class="category-badge" style={item.style}>
+                            <span class="category-count">{item.count}</span>
+                            <span class="category-label">{item.label}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- オープンRFQ一覧 -->
+        <template if:true={hasRFQs}>
+            <div class="kpi-section">
+                <h3 class="section-title">オープンRFQ一覧</h3>
+                <div class="rfq-list">
+                    <template for:each={rfqItems} for:item="item">
+                        <div key={item.id} class={item.rowClass} data-id={item.id} onclick={handleRFQClick}>
+                            <div class="rfq-header">
+                                <span class="rfq-name">{item.name}</span>
+                                <span class="status-badge" style={item.statusStyle}>{item.status}</span>
+                                <template if:true={item.hasDueBadge}>
+                                    <span class={item.dueBadgeClass}>{item.dueBadge}</span>
+                                </template>
+                            </div>
+                            <div class="rfq-title">{item.title}</div>
+                            <div class="rfq-details">
+                                <span class="rfq-detail">部品: {item.partNumber}</span>
+                                <span class="rfq-detail">回答: {item.responseRate}</span>
+                                <span class="rfq-detail">最安値: {item.lowestPrice}</span>
+                                <span class="rfq-detail">目標: {item.targetPrice}</span>
+                                <span class="rfq-detail">期限: {item.dueDate}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- 最新見積回答 -->
+        <template if:true={hasQuotes}>
+            <div class="kpi-section">
+                <h3 class="section-title">最新の見積回答</h3>
+                <div class="quote-list">
+                    <template for:each={quoteItems} for:item="item">
+                        <div key={item.key} class="quote-row">
+                            <div class="quote-supplier">{item.supplierName}</div>
+                            <div class="quote-details">
+                                <span class="quote-detail">{item.rfqName} — {item.partNumber}</span>
+                                <span class={item.priceClass}>{item.priceDisplay}</span>
+                                <span class="quote-detail">LT: {item.leadTimeDays}</span>
+                                <span class="quote-detail">{item.responseDate}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- エラー -->
+        <template if:true={error}>
+            <div class="slds-text-color_error slds-p-around_small">
+                データの取得中にエラーが発生しました。
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

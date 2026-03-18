@@ -1,0 +1,106 @@
+<template>
+    <lightning-card icon-name="standard:link">
+        <span slot="title">関連ニーズ候補</span>
+        <span slot="actions">
+            <lightning-badge label={linkedLabel}></lightning-badge>
+        </span>
+
+        <template if:true={isLoading}>
+            <div class="slds-p-around_medium slds-text-align_center">
+                <lightning-spinner alternative-text="読み込み中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={error}>
+            <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:false={hasCandidate}>
+                <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center empty-msg">
+                    関連する未紐付けニーズカードはありません
+                </div>
+            </template>
+
+            <template if:true={hasCandidate}>
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <span class="candidate-count">候補 {candidateCount}件</span>
+                        <button class="tool-btn" onclick={handleSelectAll}>{selectAllLabel}</button>
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="tool-btn tool-btn--ai" onclick={handleAnalyze} disabled={isAnalyzing}>
+                            <template if:true={isAnalyzing}>分析中...</template>
+                            <template if:false={isAnalyzing}>AI関連度分析</template>
+                        </button>
+                        <template if:true={hasSelection}>
+                            <button class="tool-btn tool-btn--link" onclick={handleLink} disabled={isLinking}>
+                                {linkButtonLabel}
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Panel -->
+                <template if:true={isAnalyzing}>
+                    <div class="analysis-panel">
+                        <div class="analysis-loading">
+                            <lightning-spinner alternative-text="分析中" size="small"></lightning-spinner>
+                            <span class="analysis-loading-text">AIが関連度を分析しています...</span>
+                        </div>
+                    </div>
+                </template>
+
+                <template if:true={hasAnalysis}>
+                    <div class="analysis-panel">
+                        <div class="analysis-header">
+                            <span class="analysis-title">AI関連度分析</span>
+                            <button class="close-btn" onclick={handleCloseAnalysis}>&#10005;</button>
+                        </div>
+                        <div class="analysis-body">
+                            <template for:each={analysisLines} for:item="line">
+                                <p key={line.key} class={line.className}>{line.text}</p>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Candidate list -->
+                <div class="candidate-list">
+                    <template for:each={candidates} for:item="card">
+                        <div key={card.id} class={card.cardClass} data-id={card.id} onclick={handleCardClick}>
+                            <div class="need-card__check">
+                                <template if:true={card.selected}>
+                                    <span class="check-on">&#10003;</span>
+                                </template>
+                                <template if:false={card.selected}>
+                                    <span class="check-off"></span>
+                                </template>
+                            </div>
+                            <div class="need-card__body">
+                                <div class="need-card__top">
+                                    <span class="need-card__name">{card.name}</span>
+                                    <span class={card.relevanceClass}>{card.relevanceLabel}</span>
+                                    <span class={card.priorityClass}>{card.priorityLabel}</span>
+                                    <span class="need-card__type">{card.needType}</span>
+                                </div>
+                                <div class="need-card__title">{card.title}</div>
+                                <div class="need-card__meta">
+                                    <span class="need-card__account">{card.account}</span>
+                                    <span class="need-card__product">{card.product}</span>
+                                    <template if:true={card.impactFormatted}>
+                                        <span class="need-card__impact">{card.impactFormatted}</span>
+                                    </template>
+                                </div>
+                                <template if:true={card.description}>
+                                    <div class="need-card__desc">{card.description}</div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

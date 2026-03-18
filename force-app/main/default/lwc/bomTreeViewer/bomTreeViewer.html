@@ -1,0 +1,148 @@
+<template>
+    <lightning-card icon-name="standard:product_item">
+        <div slot="title">
+            BOM ツリービュー
+        </div>
+        <div slot="actions">
+            <template lwc:if={hasData}>
+                <lightning-button-group>
+                    <lightning-button
+                        label="すべて展開"
+                        icon-name="utility:expand_all"
+                        onclick={handleExpandAll}>
+                    </lightning-button>
+                    <lightning-button
+                        label="すべて折りたたむ"
+                        icon-name="utility:collapse_all"
+                        onclick={handleCollapseAll}>
+                    </lightning-button>
+                </lightning-button-group>
+            </template>
+        </div>
+
+        <div class="tree-wrap">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="msg-box msg-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Empty -->
+            <template lwc:elseif={isEmpty}>
+                <div class="msg-box">
+                    <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                    <span class="slds-m-left_x-small">この商品にBOMが登録されていません。</span>
+                </div>
+            </template>
+
+            <!-- Data -->
+            <template lwc:else>
+
+                <!-- Summary Bar -->
+                <div class="summary-bar">
+                    <template lwc:if={hasMultipleBoms}>
+                        <div class="summary-item">
+                            <div class="summary-value">{summaryBomCount}</div>
+                            <div class="summary-label">BOM数</div>
+                        </div>
+                    </template>
+                    <div class="summary-item cost">
+                        <div class="summary-value">{summaryTotalCost}</div>
+                        <div class="summary-label">
+                            <template lwc:if={hasMultipleBoms}>BOM別原価</template>
+                            <template lwc:else>総原価</template>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{summaryPartCount}</div>
+                        <div class="summary-label">部品数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">{summarySupplierCount}</div>
+                        <div class="summary-label">サプライヤー</div>
+                    </div>
+                    <div class="summary-item shared">
+                        <div class="summary-value">{summarySharedPartCount}</div>
+                        <div class="summary-label">共通部品</div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="search-box">
+                        <lightning-input
+                            type="search"
+                            placeholder="部品名・サプライヤー・品番で検索..."
+                            value={searchTerm}
+                            onchange={handleSearch}
+                            variant="label-hidden">
+                        </lightning-input>
+                    </div>
+                    <div class="depth-filter">
+                        <lightning-button-group>
+                            <lightning-button
+                                label="〜L2"
+                                variant={depthL2Variant}
+                                data-depth="2"
+                                onclick={handleDepthChange}>
+                            </lightning-button>
+                            <lightning-button
+                                label="〜L3"
+                                variant={depthL3Variant}
+                                data-depth="3"
+                                onclick={handleDepthChange}>
+                            </lightning-button>
+                            <lightning-button
+                                label="全レベル"
+                                variant={depthL4Variant}
+                                data-depth="4"
+                                onclick={handleDepthChange}>
+                            </lightning-button>
+                        </lightning-button-group>
+                    </div>
+                </div>
+
+                <!-- Level Legend -->
+                <div class="legend-bar">
+                    <span class="lv-badge lv1">L1 BOMヘッダー</span>
+                    <span class="lv-badge lv2">L2 BOM明細</span>
+                    <span class="lv-badge lv3">L3 サブコンポーネント</span>
+                    <span class="lv-badge lv4">L4 部品/素材</span>
+                    <span class="lv-badge shared-badge">★ 共通部品</span>
+                </div>
+
+                <!-- Tree Grid -->
+                <template lwc:if={hasTreeRows}>
+                    <lightning-tree-grid
+                        key-field="id"
+                        data={treeData}
+                        columns={columns}
+                        expanded-rows={expandedRows}
+                        hide-checkbox-column
+                        onrowaction={handleRowAction}>
+                    </lightning-tree-grid>
+                </template>
+
+                <!-- No search results -->
+                <template lwc:if={noSearchResults}>
+                    <div class="msg-box">
+                        <lightning-icon icon-name="utility:search" size="small"></lightning-icon>
+                        <span class="slds-m-left_x-small">一致する項目が見つかりません。</span>
+                    </div>
+                </template>
+
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

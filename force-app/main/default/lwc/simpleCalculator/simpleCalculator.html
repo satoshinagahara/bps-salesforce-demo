@@ -1,0 +1,42 @@
+<template>
+    <lightning-card title="電卓" icon-name="utility:formula">
+        <div class="calc-container">
+            <!-- ディスプレイ -->
+            <div class="calc-display">
+                <div class="calc-expression">{expression}</div>
+                <div class="calc-result">{display}</div>
+            </div>
+
+            <!-- ボタン -->
+            <div class="calc-buttons">
+                <!-- 行1 -->
+                <button class="btn btn-clear btn-wide" onclick={handleClear}>AC</button>
+                <button class="btn btn-clear" onclick={handleToggleSign}>+/-</button>
+                <button class="btn btn-operator" data-value="/" onclick={handleOperator}>&divide;</button>
+
+                <!-- 行2 -->
+                <button class="btn btn-number" data-value="7" onclick={handleNumber}>7</button>
+                <button class="btn btn-number" data-value="8" onclick={handleNumber}>8</button>
+                <button class="btn btn-number" data-value="9" onclick={handleNumber}>9</button>
+                <button class="btn btn-operator" data-value="*" onclick={handleOperator}>&times;</button>
+
+                <!-- 行3 -->
+                <button class="btn btn-number" data-value="4" onclick={handleNumber}>4</button>
+                <button class="btn btn-number" data-value="5" onclick={handleNumber}>5</button>
+                <button class="btn btn-number" data-value="6" onclick={handleNumber}>6</button>
+                <button class="btn btn-operator" data-value="-" onclick={handleOperator}>&minus;</button>
+
+                <!-- 行4 -->
+                <button class="btn btn-number" data-value="1" onclick={handleNumber}>1</button>
+                <button class="btn btn-number" data-value="2" onclick={handleNumber}>2</button>
+                <button class="btn btn-number" data-value="3" onclick={handleNumber}>3</button>
+                <button class="btn btn-operator" data-value="+" onclick={handleOperator}>+</button>
+
+                <!-- 行5 -->
+                <button class="btn btn-number btn-zero" data-value="0" onclick={handleNumber}>0</button>
+                <button class="btn btn-number" data-value="." onclick={handleDot}>.</button>
+                <button class="btn btn-equal" onclick={handleEqual}>=</button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

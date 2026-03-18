@@ -1,0 +1,241 @@
+/* ── Container ──────────────────────────────────────────────────────────── */
+:host { display: block; }
+
+.dual-wrap {
+    padding: 0 1rem 1.25rem;
+}
+
+.center-pad {
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.error-box {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    color: #ba0517;
+    font-size: 0.85rem;
+}
+
+/* ── Two-pane grid ───────────────────────────────────────────────────────── */
+.pane-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.pane {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Pane header ─────────────────────────────────────────────────────────── */
+.pane-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #f3f2f2;
+}
+
+.base-header {
+    border-left: 4px solid #0176d3;
+}
+
+.new-header {
+    border-left: 4px solid #2e844a;
+}
+
+.pane-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #706e6b;
+    letter-spacing: 0.5px;
+}
+
+.pane-product {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1c1c1e;
+    margin-top: 0.2rem;
+}
+
+.pane-bom-info {
+    font-size: 0.68rem;
+    color: #706e6b;
+    margin-top: 0.15rem;
+}
+
+.pane-stats {
+    font-size: 0.65rem;
+    color: #9a9999;
+    margin-top: 0.1rem;
+}
+
+/* ── Pane body (tree) ────────────────────────────────────────────────────── */
+.pane-body {
+    flex: 1;
+    padding: 0.5rem 0;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* ── Tree rows ───────────────────────────────────────────────────────────── */
+.tree-row {
+    line-height: 1;
+}
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.75rem;
+    cursor: default;
+    font-size: 0.75rem;
+    transition: background 0.15s;
+}
+
+.tree-node:hover {
+    background: #f8f8f8;
+}
+
+.indent-0 { padding-left: 0.75rem; cursor: pointer; }
+.indent-1 { padding-left: 1.75rem; cursor: pointer; }
+.indent-2 { padding-left: 2.75rem; }
+
+.tree-icon {
+    font-size: 0.6rem;
+    width: 12px;
+    text-align: center;
+    flex-shrink: 0;
+    color: #706e6b;
+}
+
+.part-dot {
+    font-size: 0.5rem;
+    color: #b0adab;
+}
+
+.tree-name {
+    font-weight: 600;
+    color: #1c1c1e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-detail {
+    font-size: 0.65rem;
+    color: #9a9999;
+    white-space: nowrap;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* ── Risk badge ──────────────────────────────────────────────────────────── */
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ba0517;
+    color: #ffffff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.risk-clickable {
+    cursor: help;
+}
+
+.risk-ca {
+    font-size: 0.6rem;
+    color: #ba0517;
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.risk-ca:hover {
+    color: #8b0000;
+}
+
+/* ── Empty state (E-BOM) ─────────────────────────────────────────────────── */
+.empty-design {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-icon {
+    --lwc-iconColorForeground: #b0adab;
+    margin-bottom: 0.75rem;
+}
+
+.empty-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #706e6b;
+}
+
+.empty-sub {
+    font-size: 0.72rem;
+    color: #9a9999;
+    margin-top: 0.25rem;
+}
+
+.empty-msg {
+    color: #9a9999;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+/* ── Legend (top) ─────────────────────────────────────────────────────────── */
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #fff8f0;
+    border: 1px solid #fed8b1;
+    border-radius: 6px;
+}
+
+.legend-risk {
+    width: 16px;
+    height: 16px;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+}
+
+.legend-text {
+    font-size: 0.72rem;
+    color: #5a5a58;
+}
+
+/* ── No data ─────────────────────────────────────────────────────────────── */
+.no-data {
+    color: #9a9999;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+    .pane-grid { grid-template-columns: 1fr; }
+}

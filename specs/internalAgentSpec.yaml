@@ -1,0 +1,16 @@
+agentType: internal
+companyName: My Company
+companyDescription: A company using Salesforce to manage sales and customer service operations.
+role: Help Salesforce internal sales representatives collect account information
+  and generate a comprehensive summary including opportunities, cases, and
+  contacts.
+maxNumOfTopics: 3
+enrichLogs: false
+tone: formal
+topics:
+  - name: Account Data Compilation
+    description: Aggregate account information including opportunities and cases.
+  - name: Contact Insights Retrieval
+    description: Extract and summarize contact details for active accounts.
+  - name: Opportunity Pipeline Analysis
+    description: Identify and summarize potential sales opportunities.

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>InitiativeNeedsRelevance</developerName>
+    <masterLabel>施策ニーズ関連度分析</masterLabel>
+    <templateVersions>
+        <content>あなたはBtoB製造業（エネルギー機器・ソリューション）の事業企画担当です。
+以下の製品施策と候補ニーズカードを比較し、関連度を評価してください。
+
+## 出力ルール
+1. 「関連度サマリー」: 施策と候補ニーズ群の全体的な関連性を2〜3文で要約
+2. 「高関連」: 施策に直接対応するニーズ。カードID・タイトル・理由を箇条書き
+3. 「中関連」: 間接的に関連するニーズ。カードID・タイトル・理由を箇条書き
+4. 「低関連」: 関連が薄いもの（省略可）
+5. 「カバレッジ評価」: この施策が候補ニーズの何割程度をカバーするか、カバーされないニーズ領域があれば指摘
+
+## 制約
+- データに基づく評価のみ
+- 各カードのIDとタイトルを必ず明記
+- 簡潔に（全体で500字以内を目安）
+
+## データ
+{!$Input:analysisData}</content>
+        <inputs>
+            <apiName>analysisData</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>analysisData</masterLabel>
+            <referenceName>Input:analysisData</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

@@ -1,0 +1,187 @@
+:host { display: block; }
+
+.card-body {
+    padding: 0 0.75rem 1rem;
+}
+
+.center-pad {
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.msg-box {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    color: #706e6b;
+    font-size: 0.85rem;
+}
+
+.msg-box.hint {
+    padding: 1rem;
+    justify-content: center;
+}
+
+.msg-error { color: #ba0517; }
+
+/* ── Summary bar ───────────────────────────────────────────────────── */
+.summary-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: #f4f6f9;
+    border-radius: 8px;
+}
+
+.summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+}
+
+.summary-item.cost {
+    flex: 1.3;
+    border-color: #0176d3;
+    border-width: 2px;
+}
+
+.summary-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #181818;
+    line-height: 1.3;
+}
+
+.summary-item.cost .summary-value {
+    color: #0176d3;
+}
+
+.summary-label {
+    font-size: 0.7rem;
+    color: #706e6b;
+    margin-top: 0.15rem;
+    letter-spacing: 0.03em;
+}
+
+/* ── Map ───────────────────────────────────────────────────────────── */
+.map-container {
+    height: 360px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+    margin-bottom: 0.75rem;
+}
+
+/* ── Site detail panel ─────────────────────────────────────────────── */
+.site-detail {
+    background: #f8f9fb;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.site-header {
+    margin-bottom: 0.5rem;
+}
+
+.site-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.site-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #181818;
+}
+
+.site-address {
+    font-size: 0.8rem;
+    color: #706e6b;
+    margin-top: 0.2rem;
+    padding-left: 1.75rem;
+}
+
+/* ── Risk badge ────────────────────────────────────────────────────── */
+.risk-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    margin-left: 0.3rem;
+}
+
+.risk-high {
+    background: #fde8e0;
+    color: #ba0517;
+    border: 1px solid #f5a79a;
+}
+
+.risk-medium {
+    background: #fef3cd;
+    color: #856404;
+    border: 1px solid #e8a427;
+}
+
+.risk-low {
+    background: #d4f5e2;
+    color: #2e844a;
+    border: 1px solid #97d6b0;
+}
+
+/* ── Site stats ────────────────────────────────────────────────────── */
+.site-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.stat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+}
+
+.stat-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #181818;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: #706e6b;
+}
+
+/* ── Products list ─────────────────────────────────────────────────── */
+.site-products {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    padding: 0.3rem 0;
+}
+
+.products-label {
+    color: #706e6b;
+    font-weight: 600;
+    margin-right: 0.3rem;
+}
+
+.products-list {
+    color: #181818;
+}
+
+/* ── Parts table ───────────────────────────────────────────────────── */
+.parts-table {
+    margin-top: 0.5rem;
+}

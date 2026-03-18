@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Manufacturing_Site__c</fullName>
+    <label>製造拠点</label>
+    <type>MasterDetail</type>
+    <referenceTo>Manufacturing_Site__c</referenceTo>
+    <relationshipName>Supplier_Capacities</relationshipName>
+    <relationshipLabel>供給キャパシティ</relationshipLabel>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

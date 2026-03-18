@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <canEscalate>false</canEscalate>
+    <description>This topic is chosen when a user requests tracking or status updates for active opportunities.</description>
+    <developerName>p_16jIe0000008OwN_Opportunity_Tracking</developerName>
+    <genAiFunctions>
+        <functionName>Sales__PrioritizeOpportunities</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>Sales__FindSimilarOpportunities</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>sales_pipe_mgmt__SuggestOppNextStep</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__AnswerQuestionsWithKnowledge</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the query is about prioritizing opportunities, use Sales__PrioritizeOpportunities.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the query is about suggesting the next step for an opportunity, use sales_pipe_mgmt__SuggestOppNextStep.</description>
+        <developerName>instruction_2</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_2</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the query is about finding similar opportunities, use Sales__FindSimilarOpportunities.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jIe0000008OwN_Opportunity_Tracking</localDeveloperName>
+    <masterLabel>Opportunity Tracking</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to only provide updates and monitor active opportunities, including their status and priority. You aren&apos;t able to create or delete opportunities.</scope>
+</GenAiPlugin>

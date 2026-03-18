@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>是正措置を起点に、同一サプライヤー・同一カテゴリの部品・製品・設計プロジェクトへの影響を横断分析し、水平展開先と推奨アクションを特定します。ユーザーがCA番号（CA-0000等）を指定した場合、そのCA番号をそのまま入力として渡してください。Salesforce IDへの変換は不要です。</description>
+    <invocationTarget>HorizontalDeploymentAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>水平展開分析</masterLabel>
+</GenAiFunction>

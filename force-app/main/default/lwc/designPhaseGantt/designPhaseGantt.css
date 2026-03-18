@@ -1,0 +1,268 @@
+/* ── Container ──────────────────────────────────────────────────────────── */
+:host { display: block; }
+
+.gantt-wrap {
+    padding: 0 1rem 1.25rem;
+}
+
+.center-pad {
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.error-box {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    color: #ba0517;
+    font-size: 0.85rem;
+}
+
+/* ── KPI tiles ───────────────────────────────────────────────────────────── */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.kpi-tile {
+    border-left: 4px solid var(--kpi-clr, #0176d3);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--kpi-clr, #0176d3);
+    line-height: 1.2;
+}
+
+.kpi-unit {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.kpi-lbl {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #3e3e3c;
+    margin-top: 0.15rem;
+}
+
+.progress-mini {
+    height: 5px;
+    background: #e8e8e8;
+    border-radius: 3px;
+    margin-top: 0.4rem;
+    overflow: hidden;
+}
+
+.progress-mini-fill {
+    height: 100%;
+    background: var(--kpi-clr, #0176d3);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* ── Gantt Chart ─────────────────────────────────────────────────────────── */
+.gantt-chart {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Header */
+.gantt-header {
+    display: flex;
+    border-bottom: 2px solid #f3f2f2;
+    margin-bottom: 0.25rem;
+}
+
+.gantt-label-col {
+    width: 160px;
+    flex-shrink: 0;
+    padding-right: 0.5rem;
+}
+
+.gantt-bar-col {
+    flex: 1;
+    position: relative;
+    min-height: 1px;
+}
+
+.month-row {
+    position: relative;
+    height: 24px;
+}
+
+.month-cell {
+    position: absolute;
+    top: 0;
+    height: 24px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #706e6b;
+    display: flex;
+    align-items: center;
+    padding-left: 4px;
+    border-left: 1px solid #e8e8e8;
+    box-sizing: border-box;
+}
+
+/* Rows */
+.gantt-row {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    border-bottom: 1px solid #f8f8f8;
+    padding: 0.35rem 0;
+}
+
+.gantt-row:last-child {
+    border-bottom: none;
+}
+
+/* Phase label */
+.phase-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1c1c1e;
+    line-height: 1.2;
+}
+
+.phase-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+}
+
+.status-badge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #ffffff;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    line-height: 1.3;
+}
+
+.gate-icon {
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.phase-owner {
+    font-size: 0.62rem;
+    color: #9a9999;
+    margin-top: 0.1rem;
+}
+
+/* Bar area */
+.bar-area {
+    position: relative;
+    height: 28px;
+    width: 100%;
+}
+
+.gantt-bar {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 4px;
+    min-width: 2px;
+}
+
+.planned-bar {
+    top: 0;
+    height: 28px;
+}
+
+.actual-bar {
+    top: 6px;
+    height: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Today line */
+.today-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ba0517;
+    z-index: 5;
+    /* offset for label column */
+    margin-left: 160px;
+    pointer-events: none;
+}
+
+.today-label {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: #ba0517;
+    white-space: nowrap;
+}
+
+/* ── Legend ───────────────────────────────────────────────────────────────── */
+.legend-row {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 0.6rem;
+    padding-left: 0.25rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.65rem;
+    color: #706e6b;
+}
+
+.legend-bar {
+    width: 20px;
+    height: 8px;
+    border-radius: 3px;
+}
+
+.planned-legend {
+    background: #0176d3;
+    opacity: 0.25;
+}
+
+.actual-legend {
+    background: #0176d3;
+}
+
+.today-legend-line {
+    width: 2px;
+    height: 12px;
+    background: #ba0517;
+}
+
+/* ── No data ─────────────────────────────────────────────────────────────── */
+.no-data {
+    color: #9a9999;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 540px) {
+    .gantt-label-col { width: 110px; }
+    .today-line { margin-left: 110px; }
+}

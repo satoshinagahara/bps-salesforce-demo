@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先に関する情報収集とサマリー生成を担当するトピックです。ユーザーが特定の取引先について質問した際に、基本情報・商談・担当者・ケースを収集して要約します。</description>
+    <masterLabel>取引先情報収集・サマリー</masterLabel>
+    <pluginType>Topic</pluginType>
+    <pluginInstructions>このトピックは以下のケースで使用してください：
+- ユーザーが取引先・会社・顧客の情報を求めている場合
+- 取引先のサマリー・まとめ・概要を求めている場合
+- 特定の会社の商談・担当者・ケース状況を知りたい場合
+
+アクションの実行順序：
+1. まず「取引先基本情報取得」を実行して取引先が存在するか確認する
+2. 並行して「関連商談取得」「取引先責任者取得」「関連ケース取得」を実行する
+3. 収集した全情報をもとに、わかりやすいサマリーを日本語で生成する
+
+サマリーには以下を含めること：
+- 取引先の基本プロフィール
+- 進行中の商談の状況（件数・合計金額）
+- 主要な担当者
+- 未解決ケースの有無と優先度</pluginInstructions>
+    <functions>
+        <functionName>AccountSummaryGetAccount</functionName>
+    </functions>
+    <functions>
+        <functionName>AccountSummaryGetOpportunities</functionName>
+    </functions>
+    <functions>
+        <functionName>AccountSummaryGetContacts</functionName>
+    </functions>
+    <functions>
+        <functionName>AccountSummaryGetCases</functionName>
+    </functions>
+</GenAiPlugin>

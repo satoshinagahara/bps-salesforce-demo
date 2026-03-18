@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>サプライヤー監査</label>
+    <pluralLabel>サプライヤー監査</pluralLabel>
+    <nameField>
+        <label>監査番号</label>
+        <type>AutoNumber</type>
+        <displayFormat>AUD-{0000}</displayFormat>
+        <startingNumber>1</startingNumber>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

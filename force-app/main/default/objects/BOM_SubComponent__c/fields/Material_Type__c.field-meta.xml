@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Material_Type__c</fullName>
+    <label>素材種別</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>金属</fullName><default>false</default><label>金属</label></value>
+            <value><fullName>樹脂</fullName><default>false</default><label>樹脂</label></value>
+            <value><fullName>電子部品</fullName><default>false</default><label>電子部品</label></value>
+            <value><fullName>ゴム</fullName><default>false</default><label>ゴム</label></value>
+            <value><fullName>その他</fullName><default>false</default><label>その他</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

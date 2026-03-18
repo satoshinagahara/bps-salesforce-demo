@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Source_CA__c</fullName>
+    <label>元の是正措置</label>
+    <type>Lookup</type>
+    <referenceTo>Corrective_Action__c</referenceTo>
+    <relationshipLabel>ナレッジ記事</relationshipLabel>
+    <relationshipName>Knowledge_Articles</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

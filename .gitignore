@@ -1,0 +1,21 @@
+# Salesforce auth credentials (personal, do not commit)
+sf-config.json
+server.key
+server.crt
+
+# Salesforce Bulk API result files
+*-success-records.csv
+*-failed-records.csv
+
+# Salesforce CLI local config
+.sf/
+.sfdx/
+
+# Claude Code local settings
+.claude/
+
+# macOS
+.DS_Store
+
+# Temporary files
+AccountSummaryAgent_Preview_*.json

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先のケースを優先度・ステータス別に集計し、未解決の高優先度ケースをリスクとして提示します。</description>
+    <invocationTarget>AccountInsightGetCases</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>ケース状況分析</masterLabel>
+</GenAiFunction>

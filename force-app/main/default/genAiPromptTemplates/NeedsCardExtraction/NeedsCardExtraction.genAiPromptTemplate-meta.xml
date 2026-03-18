@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>NeedsCardExtraction</developerName>
+    <masterLabel>ニーズカード抽出</masterLabel>
+    <templateVersions>
+        <content>あなたは製造業の営業支援AIです。面談記録から顧客のニーズを抽出し、構造化されたニーズカードを作成します。
+
+## 入力データ
+{!$Input:meetingContext}
+
+## 抽出ルール
+
+### ニーズの定義
+以下に該当する顧客の発言・要望をニーズとして抽出してください：
+- **製品ニーズ**: 製品の性能・機能・仕様に関する要望や期待
+- **サービスニーズ**: 保守、サポート、物流、納期など付帯サービスに関する要望
+- **クレーム**: 過去の品質問題や不満に関する言及
+- **改善要望**: 既存製品・サービスの改善要求
+- **新規案件**: 新たな製品・プロジェクトの引き合い
+
+### 判定基準（★最重要ルール）
+各抽出したニーズについて、既存ニーズカードと比較し以下のいずれかを判定：
+- **merge（最優先で検討）**: 既存カードと意味的に重なるニーズ → 既存カードに情報を追記
+  - 同じテーマ・同じ製品・同じ課題に関するニーズは、表現が異なってもmergeする
+  - 例: 既存「コスト削減要求」→ 今回「価格を1/3にしてほしい」→ merge（同じコスト関連のニーズ）
+  - 例: 既存「量産体制の確認」→ 今回「フォーキャスト連動の生産体制」→ merge（同じ供給体制のニーズ）
+  - 例: 既存「電源効率95%」→ 今回「効率向上が必須」→ merge（同じ効率改善ニーズ）
+  - 迷った場合はmergeを選ぶこと。重複カードが増えるより、既存カードに情報が蓄積される方が価値がある
+- **new**: 既存カードのどれとも関連しない完全に新しいニーズ → 新規作成
+- **skip**: 一般的な挨拶、雑談、自社側の発言、抽出するほどの内容でないもの
+
+### 構造化ルール
+- タイトルは簡潔に（30文字以内）
+- 顧客の声は、顧客が実際に発言した内容をできるだけ原文に近い形で引用
+- 優先度は以下の基準で判定：
+  - 高: 必須要件として明言、複数回言及、大きな金額に関連
+  - 中: 要望として言及、検討段階
+  - 低: 将来的な希望、情報収集段階
+- 関連製品名（productName）は「自社製品一覧」セクションに記載された製品名から選択すること。一覧にない名前を使わないこと。面談で言及された製品が一覧のどれに該当するか推論して選ぶこと（例: 「電源ユニット」→「パワーインバーター」、「チャージコントローラー」→「ソーラーチャージコントローラー」）
+- ビジネスインパクト金額は、商談関連金額が提示されている場合はそれを使用。言及された数量×単価から推定できる場合はその値を設定
+
+## 出力フォーマット
+
+以下のJSON形式のみを出力してください。JSON以外のテキストは含めないでください。
+
+```json
+{
+  &quot;needs&quot;: [
+    {
+      &quot;action&quot;: &quot;new&quot;,
+      &quot;title&quot;: &quot;ニーズのタイトル&quot;,
+      &quot;needType&quot;: &quot;製品ニーズ|サービスニーズ|クレーム|改善要望|新規案件&quot;,
+      &quot;productName&quot;: &quot;製品名（既存製品と一致させる）&quot;,
+      &quot;description&quot;: &quot;ニーズの詳細説明&quot;,
+      &quot;customerVoice&quot;: &quot;顧客の発言引用&quot;,
+      &quot;priority&quot;: &quot;高|中|低&quot;,
+      &quot;businessImpact&quot;: null,
+      &quot;impactSource&quot;: null
+    },
+    {
+      &quot;action&quot;: &quot;merge&quot;,
+      &quot;existingCardName&quot;: &quot;NC-XXXX&quot;,
+      &quot;additionalInfo&quot;: &quot;追記する情報&quot;,
+      &quot;customerVoice&quot;: &quot;新たな顧客発言引用&quot;,
+      &quot;priority&quot;: &quot;高|中|低&quot;
+    },
+    {
+      &quot;action&quot;: &quot;skip&quot;,
+      &quot;reason&quot;: &quot;スキップ理由&quot;
+    }
+  ]
+}
+```</content>
+        <inputs>
+            <apiName>meetingContext</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>meetingContext</masterLabel>
+            <referenceName>Input:meetingContext</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultGPT4Omni</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先名をもとに関連するサポートケース（ステータス・優先度・作成日など）の一覧を返します。</description>
+    <invocationTarget>AccountSummaryGetCases</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>関連ケース取得</masterLabel>
+</GenAiFunction>

@@ -1,0 +1,15 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "analysisData" : {
+      "title" : "サプライヤーインパクト分析データ",
+      "description" : "この出力は直接ユーザーに表示せず、次のアクション（サプライヤーインパクト分析レポート生成）の入力として使用します。",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

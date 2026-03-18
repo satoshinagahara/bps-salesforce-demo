@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Project_Manager__c</fullName>
+    <label>プロジェクトマネージャー</label>
+    <required>false</required>
+    <type>Lookup</type>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>設計開発プロジェクト（PM）</relationshipLabel>
+    <relationshipName>Design_Projects_PM</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

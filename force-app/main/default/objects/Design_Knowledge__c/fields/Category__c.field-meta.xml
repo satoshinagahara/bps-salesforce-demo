@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Category__c</fullName>
+    <label>部品種別</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>電子部品</fullName><default>false</default><label>電子部品</label></value>
+            <value><fullName>樹脂材料</fullName><default>false</default><label>樹脂材料</label></value>
+            <value><fullName>金属部品</fullName><default>false</default><label>金属部品</label></value>
+            <value><fullName>化学材料</fullName><default>false</default><label>化学材料</label></value>
+            <value><fullName>組立工程</fullName><default>false</default><label>組立工程</label></value>
+            <value><fullName>検査工程</fullName><default>false</default><label>検査工程</label></value>
+            <value><fullName>その他</fullName><default>false</default><label>その他</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

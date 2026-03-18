@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Certification_Type__c</fullName>
+    <label>認証種別</label>
+    <type>Picklist</type>
+    <required>true</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>ISO9001</fullName><default>false</default><label>ISO9001</label></value>
+            <value><fullName>ISO14001</fullName><default>false</default><label>ISO14001</label></value>
+            <value><fullName>IATF16949</fullName><default>false</default><label>IATF16949</label></value>
+            <value><fullName>ISO45001</fullName><default>false</default><label>ISO45001</label></value>
+            <value><fullName>RoHS</fullName><default>false</default><label>RoHS</label></value>
+            <value><fullName>REACH</fullName><default>false</default><label>REACH</label></value>
+            <value><fullName>UL</fullName><default>false</default><label>UL</label></value>
+            <value><fullName>その他</fullName><default>false</default><label>その他</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

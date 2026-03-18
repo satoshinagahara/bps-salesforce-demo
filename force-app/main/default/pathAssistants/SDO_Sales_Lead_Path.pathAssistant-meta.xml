@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Lead</entityName>
+    <fieldName>Status</fieldName>
+    <masterLabel>Sales - Lead Path</masterLabel>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;Go to the Account for this lead and start working!&lt;/p&gt;</info>
+        <picklistValueName>Converted</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Title</fieldNames>
+        <fieldNames>Company</fieldNames>
+        <fieldNames>Phone</fieldNames>
+        <fieldNames>Email</fieldNames>
+        <info>&lt;p&gt;&lt;b&gt;Research and contact your new lead quickly.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Research your lead online.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Visit their website to learn about their business and industry.&lt;/li&gt;&lt;li&gt;Look them up on social networks to determine how to best engage and connect.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Contact a new lead as soon as possible.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;The sooner you contact them, the higher the likelihood of converting them to a customer. &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Verify that their contact information is correct.&lt;/p&gt;</info>
+        <picklistValueName>New</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>SDO_Sales_Lead_Total__c</fieldNames>
+        <info>&lt;p&gt;&lt;b&gt;If the lead is qualified, convert them to an Account, Contact and Opportunity.  &lt;/b&gt;&lt;/p&gt;&lt;p&gt;This establishes them as a legitimate prospect and separates them from general leads.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;If the lead is not qualified, but might be someday, check the &amp;quot;Add to Nurture Campaign&amp;quot; box so our marketing team can engage them.&lt;/li&gt;&lt;li&gt;If the lead is not qualified and will never be, do nothing. These leads will be archived after a year.  &lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Qualified</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>SDO_Sales_Know_Decision_Maker__c</fieldNames>
+        <fieldNames>SDO_Sales_Project_Defined__c</fieldNames>
+        <fieldNames>SDO_Sales_Has_Budget__c</fieldNames>
+        <fieldNames>SDO_Sales_Decision_Timeframe__c</fieldNames>
+        <info>&lt;p&gt;&lt;b&gt;Verify contact information and qualify your lead.&lt;/b&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;If you contact your lead via phone, follow up immediately after with a thank you email.&lt;/li&gt;&lt;li&gt;If you contact your lead via email and they reply quickly, follow up immediately with a phone call&lt;/li&gt;&lt;li&gt;Complete the lead scoring fields to determine if they are a good prospect.&lt;/li&gt;&lt;li&gt;Rehearse your call script and qualification questions so you sound confident and the flow of your conversation is more natural.&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Working</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>SDO_Lead_Default</recordTypeName>
+</PathAssistant>

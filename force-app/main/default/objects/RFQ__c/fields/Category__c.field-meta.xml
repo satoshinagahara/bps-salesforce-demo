@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Category__c</fullName>
+    <label>カテゴリ</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>新規部品</fullName><default>false</default><label>新規部品</label></value>
+            <value><fullName>コスト見直し</fullName><default>false</default><label>コスト見直し</label></value>
+            <value><fullName>代替調達</fullName><default>false</default><label>代替調達</label></value>
+            <value><fullName>緊急調達</fullName><default>false</default><label>緊急調達</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

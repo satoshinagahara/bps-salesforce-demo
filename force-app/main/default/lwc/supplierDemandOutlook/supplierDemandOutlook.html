@@ -1,0 +1,149 @@
+<template>
+    <lightning-card title="サプライヤー需要見通し" icon-name="standard:entitlement">
+        <template if:true={error}>
+            <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+        </template>
+
+        <template if:true={hasData}>
+            <!-- Summary bar -->
+            <div class="summary-bar">
+                <div class="summary-item parts-item">
+                    <div class="summary-icon parts-icon">
+                        <lightning-icon icon-name="utility:package" size="xx-small" variant="inverse"></lightning-icon>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-label">供給部品</div>
+                        <div class="summary-value">{totalPartsFmt}</div>
+                        <div class="summary-sub">対象: {totalProductsFmt}</div>
+                    </div>
+                </div>
+                <div class="summary-item confirmed-item">
+                    <div class="summary-icon confirmed-icon">
+                        <lightning-icon icon-name="utility:check" size="xx-small" variant="inverse"></lightning-icon>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-label">確定需要（部品数量）</div>
+                        <div class="summary-value">{confirmedPartQtyFmt}</div>
+                        <div class="summary-sub">顧客: {confirmedCustomersFmt}</div>
+                    </div>
+                </div>
+                <div class="summary-item pipeline-item">
+                    <div class="summary-icon pipeline-icon">
+                        <lightning-icon icon-name="utility:trending" size="xx-small" variant="inverse"></lightning-icon>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-label">パイプライン（部品所要）</div>
+                        <div class="summary-value">{pipelinePartQtyFmt}</div>
+                        <div class="summary-sub">商談: {pipelineOppsFmt}</div>
+                    </div>
+                </div>
+            </div>
+
+            <template if:true={hasCapacityAlerts}>
+                <div class="capacity-alert-bar">
+                    <lightning-icon icon-name="utility:warning" size="xx-small" variant="warning"></lightning-icon>
+                    <span>{capacityAlertCount} 品目がキャパシティ80%超過</span>
+                </div>
+            </template>
+
+            <!-- Tabs -->
+            <div class="tabs-bar">
+                <button class={confirmedTabClass} data-tab="confirmed" onclick={handleTab}>確定需要</button>
+                <button class={pipelineTabClass} data-tab="pipeline" onclick={handleTab}>パイプライン</button>
+            </div>
+
+            <!-- Confirmed tab -->
+            <template if:true={isConfirmedTab}>
+                <template if:true={hasConfirmed}>
+                    <template for:each={confirmedProducts} for:item="cpd">
+                        <div key={cpd.key} class="product-card">
+                            <div class="prod-card-header">
+                                <div class="prod-card-title">
+                                    <span class="prod-card-name">{cpd.productName}</span>
+                                    <span class="prod-card-total">製品計画: {cpd.totalPlanQtyFmt} ／ 部品所要: {cpd.totalPartDemandFmt}</span>
+                                </div>
+                                <div class="parts-badges">{cpd.partsLabel}</div>
+                            </div>
+                            <table class="demand-table">
+                                <thead>
+                                    <tr>
+                                        <th>顧客</th><th>契約</th><th>ステータス</th>
+                                        <th>製品計画</th><th>製品実績</th><th>達成率</th><th>部品所要</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={cpd.customers} for:item="cd">
+                                        <tr key={cd.key}>
+                                            <td>
+                                                <a href="javascript:void(0)" data-id={cd.customerId} onclick={handleNavigate}>{cd.customerName}</a>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:void(0)" data-id={cd.agreementId} onclick={handleNavigate}>{cd.agreementName}</a>
+                                            </td>
+                                            <td><span class={cd.statusClass}>{cd.status}</span></td>
+                                            <td class="num">{cd.totalPlanQtyFmt}</td>
+                                            <td class="num">{cd.totalActualQtyFmt}</td>
+                                            <td class="num">{cd.achievementPct}</td>
+                                            <td class="num highlight">{cd.totalPartDemandFmt}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasConfirmed}>
+                    <div class="empty-msg">確定需要はありません</div>
+                </template>
+            </template>
+
+            <!-- Pipeline tab -->
+            <template if:true={isPipelineTab}>
+                <template if:true={hasPipeline}>
+                    <template for:each={pipelineProducts} for:item="ppd">
+                        <div key={ppd.key} class="product-card">
+                            <div class="prod-card-header pipeline-header">
+                                <div class="prod-card-title">
+                                    <span class="prod-card-name">{ppd.productName}</span>
+                                    <span class="prod-card-total">部品所要: {ppd.totalPartDemandFmt}</span>
+                                </div>
+                                <div class="parts-badges">{ppd.partsLabel}</div>
+                            </div>
+                            <table class="demand-table">
+                                <thead>
+                                    <tr>
+                                        <th>顧客</th><th>商談</th><th>ステージ</th>
+                                        <th>確度</th><th>予測数量</th><th>部品所要</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={ppd.opportunities} for:item="po">
+                                        <tr key={po.key}>
+                                            <td>
+                                                <a href="javascript:void(0)" data-id={po.customerId} onclick={handleNavigate}>{po.customerName}</a>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:void(0)" data-id={po.oppId} onclick={handleNavigate}>{po.oppName}</a>
+                                            </td>
+                                            <td><span class="stage-badge">{po.stageName}</span></td>
+                                            <td class="num">{po.probFmt}</td>
+                                            <td class="num">{po.totalForecastQtyFmt}</td>
+                                            <td class="num highlight">{po.totalPartDemandFmt}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasPipeline}>
+                    <div class="empty-msg">パイプラインはありません</div>
+                </template>
+            </template>
+        </template>
+
+        <template if:false={hasData}>
+            <div class="empty-msg">このサプライヤーの部品はBOMに登録されていません</div>
+        </template>
+    </lightning-card>
+</template>

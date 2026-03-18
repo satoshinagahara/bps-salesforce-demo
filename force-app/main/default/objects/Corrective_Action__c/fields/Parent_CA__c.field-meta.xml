@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent_CA__c</fullName>
+    <label>親是正処置</label>
+    <description>水平展開で派生した是正処置の場合、元の是正処置を参照</description>
+    <type>Lookup</type>
+    <referenceTo>Corrective_Action__c</referenceTo>
+    <relationshipLabel>派生是正処置</relationshipLabel>
+    <relationshipName>Derived_Actions</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

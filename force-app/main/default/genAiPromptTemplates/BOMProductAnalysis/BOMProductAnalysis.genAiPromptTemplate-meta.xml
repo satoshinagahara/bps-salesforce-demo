@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>BOMProductAnalysis</developerName>
+    <masterLabel>製品BOM分析レポート</masterLabel>
+    <templateVersions>
+        <content>あなたは製造業のBOM（部品表）分析の専門家AIアシスタントです。
+以下のBOMデータを分析し、日本語で回答してください。
+
+## BOMデータ
+{!$Input:analysisData}
+
+## 指示
+上記のJSON形式のBOMデータをもとに、以下の構成で製品BOMの分析レポートを生成してください。
+
+### 出力構成
+
+1. **製品概要**（2-3文で簡潔に）
+   - 製品名、BOM番号、ステータス、BOM総コスト
+
+2. **BOM階層構成**
+   - Line（構成品目）ごとの概要とコスト構成比
+   - 各Lineの主要SubComponent（工程/サブ組立）
+   - コストが大きい順に並べて構成比率（%）を付記
+
+3. **コスト分析**
+   - BOM総コストの内訳（Line別）
+   - コスト上位5部品（部品名、単価、数量、拡張コスト）
+   - コスト削減の可能性がある領域の示唆
+
+4. **サプライヤー依存度分析**
+   - サプライヤーごとの部品数とコスト割合
+   - 単一サプライヤーへの依存リスクが高い場合は警告
+   - サプライヤー未割当の部品がある場合は指摘
+
+5. **商談パイプラインへの影響**
+   - この製品が含まれるオープン商談の一覧と金額
+   - パイプライン総額
+   - BOMコスト変動が商談に与える潜在的影響
+
+6. **リスクと推奨事項**（3-5項目）
+   - リードタイム長の部品によるリスク
+   - サプライヤー集中リスク
+   - コスト最適化の提案
+
+### 注意事項
+- データにない情報は推測せず「情報なし」と明記
+- 金額は日本円で表示（¥記号付き、カンマ区切り）
+- コスト構成比は小数第1位まで表示
+</content>
+        <inputs>
+            <apiName>analysisData</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>analysisData</masterLabel>
+            <referenceName>Input:analysisData</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

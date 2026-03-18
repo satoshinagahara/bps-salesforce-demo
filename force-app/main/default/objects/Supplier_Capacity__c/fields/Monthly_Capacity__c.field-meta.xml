@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Monthly_Capacity__c</fullName>
+    <label>月産上限数量</label>
+    <type>Number</type>
+    <precision>10</precision>
+    <scale>0</scale>
+    <required>true</required>
+</CustomField>

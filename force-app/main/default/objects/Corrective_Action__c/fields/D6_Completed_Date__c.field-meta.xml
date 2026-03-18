@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>D6_Completed_Date__c</fullName>
+    <label>D6 実施・検証 - 完了日時</label>
+    <required>false</required>
+    <type>DateTime</type>
+</CustomField>

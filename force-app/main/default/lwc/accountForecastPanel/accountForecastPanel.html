@@ -1,0 +1,197 @@
+<template>
+    <lightning-card title="取引先フォーキャスト" icon-name="standard:forecasts">
+        <!-- Year filter -->
+        <div slot="actions">
+            <lightning-combobox
+                value={selectedYear}
+                options={yearOptions}
+                variant="label-hidden"
+                onchange={handleYearChange}
+                class="year-filter">
+            </lightning-combobox>
+        </div>
+
+        <template if:true={error}>
+            <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+        </template>
+        <template if:true={data}>
+            <!-- Summary bar -->
+            <div class="summary-bar">
+                <div class="summary-item confirmed">
+                    <div class="summary-icon">
+                        <lightning-icon icon-name="utility:check" size="xx-small" variant="inverse"></lightning-icon>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-label">確定収益（計画）</div>
+                        <div class="summary-value">{data.totalPlanAmtFmt}</div>
+                        <div class="summary-sub">実績: {data.totalActualAmtFmt}</div>
+                    </div>
+                </div>
+                <div class="summary-item dw">
+                    <div class="summary-icon dw-icon">
+                        <lightning-icon icon-name="utility:trending" size="xx-small" variant="inverse"></lightning-icon>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-label">DWパイプライン（加重）</div>
+                        <div class="summary-value">{data.totalWeightedFmt}</div>
+                    </div>
+                </div>
+                <div class="summary-item standard">
+                    <div class="summary-icon std-icon">
+                        <lightning-icon icon-name="utility:opportunity" size="xx-small" variant="inverse"></lightning-icon>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-label">通常商談（加重）</div>
+                        <div class="summary-value">{data.totalStdWeightedFmt}</div>
+                        <div class="summary-sub">総額: {data.totalStdAmountFmt}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-bar">
+                <button class={agreementsTabClass} data-tab="agreements" onclick={handleTab}>確定収益</button>
+                <button class={pipelineTabClass} data-tab="pipeline" onclick={handleTab}>DWパイプライン</button>
+                <button class={standardTabClass} data-tab="standard" onclick={handleTab}>通常商談</button>
+            </div>
+
+            <!-- Agreements tab -->
+            <template if:true={isAgreementsTab}>
+                <template if:true={hasAgreements}>
+                    <template for:each={data.agreements} for:item="ag">
+                        <div key={ag.id} class="agreement-card">
+                            <div class="ag-header">
+                                <div class="ag-title">
+                                    <lightning-icon icon-name="standard:contract" size="small"></lightning-icon>
+                                    <a href="javascript:void(0)" data-id={ag.id} onclick={handleNavigate}>{ag.name}</a>
+                                    <span class={ag.statusClass}>{ag.status}</span>
+                                </div>
+                                <div class="ag-period">{ag.contractPeriod}</div>
+                            </div>
+                            <div class="ag-metrics">
+                                <span>計画: {ag.totalPlanAmtFmt}</span>
+                                <span>実績: {ag.totalActualAmtFmt}</span>
+                                <span class={ag.achievementClass}>達成率: {ag.achievementFmt}</span>
+                            </div>
+                            <table class="product-table">
+                                <thead>
+                                    <tr>
+                                        <th>製品</th><th>計画数量</th><th>実績数量</th><th>計画金額</th><th>達成率</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={ag.products} for:item="p">
+                                        <tr key={p.key}>
+                                            <td>{p.productName}</td>
+                                            <td class="num">{p.totalPlanQtyFmt}</td>
+                                            <td class="num">{p.totalActualQtyFmt}</td>
+                                            <td class="num">{p.totalPlanAmtFmt}</td>
+                                            <td><span class={p.achievementClass}>{p.achievementFmt}</span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasAgreements}>
+                    <div class="empty-msg">該当する販売契約はありません</div>
+                </template>
+            </template>
+
+            <!-- DW Pipeline tab -->
+            <template if:true={isPipelineTab}>
+                <template if:true={hasPipeline}>
+                    <template for:each={data.pipeline} for:item="pi">
+                        <div key={pi.oppId} class="pipeline-card">
+                            <div class="pi-header">
+                                <div class="pi-title">
+                                    <lightning-icon icon-name="standard:opportunity" size="small"></lightning-icon>
+                                    <a href="javascript:void(0)" data-id={pi.oppId} onclick={handleNavigate}>{pi.oppName}</a>
+                                </div>
+                                <div class="pi-meta">
+                                    <span class={pi.stageClass}>{pi.stageLabel}</span>
+                                    <span class="pi-prob">確度: {pi.probFmt}</span>
+                                    <span class="pi-weighted">加重合計: {pi.totalWeightedFmt}</span>
+                                </div>
+                            </div>
+                            <table class="product-table">
+                                <thead>
+                                    <tr>
+                                        <th>製品</th><th>期間</th><th>予測数量</th><th>予測金額</th><th>加重金額</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={pi.forecasts} for:item="f">
+                                        <tr key={f.key}>
+                                            <td>{f.productName}</td>
+                                            <td>{f.periodLabel}</td>
+                                            <td class="num">{f.quantityFmt}</td>
+                                            <td class="num">{f.amountFmt}</td>
+                                            <td class="num weighted">{f.weightedFmt}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </template>
+                <template if:false={hasPipeline}>
+                    <div class="empty-msg">該当するDesign Win案件はありません</div>
+                </template>
+            </template>
+
+            <!-- Standard Pipeline tab -->
+            <template if:true={isStandardTab}>
+                <!-- Stage breakdown -->
+                <template if:true={hasStageGroups}>
+                    <div class="stage-summary">
+                        <template for:each={data.stageGroups} for:item="sg">
+                            <div key={sg.key} class="stage-row">
+                                <div class="stage-info">
+                                    <span class="stage-name-label">{sg.stageName}</span>
+                                    <span class="stage-count">{sg.count}件</span>
+                                </div>
+                                <div class="stage-bar-wrap">
+                                    <div class="stage-bar" style={sg.barStyle}></div>
+                                </div>
+                                <div class="stage-amounts">
+                                    <span class="stage-amt">{sg.totalAmountFmt}</span>
+                                    <span class="stage-weighted">加重: {sg.totalWeightedFmt}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Opp list -->
+                <template if:true={hasStandardPipeline}>
+                    <table class="product-table std-table">
+                        <thead>
+                            <tr>
+                                <th>商談名</th><th>ステージ</th><th>金額</th><th>確度</th><th>加重金額</th><th>完了予定日</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={data.standardPipeline} for:item="o">
+                                <tr key={o.key}>
+                                    <td>
+                                        <a href="javascript:void(0)" data-id={o.oppId} onclick={handleNavigate}>{o.oppName}</a>
+                                    </td>
+                                    <td><span class="opp-stage-badge">{o.stageName}</span></td>
+                                    <td class="num">{o.amountFmt}</td>
+                                    <td class="num">{o.probFmt}</td>
+                                    <td class="num weighted">{o.expectedRevenueFmt}</td>
+                                    <td>{o.closeDateFmt}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hasStandardPipeline}>
+                    <div class="empty-msg">該当する通常商談はありません</div>
+                </template>
+            </template>
+        </template>
+    </lightning-card>
+</template>

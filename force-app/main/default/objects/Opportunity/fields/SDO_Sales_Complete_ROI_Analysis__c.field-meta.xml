@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SDO_Sales_Complete_ROI_Analysis__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>What: Used for Sales Path</description>
+    <label>ROI分析完了</label>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Checkbox</type>
+</CustomField>

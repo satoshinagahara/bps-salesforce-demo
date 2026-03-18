@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>New</fullName>
+        <default>true</default>
+        <label>新規</label>
+        <closed>false</closed>
+        <forecastCategory>Pipeline</forecastCategory>
+    </standardValue>
+    <standardValue>
+        <fullName>Working</fullName>
+        <default>false</default>
+        <label>対応中</label>
+        <closed>false</closed>
+        <forecastCategory>Pipeline</forecastCategory>
+    </standardValue>
+    <standardValue>
+        <fullName>Waiting on Customer</fullName>
+        <default>false</default>
+        <label>顧客回答待ち</label>
+        <closed>false</closed>
+        <forecastCategory>Pipeline</forecastCategory>
+    </standardValue>
+    <standardValue>
+        <fullName>Escalated</fullName>
+        <default>false</default>
+        <label>エスカレーション</label>
+        <closed>false</closed>
+        <forecastCategory>Pipeline</forecastCategory>
+    </standardValue>
+    <standardValue>
+        <fullName>Closed</fullName>
+        <default>false</default>
+        <label>クローズ</label>
+        <closed>true</closed>
+        <forecastCategory>Closed</forecastCategory>
+    </standardValue>
+</StandardValueSet>

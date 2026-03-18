@@ -1,0 +1,60 @@
+<template>
+    <lightning-card title="サプライヤー調査" icon-name="standard:investigation">
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="読み込み中"></lightning-spinner>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:false={hasItems}>
+                <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                    サプライヤー調査はまだありません
+                </div>
+            </template>
+
+            <template if:true={hasItems}>
+                <!-- Status Summary -->
+                <div class="summary-bar slds-p-horizontal_medium slds-p-vertical_x-small">
+                    <template for:each={statusSummary} for:item="s">
+                        <span key={s.label} class={s.cls}>{s.label} {s.count}</span>
+                    </template>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrapper slds-p-horizontal_medium slds-p-bottom_medium">
+                    <table class="si-table">
+                        <thead>
+                            <tr>
+                                <th>調査番号</th>
+                                <th>ステータス</th>
+                                <th>重大度</th>
+                                <th>是正処置</th>
+                                <th>依頼日</th>
+                                <th>回答期限</th>
+                                <th>原因分類</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={items} for:item="si">
+                                <tr key={si.Id} data-id={si.Id} onclick={handleRowClick} class="clickable-row">
+                                    <td class="name-col">{si.Name}</td>
+                                    <td><span class={si.statusClass}>{si.status}</span></td>
+                                    <td>
+                                        <template if:true={si.hasSeverity}>
+                                            <span class={si.severityClass}>{si.severity}</span>
+                                        </template>
+                                    </td>
+                                    <td>{si.caName}</td>
+                                    <td>{si.requestDate}</td>
+                                    <td class={si.overdueClass}>{si.responseDueDate}</td>
+                                    <td>{si.causeCategory}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+        </template>
+
+    </lightning-card>
+</template>

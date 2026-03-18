@@ -1,0 +1,115 @@
+<template>
+    <lightning-card>
+        <div slot="title">
+            <lightning-icon icon-name="standard:product_required" size="small" class="slds-m-right_x-small"></lightning-icon>
+            設計フェーズ ガントチャート
+        </div>
+
+        <div class="gantt-wrap">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="error-box">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Main -->
+            <template lwc:elseif={hasData}>
+
+                <!-- KPI Row -->
+                <div class="kpi-row">
+                    <div class="kpi-tile" style="--kpi-clr:#0176d3">
+                        <div class="kpi-num">{progressPct}<span class="kpi-unit">%</span></div>
+                        <div class="kpi-lbl">全体進捗</div>
+                        <div class="progress-mini">
+                            <div class="progress-mini-fill" style={progressBarStyle}></div>
+                        </div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#2e844a">
+                        <div class="kpi-num">{completedPhases}<span class="kpi-unit">/{totalPhases}</span></div>
+                        <div class="kpi-lbl">完了フェーズ</div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#fe9339">
+                        <div class="kpi-num">{nextGateDate}</div>
+                        <div class="kpi-lbl">次回ゲートレビュー</div>
+                    </div>
+                    <template lwc:if={hasDelay}>
+                        <div class="kpi-tile" style="--kpi-clr:#ba0517">
+                            <div class="kpi-num">{delayedPhases}</div>
+                            <div class="kpi-lbl">遅延フェーズ</div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Gantt Chart -->
+                <div class="gantt-chart">
+
+                    <!-- Month header -->
+                    <div class="gantt-header">
+                        <div class="gantt-label-col"></div>
+                        <div class="gantt-bar-col">
+                            <div class="month-row">
+                                <template for:each={monthHeaders} for:item="m">
+                                    <div key={m.key} class="month-cell" style={m.style}>{m.label}</div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase rows -->
+                    <template for:each={phaseRows} for:item="ph">
+                        <div key={ph.key} class="gantt-row">
+                            <!-- Label column -->
+                            <div class="gantt-label-col">
+                                <div class="phase-name">{ph.name}</div>
+                                <div class="phase-meta">
+                                    <span class="status-badge" style={ph.statusStyle}>{ph.status}</span>
+                                    <span class="gate-icon" style={ph.gateStyle} title={ph.gateResult}>{ph.gateSymbol}</span>
+                                </div>
+                                <div class="phase-owner">{ph.ownerName}</div>
+                            </div>
+                            <!-- Bar column -->
+                            <div class="gantt-bar-col">
+                                <div class="bar-area">
+                                    <div class="gantt-bar planned-bar" style={ph.plannedBarStyle}></div>
+                                    <div class="gantt-bar actual-bar" style={ph.actualBarStyle}></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Today line (overlaid) -->
+                    <template lwc:if={showTodayLine}>
+                        <div class="today-line" style={todayLineStyle}>
+                            <div class="today-label">Today</div>
+                        </div>
+                    </template>
+
+                </div>
+
+                <!-- Legend -->
+                <div class="legend-row">
+                    <span class="legend-item"><span class="legend-bar planned-legend"></span>計画</span>
+                    <span class="legend-item"><span class="legend-bar actual-legend"></span>実績</span>
+                    <span class="legend-item"><span class="today-legend-line"></span>今日</span>
+                </div>
+
+            </template>
+
+            <!-- No Data -->
+            <template lwc:else>
+                <p class="no-data">設計フェーズが登録されていません</p>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

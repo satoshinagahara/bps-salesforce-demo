@@ -1,0 +1,307 @@
+<template>
+    <template if:false={isLoaded}>
+        <lightning-spinner alternative-text="読み込み中"></lightning-spinner>
+    </template>
+    <template if:true={hasError}>
+        <div class="slds-text-color_error slds-p-around_medium">{errorMessage}</div>
+    </template>
+    <template if:true={isLoaded}>
+        <!-- Score Cards -->
+        <div class="score-header">
+            <div class="score-cards">
+                <div class={overallScoreClass}>
+                    <div class="score-label">総合</div>
+                    <div class="score-value">{data.overallScore}</div>
+                    <div class="score-grade">{data.overallGrade}</div>
+                </div>
+                <div class={qualityScoreClass}>
+                    <div class="score-label">品質</div>
+                    <div class="score-value">{data.qualityScore}</div>
+                    <div class="score-grade">{data.qualityGrade}</div>
+                </div>
+                <div class={costScoreClass}>
+                    <div class="score-label">コスト</div>
+                    <div class="score-value">{data.costScore}</div>
+                    <div class="score-grade">{data.costGrade}</div>
+                </div>
+                <div class={complianceScoreClass}>
+                    <div class="score-label">コンプライアンス</div>
+                    <div class="score-value">{data.complianceScore}</div>
+                    <div class="score-grade">{data.complianceGrade}</div>
+                </div>
+            </div>
+            <!-- Stats row -->
+            <div class="stats-row">
+                <span class="stat-chip">
+                    <span class="stat-num">{stats.totalParts}</span> 供給部品
+                </span>
+                <span class="stat-chip">
+                    <span class="stat-num">{stats.productCount}</span> 関連製品
+                </span>
+                <span class="stat-chip">
+                    <span class="stat-num">{stats.totalSites}</span> 拠点
+                </span>
+                <span class="stat-chip">
+                    <span class="stat-num">{stats.totalQuotes}</span> 見積
+                    <template if:true={stats.adoptedQuotes}>
+                        (<span class="stat-num">{stats.adoptedQuotes}</span>採用)
+                    </template>
+                </span>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <template if:true={hasAlerts}>
+            <div class="alert-bar">
+                <template for:each={data.alerts} for:item="alert">
+                    <div key={alert.message} class={alert.cssClass}>
+                        <span class={alert.iconClass}></span>
+                        {alert.message}
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- Tabs -->
+        <lightning-tabset>
+            <!-- Supply Parts -->
+            <lightning-tab label={supplyPartsLabel}>
+                <template if:true={hasSupplyParts}>
+                    <div class="tab-content">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>部品名</th>
+                                    <th>部品番号</th>
+                                    <th>製品</th>
+                                    <th>BOM</th>
+                                    <th>単価</th>
+                                    <th>代替</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.supplyParts} for:item="part">
+                                    <tr key={part.id}>
+                                        <td>{part.partName}</td>
+                                        <td class="mono">{part.partNumber}</td>
+                                        <td>{part.productName}</td>
+                                        <td>{part.bomName}</td>
+                                        <td class="num">{part.formattedCost}</td>
+                                        <td>
+                                            <template if:true={part.isSingleSource}>
+                                                <span class="badge badge-danger">単一</span>
+                                            </template>
+                                            <template if:false={part.isSingleSource}>
+                                                <span class="badge badge-ok">{part.supplierCount}社</span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+                <template if:false={hasSupplyParts}>
+                    <div class="empty-state">供給部品データなし</div>
+                </template>
+            </lightning-tab>
+
+            <!-- Quality -->
+            <lightning-tab label={qualityLabel}>
+                <template if:true={hasCorrectiveActions}>
+                    <div class="tab-content">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>CA番号</th>
+                                    <th>タイトル</th>
+                                    <th>フェーズ</th>
+                                    <th>重要度</th>
+                                    <th>カテゴリ</th>
+                                    <th>製品</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.correctiveActions} for:item="ca">
+                                    <tr key={ca.id} class={ca.rowClass}>
+                                        <td class="mono">{ca.name}</td>
+                                        <td>{ca.title}</td>
+                                        <td>
+                                            <span class={ca.phaseBadgeClass}>{ca.phase}</span>
+                                        </td>
+                                        <td>
+                                            <span class={ca.severityClass}>{ca.severity}</span>
+                                        </td>
+                                        <td>{ca.category}</td>
+                                        <td>{ca.productName}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+                <template if:false={hasCorrectiveActions}>
+                    <div class="empty-state">是正処置なし</div>
+                </template>
+            </lightning-tab>
+
+            <!-- Procurement -->
+            <lightning-tab label={procurementLabel}>
+                <template if:true={hasRfqQuotes}>
+                    <div class="tab-content">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>見積番号</th>
+                                    <th>RFQ</th>
+                                    <th>単価</th>
+                                    <th>ステータス</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.rfqQuotes} for:item="q">
+                                    <tr key={q.id}>
+                                        <td class="mono">{q.name}</td>
+                                        <td class="mono">{q.rfqName}</td>
+                                        <td class="num">{q.formattedPrice}</td>
+                                        <td>
+                                            <span class={q.statusClass}>{q.status}</span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+                <template if:false={hasRfqQuotes}>
+                    <div class="empty-state">見積回答なし</div>
+                </template>
+            </lightning-tab>
+
+            <!-- Compliance -->
+            <lightning-tab label={complianceLabel}>
+                <div class="tab-content">
+                    <template if:true={hasCertifications}>
+                        <h3 class="section-title">認証</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>種別</th>
+                                    <th>ステータス</th>
+                                    <th>発行日</th>
+                                    <th>有効期限</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.certifications} for:item="cert">
+                                    <tr key={cert.id} class={cert.rowClass}>
+                                        <td><strong>{cert.certType}</strong></td>
+                                        <td>
+                                            <span class={cert.statusClass}>{cert.status}</span>
+                                        </td>
+                                        <td>{cert.formattedIssueDate}</td>
+                                        <td>{cert.formattedExpiryDate}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template if:true={hasAudits}>
+                        <h3 class="section-title section-title-mt">監査</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>監査番号</th>
+                                    <th>種別</th>
+                                    <th>実施日</th>
+                                    <th>結果</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.audits} for:item="audit">
+                                    <tr key={audit.id}>
+                                        <td class="mono">{audit.name}</td>
+                                        <td>{audit.auditType}</td>
+                                        <td>{audit.formattedDate}</td>
+                                        <td>
+                                            <span class={audit.resultClass}>{audit.result}</span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                </div>
+            </lightning-tab>
+
+            <!-- Risk -->
+            <lightning-tab label={riskLabel}>
+                <div class="tab-content">
+                    <template for:each={data.risks} for:item="risk">
+                        <div key={risk.category} class={risk.cardClass}>
+                            <div class="risk-header">
+                                <span class={risk.iconClass}></span>
+                                <strong>{risk.category}</strong>
+                                <span class={risk.levelBadge}>{risk.levelLabel}</span>
+                            </div>
+                            <div class="risk-detail">{risk.detail}</div>
+                        </div>
+                    </template>
+                </div>
+            </lightning-tab>
+
+            <!-- Activity -->
+            <lightning-tab label={activityLabel}>
+                <div class="tab-content">
+                    <template if:true={hasTasks}>
+                        <h3 class="section-title">タスク</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>件名</th>
+                                    <th>ステータス</th>
+                                    <th>期日</th>
+                                    <th>担当</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.tasks} for:item="t">
+                                    <tr key={t.id}>
+                                        <td>{t.subject}</td>
+                                        <td>{t.status}</td>
+                                        <td>{t.formattedDate}</td>
+                                        <td>{t.ownerName}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template if:true={hasEvents}>
+                        <h3 class="section-title section-title-mt">イベント</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>件名</th>
+                                    <th>開始</th>
+                                    <th>担当</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={data.events} for:item="ev">
+                                    <tr key={ev.id}>
+                                        <td>{ev.subject}</td>
+                                        <td>{ev.formattedStart}</td>
+                                        <td>{ev.ownerName}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template if:true={noActivities}>
+                        <div class="empty-state">活動データなし</div>
+                    </template>
+                </div>
+            </lightning-tab>
+        </lightning-tabset>
+    </template>
+</template>

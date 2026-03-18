@@ -1,0 +1,108 @@
+/* ── Summary KPI ── */
+.kpi-summary {
+    display: flex; gap: 12px; padding: 16px; flex-wrap: wrap;
+}
+.kpi-card {
+    flex: 1; min-width: 120px; text-align: center;
+    padding: 14px 8px; border-radius: 8px;
+    background: #f8f9fa; border: 1px solid #e1e5eb;
+}
+.kpi-confirmed { border-left: 3px solid #2e844a; }
+.kpi-dw { border-left: 3px solid #0176d3; }
+.kpi-std { border-left: 3px solid #7c3aed; }
+.kpi-close { border-left: 3px solid #f39c12; }
+.kpi-value {
+    font-size: 1.25rem; font-weight: 700; line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+.kpi-value--success { color: #2e844a; }
+.kpi-value--info { color: #0176d3; }
+.kpi-value--purple { color: #7c3aed; }
+.kpi-value--warning { color: #f39c12; }
+.kpi-label {
+    font-size: 0.68rem; color: #6b7280; margin-top: 4px;
+    font-weight: 500;
+}
+
+/* ── Tabs ── */
+.tabs-bar { display: flex; border-bottom: 2px solid #e5e5e5; padding: 0 1rem; }
+.tab {
+    padding: 0.5rem 1rem; border: none; background: none; cursor: pointer;
+    font-size: 0.8125rem; color: #706e6b;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+}
+.tab.active { color: #0176d3; border-bottom-color: #0176d3; font-weight: 700; }
+
+.tab-content { padding: 16px; }
+
+/* ── FY Chart ── */
+.fy-chart { display: flex; flex-direction: column; gap: 8px; }
+.fy-row { display: flex; align-items: center; gap: 10px; height: 28px; }
+.fy-label {
+    width: 56px; font-size: 0.75rem; font-weight: 600;
+    color: #4a5568; text-align: right; flex-shrink: 0;
+}
+.stacked-bar-container {
+    flex: 1; height: 22px; display: flex;
+    background: #f1f5f9; border-radius: 4px; overflow: hidden;
+}
+.bar-segment { height: 100%; transition: width 0.6s ease; min-width: 0; }
+.bar-segment.confirmed { background: #2e844a; }
+.bar-segment.dw { background: #0176d3; }
+.bar-segment.std { background: #7c3aed; }
+.fy-total {
+    width: 120px; font-size: 0.75rem; font-weight: 600;
+    color: #374151; text-align: right; flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Legend */
+.chart-legend {
+    display: flex; gap: 16px; margin-top: 12px;
+    padding-top: 8px; border-top: 1px solid #e2e8f0;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #4a5568; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.confirmed-dot { background: #2e844a; }
+.dw-dot { background: #0176d3; }
+.std-dot { background: #7c3aed; }
+
+/* ── Stage Bars ── */
+.stage-section { margin-bottom: 16px; }
+.section-title {
+    font-size: 0.8rem; font-weight: 600; color: #4a5568;
+    margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0;
+}
+.stage-row { display: flex; align-items: center; gap: 8px; height: 28px; margin-bottom: 4px; }
+.stage-label {
+    width: 80px; font-size: 0.75rem; font-weight: 500;
+    color: #374151; text-align: right; flex-shrink: 0;
+}
+.stage-bar-wrap {
+    flex: 1; height: 18px; background: #f1f5f9;
+    border-radius: 4px; overflow: hidden;
+}
+.stage-bar {
+    height: 100%; border-radius: 4px; transition: width 0.6s ease; min-width: 0;
+}
+.dw-bar { background: linear-gradient(90deg, #0176d3, #4fc3f7); }
+.std-bar { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.stage-meta { width: 140px; flex-shrink: 0; text-align: right; }
+.stage-count { font-size: 0.72rem; color: #6b7280; margin-right: 8px; }
+.stage-amount { font-size: 0.75rem; font-weight: 600; color: #374151; font-variant-numeric: tabular-nums; }
+
+/* ── Product Table ── */
+.product-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.product-table th {
+    text-align: left; padding: 0.4rem 0.5rem; background: #f7f9fb;
+    font-size: 0.6875rem; color: #706e6b; font-weight: 600;
+    text-transform: uppercase; border-bottom: 1px solid #e5e5e5;
+}
+.product-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #f0f0f0; }
+.product-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.prod-name { font-weight: 600; color: #181818; }
+.prod-family { font-size: 0.75rem; color: #706e6b; }
+.total-col { font-weight: 700; color: #1a1a2e; }
+
+/* ── Empty ── */
+.empty-msg { padding: 2rem; text-align: center; color: #706e6b; }

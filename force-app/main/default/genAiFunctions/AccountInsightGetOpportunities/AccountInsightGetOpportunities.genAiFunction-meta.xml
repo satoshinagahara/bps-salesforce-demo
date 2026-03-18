@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先の商談をステージ別に集計し、パイプライン状況と注目すべき案件（30日以内クローズ・高額・活動停滞）を返します。</description>
+    <invocationTarget>AccountInsightGetOpportunities</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>商談パイプライン分析</masterLabel>
+</GenAiFunction>

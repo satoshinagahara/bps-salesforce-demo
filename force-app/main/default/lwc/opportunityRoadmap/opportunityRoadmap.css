@@ -1,0 +1,146 @@
+:host {
+    display: block;
+}
+
+.family-tag {
+    background: #eef6ff;
+    color: #0070d2;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px 4px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.section-header:first-child {
+    border-top: none;
+}
+
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #444;
+}
+
+.card-list {
+    padding: 4px 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.road-card {
+    border: 1px solid #e0e5ee;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    background: #fff;
+}
+
+.road-card:hover {
+    border-color: #0070d2;
+    box-shadow: 0 2px 8px rgba(0,112,210,0.12);
+}
+
+.road-card__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.road-card__priority {
+    font-size: 0.7rem;
+}
+
+.road-card__name {
+    font-size: 0.7rem;
+    color: #888;
+    font-weight: 600;
+}
+
+.road-card__title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 4px;
+}
+
+.road-card__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #666;
+}
+
+.road-card__product {
+    background: #f3f3f3;
+    padding: 1px 8px;
+    border-radius: 10px;
+}
+
+.road-card__date {
+    color: #888;
+}
+
+.road-card__desc {
+    font-size: 0.72rem;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.road-card__initiative {
+    font-size: 0.72rem;
+    color: #0070d2;
+    margin-top: 3px;
+}
+
+.road-card__phase {
+    font-size: 0.72rem;
+    color: #888;
+    margin-top: 2px;
+}
+
+.empty-msg {
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 20px;
+}
+
+/* Status badges */
+.slds-badge {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.badge-draft {
+    background: #f3f3f3;
+    color: #666;
+}
+
+.badge-eval {
+    background: #fef3cd;
+    color: #856404;
+}
+
+.badge-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-active {
+    background: #cce5ff;
+    color: #004085;
+}

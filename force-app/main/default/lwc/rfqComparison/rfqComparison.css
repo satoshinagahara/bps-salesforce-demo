@@ -1,0 +1,128 @@
+.rfq-header {
+    background: #f4f6f9;
+    border-radius: 8px;
+    margin: 0.5rem 1rem;
+}
+.rfq-header-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+}
+.rfq-header-item {
+    display: flex;
+    flex-direction: column;
+}
+.rfq-label {
+    font-size: 0.7rem;
+    color: #706e6b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.rfq-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #181818;
+}
+.price-target {
+    color: #0070d2;
+}
+.rfq-spec {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e0e5ee;
+}
+
+.quote-table-wrapper {
+    overflow-x: auto;
+}
+.quote-count {
+    font-size: 0.8rem;
+    color: #706e6b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.decided-badge {
+    background: #04844b;
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.quote-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+.quote-table th {
+    background: #f4f6f9;
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 2px solid #d8dde6;
+    white-space: nowrap;
+}
+.quote-table td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid #e0e5ee;
+    vertical-align: middle;
+}
+.quote-row:hover {
+    background: #f8f9fb;
+}
+.selected-row {
+    background: #eef6e6 !important;
+}
+.num-col {
+    text-align: right;
+}
+.supplier-cell {
+    font-weight: 600;
+}
+
+.best-value {
+    color: #04844b;
+    font-weight: 700;
+}
+.diff-good {
+    color: #04844b;
+    font-weight: 600;
+}
+.diff-bad {
+    color: #c23934;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-pending {
+    background: #f3f2f2;
+    color: #706e6b;
+}
+.status-responded {
+    background: #e1f5fe;
+    color: #0070d2;
+}
+.status-declined {
+    background: #fbe4e4;
+    color: #c23934;
+}
+.status-adopted {
+    background: #eef6e6;
+    color: #04844b;
+}
+.status-rejected {
+    background: #f3f2f2;
+    color: #999;
+}

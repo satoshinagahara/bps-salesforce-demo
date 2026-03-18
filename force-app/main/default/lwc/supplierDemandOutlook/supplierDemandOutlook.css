@@ -1,0 +1,79 @@
+/* ── Summary Bar ── */
+.summary-bar {
+    display: flex; gap: 0; border-bottom: 1px solid #e5e5e5;
+}
+.summary-item {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-right: 1px solid #e5e5e5;
+}
+.summary-item:last-child { border-right: none; }
+.summary-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.parts-icon { background: #6b7280; }
+.confirmed-icon { background: #2e844a; }
+.pipeline-icon { background: #0176d3; }
+.summary-label { font-size: 0.65rem; color: #706e6b; text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px; }
+.summary-value { font-size: 1.05rem; font-weight: 700; color: #181818; font-variant-numeric: tabular-nums; }
+.summary-sub { font-size: 0.7rem; color: #9ca3af; }
+
+/* ── Tabs ── */
+.tabs-bar { display: flex; border-bottom: 2px solid #e5e5e5; padding: 0 1rem; }
+.tab {
+    padding: 0.5rem 1rem; border: none; background: none; cursor: pointer;
+    font-size: 0.8125rem; color: #706e6b; border-bottom: 3px solid transparent; margin-bottom: -2px;
+}
+.tab.active { color: #0176d3; border-bottom-color: #0176d3; font-weight: 700; }
+
+/* ── Product Cards ── */
+.product-card {
+    margin: 0.75rem 1rem; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden;
+}
+.prod-card-header {
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+}
+.prod-card-header.pipeline-header {
+    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+}
+.prod-card-title {
+    display: flex; justify-content: space-between; align-items: center;
+}
+.prod-card-name { font-size: 0.875rem; font-weight: 700; }
+.prod-card-total { font-size: 0.72rem; color: rgba(255,255,255,0.7); font-variant-numeric: tabular-nums; }
+.parts-badges {
+    margin-top: 4px; font-size: 0.68rem; color: rgba(255,255,255,0.55);
+}
+
+/* ── Tables ── */
+.demand-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.demand-table th {
+    text-align: left; padding: 0.375rem 0.5rem; background: #f7f9fb;
+    font-size: 0.6875rem; color: #706e6b; font-weight: 600; text-transform: uppercase;
+    border-bottom: 1px solid #e5e5e5;
+}
+.demand-table td { padding: 0.375rem 0.5rem; border-bottom: 1px solid #f0f0f0; }
+.demand-table a { color: #0176d3; text-decoration: none; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.highlight { font-weight: 700; color: #7c3aed; }
+
+
+/* ── Badges ── */
+.status-badge { font-size: 0.6875rem; padding: 1px 8px; border-radius: 12px; font-weight: 600; }
+.status-active { background: #cdefc4; color: #2e844a; }
+.status-other { background: #fef0cd; color: #8d6e00; }
+.stage-badge { font-size: 0.6875rem; padding: 1px 8px; border-radius: 12px; font-weight: 600; background: #eef4ff; color: #0176d3; }
+
+/* ── Empty ── */
+.empty-msg { padding: 2rem; text-align: center; color: #706e6b; }
+
+/* ── Capacity Alert ── */
+.capacity-alert-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; margin: 0 1rem;
+    background: #fef3cd; border: 1px solid #e8a427; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 600; color: #856404;
+}

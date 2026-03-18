@@ -1,0 +1,861 @@
+:host { display: block; }
+
+.card-body {
+    padding: 0 0.75rem 1rem;
+}
+
+.center-pad {
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.msg-box {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    color: #706e6b;
+    font-size: 0.85rem;
+}
+
+.msg-error { color: #ba0517; }
+
+/* ── Filters ──────────────────────────────────────────────────────── */
+.filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #f4f6f9;
+    border-radius: 8px;
+}
+
+.filter-combo {
+    flex: 1;
+    max-width: 250px;
+}
+
+.filter-clear {
+    flex-shrink: 0;
+}
+
+/* ── Summary bar ──────────────────────────────────────────────────── */
+.summary-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.6rem;
+    background: #f4f6f9;
+    border-radius: 8px;
+}
+
+.summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 0.4rem 0.2rem;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+}
+
+.summary-item.cost {
+    flex: 1.3;
+    border-color: #0176d3;
+    border-width: 2px;
+}
+
+.summary-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #181818;
+    line-height: 1.3;
+}
+
+.summary-item.cost .summary-value {
+    color: #0176d3;
+}
+
+.summary-label {
+    font-size: 0.65rem;
+    color: #706e6b;
+    margin-top: 0.1rem;
+    letter-spacing: 0.03em;
+}
+
+/* ── Legend ────────────────────────────────────────────────────────── */
+.legend-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.4rem 0;
+}
+
+.legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    background: #f8f9fb;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #706e6b;
+}
+
+.legend-name {
+    color: #181818;
+    font-weight: 600;
+}
+
+.legend-count {
+    color: #706e6b;
+    font-size: 0.7rem;
+}
+
+/* ── Main layout ──────────────────────────────────────────────────── */
+.main-layout {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.map-col {
+    flex: 3;
+    min-width: 0;
+}
+
+.side-col {
+    flex: 2;
+    min-width: 0;
+}
+
+.map-container {
+    height: 520px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+}
+
+/* ── Site cards list ──────────────────────────────────────────────── */
+.site-cards-list {
+    max-height: 520px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.site-card {
+    padding: 0.6rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.site-card:hover {
+    background: #f4f6f9;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.site-card.selected {
+    background: #eaf4ff;
+    border-color: #0176d3;
+}
+
+.card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.15rem;
+}
+
+.card-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #181818;
+}
+
+.card-supplier {
+    font-size: 0.72rem;
+    color: #706e6b;
+    margin-bottom: 0.3rem;
+}
+
+.card-stats {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    color: #444;
+}
+
+/* ── Risk badge ───────────────────────────────────────────────────── */
+.risk-badge {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+}
+
+.risk-high {
+    background: #fde8e0;
+    color: #ba0517;
+    border: 1px solid #f5a79a;
+}
+
+.risk-medium {
+    background: #fef3cd;
+    color: #856404;
+    border: 1px solid #e8a427;
+}
+
+.risk-low {
+    background: #d4f5e2;
+    color: #2e844a;
+    border: 1px solid #97d6b0;
+}
+
+/* ── Back link ─────────────────────────────────────────────────────── */
+.back-link {
+    margin-bottom: 0.5rem;
+}
+
+/* ── Site detail panel ────────────────────────────────────────────── */
+.site-detail {
+    background: #f8f9fb;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 0.75rem;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.site-header { margin-bottom: 0.5rem; }
+.site-title { display: flex; align-items: center; gap: 0.4rem; }
+.site-name { font-size: 1rem; font-weight: 700; color: #181818; }
+.site-address { font-size: 0.8rem; color: #706e6b; margin-top: 0.2rem; padding-left: 1.75rem; }
+.site-supplier { font-size: 0.8rem; margin-top: 0.2rem; padding-left: 1.75rem; }
+.site-supplier a { display: inline-flex; align-items: center; color: #0176d3; text-decoration: none; }
+.site-supplier a:hover { text-decoration: underline; }
+
+.site-stats {
+    display: flex; gap: 1rem; margin-bottom: 0.5rem;
+    padding: 0.4rem 0; border-bottom: 1px solid #e5e5e5;
+}
+.stat-item { display: flex; align-items: baseline; gap: 0.3rem; }
+.stat-value { font-size: 0.9rem; font-weight: 700; color: #181818; }
+.stat-label { font-size: 0.72rem; color: #706e6b; }
+
+.site-products { font-size: 0.8rem; margin-bottom: 0.5rem; padding: 0.3rem 0; }
+.products-label { color: #706e6b; font-weight: 600; margin-right: 0.3rem; }
+.products-list { color: #181818; }
+.parts-table { margin-top: 0.5rem; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   DISASTER SIMULATION STYLES
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Sim controls ─────────────────────────────────────────────────── */
+.sim-controls {
+    background: #fff8f0;
+    border: 2px solid #e8a427;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.sim-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.sim-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #856404;
+}
+
+.sim-selector-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.sim-combo {
+    flex: 1;
+    max-width: 320px;
+}
+
+.sim-pref-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.sim-pref-label {
+    font-size: 0.75rem;
+    color: #706e6b;
+    font-weight: 600;
+}
+
+.sim-pref-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: #fde8e0;
+    color: #ba0517;
+    border: 1px solid #f5a79a;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.sim-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #706e6b;
+    font-size: 0.85rem;
+}
+
+/* ── Sim alert banner ─────────────────────────────────────────────── */
+.sim-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: #fde8e0;
+    border: 1px solid #f5a79a;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.sim-alert-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ba0517;
+}
+
+/* ── Sim summary bar ──────────────────────────────────────────────── */
+.sim-summary {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem;
+    background: #f4f6f9;
+    border-radius: 8px;
+}
+
+.sim-summary-item {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.2rem;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+}
+
+.sim-summary-item.own {
+    border-color: #ba0517;
+    border-width: 2px;
+}
+
+.sim-summary-item.own .sim-summary-value {
+    color: #ba0517;
+}
+
+.sim-summary-item.supplier {
+    border-color: #e8a427;
+    border-width: 2px;
+}
+
+.sim-summary-item.supplier .sim-summary-value {
+    color: #856404;
+}
+
+.sim-summary-item.cost {
+    border-color: #ba0517;
+    border-width: 2px;
+}
+
+.sim-summary-item.cost .sim-summary-value {
+    color: #ba0517;
+}
+
+.sim-summary-item.safe {
+    border-color: #2e844a;
+    border-width: 2px;
+}
+
+.sim-summary-item.safe .sim-summary-value {
+    color: #2e844a;
+}
+
+.sim-summary-item.offload {
+    border-color: #2e844a;
+    border-width: 2px;
+    background: #f0fdf4;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.sim-summary-item.offload:hover {
+    background: #d4f5e2;
+    box-shadow: 0 2px 6px rgba(46,132,74,0.2);
+}
+
+.sim-summary-item.offload .sim-summary-value {
+    color: #2e844a;
+}
+
+.sim-summary-item.offload .sim-summary-label {
+    color: #2e844a;
+    font-weight: 700;
+}
+
+.sim-summary-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #181818;
+    line-height: 1.3;
+}
+
+.sim-summary-label {
+    font-size: 0.62rem;
+    color: #706e6b;
+    margin-top: 0.1rem;
+}
+
+/* ── Sim affected sites ───────────────────────────────────────────── */
+.sim-sites-section {
+    margin-top: 0.75rem;
+}
+
+.sim-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #181818;
+    margin-bottom: 0.4rem;
+}
+
+.sim-sites-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.sim-site-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    font-size: 0.72rem;
+}
+
+.site-type-own {
+    background: #fde8e0;
+    color: #ba0517;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+}
+
+.site-type-supplier {
+    background: #fef3cd;
+    color: #856404;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+}
+
+.sim-site-name {
+    font-weight: 600;
+    color: #181818;
+}
+
+.sim-site-owner {
+    color: #706e6b;
+}
+
+/* ── Sim product cards ────────────────────────────────────────────── */
+.sim-product-list {
+    max-height: 600px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sim-product-card {
+    padding: 0.6rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sim-product-card:hover {
+    background: #f8f9fb;
+}
+
+.sim-prod-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.sim-prod-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #181818;
+}
+
+.sim-risk-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+}
+
+.sim-risk-critical {
+    background: #ba0517;
+    color: #ffffff;
+    border: 1px solid #8a0311;
+}
+
+.sim-risk-high {
+    background: #fde8e0;
+    color: #ba0517;
+    border: 1px solid #f5a79a;
+}
+
+.sim-risk-medium {
+    background: #fef3cd;
+    color: #856404;
+    border: 1px solid #e8a427;
+}
+
+.sim-risk-low {
+    background: #d4f5e2;
+    color: #2e844a;
+    border: 1px solid #97d6b0;
+}
+
+/* ── Assembly info ────────────────────────────────────────────────── */
+.sim-prod-assembly {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.3rem;
+}
+
+.sim-label {
+    color: #706e6b;
+    font-weight: 600;
+    font-size: 0.72rem;
+}
+
+.assembly-hit {
+    color: #ba0517;
+    font-weight: 700;
+}
+
+.alt-ok {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    background: #d4f5e2;
+    color: #2e844a;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+}
+
+.alt-none {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    background: #fde8e0;
+    color: #ba0517;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+}
+
+/* ── Dependency bar ───────────────────────────────────────────────── */
+.sim-prod-supply {
+    margin-bottom: 0.3rem;
+}
+
+.sim-dep-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    margin-bottom: 0.2rem;
+}
+
+.sim-dep-pct {
+    font-weight: 700;
+    color: #181818;
+}
+
+.sim-dep-cost {
+    color: #706e6b;
+    margin-left: auto;
+}
+
+.dep-bar-track {
+    height: 6px;
+    background: #e5e5e5;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dep-bar-fill {
+    height: 100%;
+    background: #e8a427;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+
+.dep-bar-fill.critical {
+    background: #ba0517;
+}
+
+.dep-bar-fill.warning {
+    background: #e8a427;
+}
+
+/* ── Parts summary ────────────────────────────────────────────────── */
+.sim-prod-parts-summary {
+    font-size: 0.72rem;
+    color: #444;
+    margin-top: 0.2rem;
+}
+
+/* ── Parts detail (expanded) ──────────────────────────────────────── */
+.sim-parts-detail {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid #e5e5e5;
+}
+
+.sim-part-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    font-size: 0.7rem;
+    border-bottom: 1px solid #f4f4f4;
+}
+
+.sim-part-num {
+    font-weight: 600;
+    color: #181818;
+    min-width: 80px;
+}
+
+.sim-part-name {
+    flex: 1;
+    color: #444;
+}
+
+.sim-part-site {
+    color: #ba0517;
+    font-weight: 600;
+}
+
+/* Site type tag */
+.site-type-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.site-type-tag.assembly {
+    color: #0176d3;
+    background: #e1f0ff;
+    border: 1px solid #b0d4f1;
+}
+
+/* BOM overview row */
+.sim-prod-bom-overview {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    font-size: 0.78rem;
+}
+
+/* BOM breakdown section */
+.sim-bom-breakdown {
+    margin-top: 0.5rem;
+    border-top: 1px solid #e5e5e5;
+    padding-top: 0.5rem;
+}
+
+.sim-bom-breakdown-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 0.4rem;
+}
+
+.bom-status {
+    border-radius: 6px;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.bom-status.bom-affected {
+    background: #fef0ef;
+    border: 1px solid #ea8c8c;
+}
+
+.bom-status.bom-safe {
+    background: #eef8ee;
+    border: 1px solid #91d491;
+}
+
+.bom-row-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bom-number {
+    font-weight: 700;
+    color: #181818;
+}
+
+.bom-site {
+    color: #555;
+}
+
+.bom-status-label {
+    margin-left: auto;
+    font-weight: 600;
+    font-size: 0.72rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+.bom-affected .bom-status-label {
+    color: #ba0517;
+    background: #fdd;
+}
+
+.bom-safe .bom-status-label {
+    color: #2e844a;
+    background: #d4edda;
+}
+
+.bom-parts-detail {
+    margin-top: 0.3rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #ea8c8c;
+}
+
+/* ── Site capacity info ── */
+.site-cap-info {
+    display: flex; align-items: center; gap: 0.3rem;
+    font-size: 0.78rem; color: #0176d3; font-weight: 600;
+    padding: 0.3rem 0; margin-bottom: 0.3rem;
+}
+
+/* ── Offload Proposals ── */
+.offload-section {
+    margin-bottom: 0.75rem; border: 2px solid #2e844a; border-radius: 8px;
+    overflow: hidden; background: #f0fdf4;
+}
+.offload-header-bar {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; background: linear-gradient(135deg, #1a5c2e 0%, #2e844a 100%);
+    color: #fff;
+}
+.offload-title { font-size: 0.85rem; font-weight: 700; }
+.offload-count {
+    margin-left: auto; font-size: 0.7rem; font-weight: 700;
+    background: rgba(255,255,255,0.25); padding: 1px 8px; border-radius: 10px;
+}
+.offload-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 0.4rem; padding: 0.5rem;
+}
+.offload-card {
+    padding: 0.5rem 0.6rem; background: #ffffff; border: 1px solid #97d6b0;
+    border-radius: 6px;
+}
+.offload-part-header {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 0.4rem; padding-bottom: 0.3rem; border-bottom: 1px solid #d4f5e2;
+}
+.offload-part-number { font-size: 0.72rem; font-weight: 700; color: #0176d3; }
+.offload-part-name { font-size: 0.78rem; font-weight: 700; color: #181818; flex: 1; }
+.offload-flow {
+    display: flex; align-items: center; gap: 0.3rem;
+}
+.offload-from, .offload-to {
+    flex: 1; display: flex; flex-direction: column; gap: 0.1rem;
+    padding: 0.3rem 0.4rem; border-radius: 4px;
+}
+.offload-from { background: #fef0ef; }
+.offload-to { background: #eef8ee; }
+.offload-site-label {
+    font-size: 0.6rem; font-weight: 700; color: #ba0517;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.offload-site-label.to { color: #2e844a; }
+.offload-site-name { font-size: 0.78rem; font-weight: 600; color: #181818; }
+.offload-site-cap { font-size: 0.68rem; color: #706e6b; font-variant-numeric: tabular-nums; }
+.offload-arrow-block {
+    display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+    min-width: 50px;
+}
+.offload-arrow-line {
+    display: block; width: 24px; height: 2px; background: #2e844a;
+    position: relative;
+}
+.offload-arrow-line::after {
+    content: ''; position: absolute; right: -1px; top: -3px;
+    border: 4px solid transparent; border-left-color: #2e844a;
+}
+.offload-ok {
+    font-size: 0.68rem; font-weight: 700; color: #2e844a;
+    background: #d4f5e2; padding: 1px 6px; border-radius: 10px;
+    white-space: nowrap;
+}
+.offload-partial {
+    font-size: 0.68rem; font-weight: 700; color: #856404;
+    background: #fef3cd; padding: 1px 6px; border-radius: 10px;
+    white-space: nowrap;
+}
+.same-supplier { font-size: 0.58rem; padding: 1px 5px; background: #d4f5e2; color: #2e844a; border-radius: 3px; font-weight: 700; }
+.diff-supplier { font-size: 0.58rem; padding: 1px 5px; background: #fef3cd; color: #856404; border-radius: 3px; font-weight: 700; }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>指定された商品のBOM全階層（Header→Line→SubComponent→Part）、サプライヤー依存度、関連商談パイプラインを取得します。「この製品のBOM構成を教えて」「BOMを分析して」と言われた時に使用してください。</description>
+    <invocationTarget>BOMAnalysisGetProductBOM</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>製品BOM構成取得</masterLabel>
+</GenAiFunction>

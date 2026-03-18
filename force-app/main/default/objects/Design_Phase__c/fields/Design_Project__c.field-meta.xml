@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Design_Project__c</fullName>
+    <label>設計開発プロジェクト</label>
+    <type>MasterDetail</type>
+    <referenceTo>Design_Project__c</referenceTo>
+    <relationshipLabel>設計フェーズ</relationshipLabel>
+    <relationshipName>Design_Phases</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+</CustomField>

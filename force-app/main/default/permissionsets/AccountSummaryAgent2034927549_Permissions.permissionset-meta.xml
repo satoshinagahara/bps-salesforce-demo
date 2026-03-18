@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Agentforce エージェントのカスタム権限を許可 : AccountSummaryAgent のエージェントユーザー : accountsummaryagent@00die000000idkv691578200.ext。</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>AccountSummaryAgent2034927549権限</label>
+    <license>Einstein Agent</license>
+</PermissionSet>

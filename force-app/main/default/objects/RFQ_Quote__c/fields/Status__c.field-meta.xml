@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status__c</fullName>
+    <label>ステータス</label>
+    <type>Picklist</type>
+    <required>true</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>依頼中</fullName><default>true</default><label>依頼中</label></value>
+            <value><fullName>回答済</fullName><default>false</default><label>回答済</label></value>
+            <value><fullName>辞退</fullName><default>false</default><label>辞退</label></value>
+            <value><fullName>採用</fullName><default>false</default><label>採用</label></value>
+            <value><fullName>不採用</fullName><default>false</default><label>不採用</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

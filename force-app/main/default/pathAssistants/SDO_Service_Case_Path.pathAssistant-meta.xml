@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Case</entityName>
+    <fieldName>Status</fieldName>
+    <masterLabel>Service - Case Path</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Reason</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;解決内容と原因区分を記録してください&lt;/li&gt;&lt;li&gt;紐づく是正処置（8D）がある場合、全てクローズ済みか確認してください&lt;/li&gt;&lt;li&gt;顧客に最終報告を行い、再発防止策を説明してください&lt;/li&gt;&lt;li&gt;顧客満足度アンケートの送付を検討してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Closed</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;ul&gt;&lt;li&gt;エスカレーションの経緯と理由をケース履歴で確認してください&lt;/li&gt;&lt;li&gt;上位者・専門チームと連携して解決策を策定してください&lt;/li&gt;&lt;li&gt;顧客への中間報告を行い、対応状況を共有してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Escalated</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>OwnerId</fieldNames>
+        <fieldNames>Priority</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;顧客からの問い合わせ内容を確認し、優先度と担当者を設定してください&lt;/li&gt;&lt;li&gt;不具合報告の場合は、製品名・ロット番号・発生状況をヒアリングしてください&lt;/li&gt;&lt;li&gt;重大な品質問題の場合は、速やかに是正処置（8D）を起票してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>New</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;ul&gt;&lt;li&gt;顧客からの回答待ちの間、SLAタイマーは一時停止されます&lt;/li&gt;&lt;li&gt;2営業日以上応答がない場合はフォローアップの連絡を入れてください&lt;/li&gt;&lt;li&gt;顧客から追加情報を受領したら速やかに「対応中」に戻してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Waiting on Customer</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Type</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;問い合わせの種別を設定し、対応方針を決定してください&lt;/li&gt;&lt;li&gt;不具合の場合：発生頻度・影響範囲を調査し、是正処置の進捗を確認してください&lt;/li&gt;&lt;li&gt;ナレッジベースに類似事例がないか検索してください&lt;/li&gt;&lt;li&gt;マイルストーン（SLA）の期限を意識して対応を進めてください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Working</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>SDO_Service_Case</recordTypeName>
+</PathAssistant>

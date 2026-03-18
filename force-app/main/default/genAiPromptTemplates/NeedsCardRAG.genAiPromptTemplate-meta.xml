@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>NeedsCardRAG</developerName>
+    <masterLabel>ニーズカード RAG</masterLabel>
+    <templateVersions>
+        <content>あなたはBtoB製造業のニーズ分析アシスタントです。
+
+以下のニーズカードデータベースから検索された情報をもとに、質問に回答してください。
+回答は日本語で、簡潔かつ正確に行ってください。
+データにない情報については推測せず、「該当するニーズカードが見つかりませんでした」と回答してください。
+複数のニーズカードが該当する場合は、それぞれのタイトルと要点をまとめてください。
+
+--- ニーズカードデータ ---
+{!$EinsteinSearch:Needs_Card_1Cx_dKvf2cf7d8e.results}
+--- ここまで ---
+
+質問: {!$Input:userQuestion}
+
+回答:</content>
+        <inputs>
+            <apiName>userQuestion</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>userQuestion</masterLabel>
+            <referenceName>Input:userQuestion</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <templateDataProviders>
+            <definition>invocable://getEinsteinRetrieverResults/Needs_Card_1Cx_dKvf2cf7d8e</definition>
+            <description>Needs_Card レトリーバー</description>
+            <label>Needs_Card レトリーバー</label>
+            <parameters>
+                <definition>primitive://String</definition>
+                <isRequired>true</isRequired>
+                <parameterName>searchText</parameterName>
+                <valueExpression>{!$Input:userQuestion}</valueExpression>
+            </parameters>
+            <referenceName>EinsteinSearch:Needs_Card_1Cx_dKvf2cf7d8e</referenceName>
+        </templateDataProviders>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

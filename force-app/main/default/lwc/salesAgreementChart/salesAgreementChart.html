@@ -1,0 +1,74 @@
+<template>
+    <lightning-card title="月別計画 vs 実績" icon-name="standard:sales_path">
+        <template if:true={error}>
+            <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+        </template>
+        <template if:true={hasData}>
+            <!-- Product tabs -->
+            <template if:true={hasMultipleProducts}>
+                <div class="tabs-container">
+                    <template for:each={products} for:item="prod">
+                        <button key={prod.index} class={prod.tabClass} data-index={prod.index} onclick={handleTabClick}>
+                            {prod.productName}
+                        </button>
+                    </template>
+                </div>
+            </template>
+
+            <template if:true={selectedProduct}>
+                <!-- Summary bar -->
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <span class="summary-label">製品</span>
+                        <span class="summary-value">{selectedProduct.productName}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">計画合計</span>
+                        <span class="summary-value">{selectedProduct.totalPlanFormatted}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">実績合計</span>
+                        <span class="summary-value">{selectedProduct.totalActualFormatted}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">達成率</span>
+                        <span class={selectedProduct.achievementClass}>{selectedProduct.achievementFormatted}</span>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="chart-container">
+                    <template for:each={selectedProduct.schedules} for:item="s">
+                        <div key={s.key} class="chart-column">
+                            <div class="bars-area">
+                                <div class="bar plan-bar" style={s.planStyle}></div>
+                                <template if:true={s.hasActual}>
+                                    <div class={s.varianceClass} style={s.actualStyle}></div>
+                                </template>
+                            </div>
+                            <div class="month-label">{s.monthLabel}</div>
+                            <div class="qty-labels">
+                                <div class="qty-plan">{s.planQty}</div>
+                                <template if:true={s.hasActual}>
+                                    <div class="qty-actual">{s.actualQty}</div>
+                                    <div class={s.varianceClass}>{s.variancePct}</div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend">
+                    <span class="legend-item"><span class="legend-dot plan-dot"></span>計画</span>
+                    <span class="legend-item"><span class="legend-dot actual-dot"></span>実績（計画以上）</span>
+                    <span class="legend-item"><span class="legend-dot under-dot"></span>実績（計画未達）</span>
+                    <span class="legend-item"><span class="legend-dot critical-dot"></span>実績（-10%超）</span>
+                </div>
+            </template>
+        </template>
+        <template if:false={hasData}>
+            <div class="slds-p-around_medium slds-text-color_weak">スケジュールデータがありません</div>
+        </template>
+    </lightning-card>
+</template>

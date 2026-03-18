@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Product Defect</fullName>
+        <default>false</default>
+        <label>製品不具合</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Component Failure</fullName>
+        <default>false</default>
+        <label>部品故障</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Performance Degradation</fullName>
+        <default>false</default>
+        <label>性能低下</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Installation Issue</fullName>
+        <default>false</default>
+        <label>施工・設置不良</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Usage Inquiry</fullName>
+        <default>false</default>
+        <label>使用方法の問い合わせ</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Maintenance Request</fullName>
+        <default>false</default>
+        <label>メンテナンス依頼</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Other</fullName>
+        <default>false</default>
+        <label>その他</label>
+    </standardValue>
+</StandardValueSet>

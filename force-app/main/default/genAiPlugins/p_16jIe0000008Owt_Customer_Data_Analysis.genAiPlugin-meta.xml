@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <canEscalate>false</canEscalate>
+    <description>This topic is selected when users request actionable insights based on customer data, such as trends, patterns, or recommendations derived from analyzed data.</description>
+    <developerName>p_16jIe0000008Owt_Customer_Data_Analysis</developerName>
+    <genAiFunctions>
+        <functionName>Analytics__SummarizeDashboard</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>Analytics__AnalyzeMetric</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__AnswerQuestionsWithKnowledge</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the query involves analyzing business metrics, use Analytics__AnalyzeMetric.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the user requests a summary of visualizations, use Analytics__SummarizeDashboard.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jIe0000008Owt_Customer_Data_Analysis</localDeveloperName>
+    <masterLabel>Customer Data Analysis</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to only perform data analysis tasks related to customer data, including summarizing dashboards and analyzing metrics for business insights. You aren&apos;t able to modify customer records or perform unrelated administrative tasks.</scope>
+</GenAiPlugin>

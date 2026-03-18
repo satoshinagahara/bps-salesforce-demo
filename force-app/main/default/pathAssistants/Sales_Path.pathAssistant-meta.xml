@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Opportunity</entityName>
+    <fieldName>StageName</fieldName>
+    <masterLabel>Sales Path</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>SDO_Sales_Project_Budgeted__c</fieldNames>
+        <fieldNames>SDO_Sales_Competitor__c</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;顧客の事業内容・設備導入の背景を把握してください&lt;/li&gt;&lt;li&gt;予算規模・導入時期・意思決定プロセスを確認してください（BANT）&lt;/li&gt;&lt;li&gt;競合他社の検討状況をヒアリングしてください&lt;/li&gt;&lt;li&gt;技術要件（設置環境・系統連系条件・容量要件等）を確認し、対応可否を判断してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Qualification</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>SDO_Sales_Competitor__c</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;顧客の課題・導入目的を深掘りし、最適なソリューション構成を検討してください&lt;/li&gt;&lt;li&gt;自社製品の優位性（性能・信頼性・保守体制）を競合と比較し整理してください&lt;/li&gt;&lt;li&gt;技術部門と連携し、現地調査や製品デモの実施を検討してください&lt;/li&gt;&lt;li&gt;導入後の運用・保守要件も含めた包括的な提案の方向性を固めてください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Discovery</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Amount</fieldNames>
+        <fieldNames>SDO_Sales_Complete_ROI_Analysis__c</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;見積書・提案書を作成し、技術仕様・納期・価格を明示してください&lt;/li&gt;&lt;li&gt;意思決定者（設備部門長・経営層）への提案機会を設定してください&lt;/li&gt;&lt;li&gt;ROI試算（電力コスト削減・CO2削減効果等）を提示し、投資対効果を訴求してください&lt;/li&gt;&lt;li&gt;必要に応じてRFQ（見積依頼）を発行し、サプライヤーからの回答を反映してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Proposal/Quote</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>ExpectedRevenue</fieldNames>
+        <fieldNames>SDO_Sales_Contract_Terms__c</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;ul&gt;&lt;li&gt;最終的な価格・納期・支払条件について合意形成を進めてください&lt;/li&gt;&lt;li&gt;契約条件（保証期間・SLA・ペナルティ条項）を確認してください&lt;/li&gt;&lt;li&gt;社内承認（値引き決裁・与信確認）を完了させてください&lt;/li&gt;&lt;li&gt;受注後の納品・設置スケジュールを生産管理部門と事前調整してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Negotiation</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;ul&gt;&lt;li&gt;受注おめでとうございます。注文書の受領と社内登録を完了させてください&lt;/li&gt;&lt;li&gt;プロジェクト担当者（施工管理・カスタマーサクセス）への引き継ぎを行ってください&lt;/li&gt;&lt;li&gt;保守契約・エンタイトルメントの設定を確認してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Closed Won</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;ul&gt;&lt;li&gt;失注理由（価格・技術・競合・タイミング等）を記録してください&lt;/li&gt;&lt;li&gt;今後の改善点を整理し、チーム内で共有してください&lt;/li&gt;&lt;li&gt;将来の再提案に向け、フォローアップのタスクを設定してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Closed Lost</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>SimpleOpportunity</recordTypeName>
+</PathAssistant>

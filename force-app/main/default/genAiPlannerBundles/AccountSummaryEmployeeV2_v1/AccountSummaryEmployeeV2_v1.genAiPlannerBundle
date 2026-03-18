@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Help Salesforce internal sales representatives collect account information and generate a comprehensive summary including opportunities, cases, and contacts.</description>
+    <localTopicLinks>
+        <genAiPluginName>account_data_compilation_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>ambiguous_question_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>contact_insights_retrieval_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>escalation_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>opportunity_pipeline_analysis_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>topic_selector_16jIe0000008OwX</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>ambiguous_question_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request is too ambiguous</description>
+        <developerName>ambiguous_question_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCd</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCd</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>ambiguous_question</localDeveloperName>
+        <masterLabel>Ambiguous Question</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request goes off-topic</description>
+        <developerName>off_topic_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCc</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCc</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>account_data_compilation_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Aggregate account information including opportunities and cases.</description>
+        <developerName>account_data_compilation_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCb</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCb</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>account_data_compilation</localDeveloperName>
+        <masterLabel>Account Data Compilation</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>opportunity_pipeline_analysis_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Identify and summarize potential sales opportunities.</description>
+        <developerName>opportunity_pipeline_analysis_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCa</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCa</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>opportunity_pipeline_analysis</localDeveloperName>
+        <masterLabel>Opportunity Pipeline Analysis</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>escalation_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Handles requests from users who want to transfer or escalate their conversation to a live human agent.</description>
+        <developerName>escalation_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCZ</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCZ</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>escalation</localDeveloperName>
+        <masterLabel>Escalation</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>topic_selector_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the user and determine the appropriate topic based on user input</description>
+        <developerName>topic_selector_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCY</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCY</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>topic_selector</localDeveloperName>
+        <masterLabel>Topic Selector</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>contact_insights_retrieval_16jIe0000008OwX</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Extract and summarize contact details for active accounts.</description>
+        <developerName>contact_insights_retrieval_16jIe0000008OwX</developerName>
+        <genAiPluginInstructions>
+            <description>You are an AI Agent.</description>
+            <developerName>instruction0_179Ie000000wnCe</developerName>
+            <language>ja</language>
+            <masterLabel>instruction0_179Ie000000wnCe</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>ja</language>
+        <localDeveloperName>contact_insights_retrieval</localDeveloperName>
+        <masterLabel>Contact Insights Retrieval</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Account Summary Employee Agent</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

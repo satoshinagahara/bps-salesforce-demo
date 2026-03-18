@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <interviewLabel>顧客報告メール生成 {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>顧客報告メール生成</label>
+    <processType>Flow</processType>
+    <status>Active</status>
+    <runInMode>DefaultMode</runInMode>
+
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Start_Screen</targetReference>
+        </connector>
+    </start>
+
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <variables>
+        <name>generatedEmail</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <actionCalls>
+        <name>Generate_Email</name>
+        <label>メール文面生成</label>
+        <locationX>176</locationX>
+        <locationY>240</locationY>
+        <actionName>CaseReportEmailAction</actionName>
+        <actionType>apex</actionType>
+        <connector>
+            <targetReference>Display_Result</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Error_Screen</targetReference>
+        </faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>caseId</name>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </inputParameters>
+        <outputParameters>
+            <assignToReference>generatedEmail</assignToReference>
+            <name>emailText</name>
+        </outputParameters>
+    </actionCalls>
+
+    <screens>
+        <name>Start_Screen</name>
+        <label>顧客報告メール生成</label>
+        <locationX>176</locationX>
+        <locationY>80</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <connector>
+            <targetReference>Generate_Email</targetReference>
+        </connector>
+        <nextOrFinishButtonLabel>メール文面を生成</nextOrFinishButtonLabel>
+        <fields>
+            <name>startInstructions</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;🤖 Agentforce — 顧客報告メール生成&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;このケースに関連する是正措置・サプライヤー調査の情報をもとに、&lt;b&gt;顧客向けの現状報告メール文面&lt;/b&gt;をAIで自動生成します。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;生成には数秒〜十数秒かかる場合があります。&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+
+    <screens>
+        <name>Display_Result</name>
+        <label>顧客報告メール文面</label>
+        <locationX>176</locationX>
+        <locationY>400</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>instructions</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;b&gt;以下の文面をコピーしてメールに貼り付けてください。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;内容を確認・編集してから送信することを推奨します。&lt;/p&gt;</fieldText>
+        </fields>
+        <fields>
+            <name>emailBody</name>
+            <fieldType>LargeTextArea</fieldType>
+            <defaultValue>
+                <elementReference>generatedEmail</elementReference>
+            </defaultValue>
+            <fieldText>メール本文</fieldText>
+            <isRequired>false</isRequired>
+        </fields>
+    </screens>
+
+    <screens>
+        <name>Error_Screen</name>
+        <label>エラー</label>
+        <locationX>440</locationX>
+        <locationY>240</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>errorMessage</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;color: rgb(186, 5, 23);&quot;&gt;メール文面の生成中にエラーが発生しました。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;{!$Flow.FaultMessage}&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+</Flow>

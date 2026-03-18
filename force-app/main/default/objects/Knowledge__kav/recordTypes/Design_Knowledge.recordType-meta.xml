@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Design_Knowledge</fullName>
+    <active>true</active>
+    <label>設計ナレッジ</label>
+    <picklistValues>
+        <picklist>Part_Category__c</picklist>
+        <values><fullName>電子部品</fullName><default>false</default></values>
+        <values><fullName>樹脂材料</fullName><default>false</default></values>
+        <values><fullName>金属部品</fullName><default>false</default></values>
+        <values><fullName>化学材料</fullName><default>false</default></values>
+        <values><fullName>組立工程</fullName><default>false</default></values>
+        <values><fullName>検査工程</fullName><default>false</default></values>
+        <values><fullName>その他</fullName><default>false</default></values>
+    </picklistValues>
+</RecordType>

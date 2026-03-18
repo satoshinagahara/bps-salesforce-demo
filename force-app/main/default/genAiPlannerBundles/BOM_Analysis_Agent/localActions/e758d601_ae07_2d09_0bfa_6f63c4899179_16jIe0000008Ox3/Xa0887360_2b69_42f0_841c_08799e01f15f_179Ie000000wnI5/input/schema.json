@@ -1,0 +1,15 @@
+{
+  "required" : [ "Input:analysisData" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "Input:analysisData" : {
+      "title" : "analysisData",
+      "description" : "BOMAnalysisGetSupplierImpactアクションの出力であるJSON文字列をそのまま渡してください。",
+      "maxLength" : 100000,
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

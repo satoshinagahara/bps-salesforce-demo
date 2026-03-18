@@ -1,0 +1,109 @@
+<template>
+    <lightning-card title="四半期別受注予測" icon-name="standard:forecasts">
+        <div slot="actions">
+            <lightning-button
+                label={saveLabel}
+                variant="brand"
+                onclick={handleSave}
+                disabled={saveDisabled}
+                icon-name="utility:save">
+            </lightning-button>
+        </div>
+
+        <!-- Add row controls -->
+        <div class="add-bar">
+            <lightning-combobox
+                label="製品"
+                value={addProductId}
+                options={productOptions}
+                onchange={handleAddProductChange}
+                class="add-field"
+                variant="label-hidden"
+                placeholder="製品を選択">
+            </lightning-combobox>
+            <lightning-combobox
+                label="年度"
+                value={addYear}
+                options={yearOptions}
+                onchange={handleAddYearChange}
+                class="add-field-sm"
+                variant="label-hidden">
+            </lightning-combobox>
+            <lightning-button
+                label="年度を追加"
+                variant="neutral"
+                onclick={handleAddRow}
+                icon-name="utility:add">
+            </lightning-button>
+        </div>
+
+        <template if:false={hasEntries}>
+            <div class="empty-msg">受注予測データはありません。上のコントロールから年度を追加してください。</div>
+        </template>
+
+        <template if:true={hasEntries}>
+            <div class="grid-container">
+                <template for:each={productEntries} for:item="prod">
+                    <div key={prod.key} class="product-section">
+                        <div class="product-header">
+                            <lightning-icon icon-name="standard:product" size="x-small"></lightning-icon>
+                            <span class="product-name">{prod.productName}</span>
+                        </div>
+
+                        <template for:each={prod.years} for:item="yr">
+                            <div key={yr.key} class="year-block">
+                                <div class="year-header">
+                                    <span class="year-label">{yr.year}</span>
+                                    <span class="year-total">合計: {yr.yearQty}台 / {yr.yearTotal}</span>
+                                    <button class="remove-btn" data-product={prod.productId} data-year={yr.year} onclick={handleRemoveYear} title="この年度を削除">✕</button>
+                                </div>
+                                <table class="q-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="th-label"></th>
+                                            <th>Q1</th>
+                                            <th>Q2</th>
+                                            <th>Q3</th>
+                                            <th>Q4</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="row-label">数量</td>
+                                            <template for:each={yr.quarters} for:item="qr">
+                                                <td key={qr.key}>
+                                                    <input type="number" class="q-input"
+                                                        value={qr.qty}
+                                                        data-product={prod.productId}
+                                                        data-year={yr.year}
+                                                        data-quarter={qr.q}
+                                                        onchange={handleQtyChange}>
+                                                </td>
+                                            </template>
+                                        </tr>
+                                        <tr>
+                                            <td class="row-label">単価</td>
+                                            <td colspan="4">
+                                                <input type="number" class="price-input"
+                                                    value={yr.commonPrice}
+                                                    data-product={prod.productId}
+                                                    data-year={yr.year}
+                                                    onchange={handlePriceChange}>
+                                            </td>
+                                        </tr>
+                                        <tr class="amount-row">
+                                            <td class="row-label">金額</td>
+                                            <template for:each={yr.quarters} for:item="qr">
+                                                <td key={qr.key} class="amount-cell">{qr.amountFmt}</td>
+                                            </template>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </lightning-card>
+</template>

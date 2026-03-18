@@ -1,0 +1,128 @@
+<template>
+    <lightning-card title="監査・認証" icon-name="standard:entitlement">
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="読み込み中"></lightning-spinner>
+        </template>
+
+        <template if:false={isLoading}>
+            <!-- Summary Stats Bar -->
+            <div class="stats-bar slds-p-around_medium">
+                <div class="stat-item">
+                    <span class="stat-label">監査回数</span>
+                    <span class="stat-value">{auditStats.auditCount}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">平均スコア</span>
+                    <span class="stat-value">{auditStats.avgScore}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">合格率</span>
+                    <span class={auditStats.passRateClass}>{auditStats.passRate}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">有効認証</span>
+                    <span class={certStats.activeCertsClass}>{certStats.activeCerts}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">期限間近</span>
+                    <span class={certStats.expiringSoonClass}>{certStats.expiringSoon}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">期限切れ</span>
+                    <span class={certStats.expiredClass}>{certStats.expired}</span>
+                </div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="tab-bar slds-p-horizontal_medium">
+                <div class={auditTabClass} data-tab="audit" onclick={handleTabClick}>監査履歴</div>
+                <div class={certTabClass} data-tab="cert" onclick={handleTabClick}>認証情報</div>
+            </div>
+
+            <!-- Audit Tab -->
+            <template if:true={isAuditTab}>
+                <template if:false={hasAudits}>
+                    <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                        監査履歴はまだありません
+                    </div>
+                </template>
+                <template if:true={hasAudits}>
+                    <div class="table-wrapper slds-p-horizontal_medium slds-p-bottom_medium">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>監査番号</th>
+                                    <th>種別</th>
+                                    <th>実施日</th>
+                                    <th>結果</th>
+                                    <th class="num-col">スコア</th>
+                                    <th class="num-col">指摘件数</th>
+                                    <th class="num-col">重大指摘</th>
+                                    <th>是正状況</th>
+                                    <th>監査範囲</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={audits} for:item="a">
+                                    <tr key={a.id}>
+                                        <td>{a.auditNumber}</td>
+                                        <td>{a.auditType}</td>
+                                        <td>{a.auditDate}</td>
+                                        <td><span class={a.resultBadgeClass}>{a.result}</span></td>
+                                        <td class="num-col">{a.score}</td>
+                                        <td class="num-col">{a.findingCount}</td>
+                                        <td class="num-col">{a.criticalFindingCount}</td>
+                                        <td>{a.correctiveStatus}</td>
+                                        <td>{a.auditScope}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+            </template>
+
+            <!-- Certification Tab -->
+            <template if:true={isCertTab}>
+                <template if:false={hasCerts}>
+                    <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                        認証情報はまだありません
+                    </div>
+                </template>
+                <template if:true={hasCerts}>
+                    <div class="table-wrapper slds-p-horizontal_medium slds-p-bottom_medium">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>認証種別</th>
+                                    <th>認証番号</th>
+                                    <th>認証機関</th>
+                                    <th>発行日</th>
+                                    <th>有効期限</th>
+                                    <th>ステータス</th>
+                                    <th>次回サーベイランス</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={certs} for:item="c">
+                                    <tr key={c.id}>
+                                        <td>{c.certType}</td>
+                                        <td>{c.certNumber}</td>
+                                        <td>{c.certBody}</td>
+                                        <td>{c.issueDate}</td>
+                                        <td><span class={c.expiryDateClass}>{c.expiryDate}</span></td>
+                                        <td><span class={c.statusBadgeClass}>{c.status}</span></td>
+                                        <td>{c.nextSurveillance}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+            </template>
+
+        </template>
+
+    </lightning-card>
+</template>

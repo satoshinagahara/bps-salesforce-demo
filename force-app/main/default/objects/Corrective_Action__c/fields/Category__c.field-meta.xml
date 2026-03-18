@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Category__c</fullName>
+    <label>不具合区分</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>部品不良</fullName><default>false</default><label>部品不良</label></value>
+            <value><fullName>製造工程</fullName><default>false</default><label>製造工程</label></value>
+            <value><fullName>設計起因</fullName><default>false</default><label>設計起因</label></value>
+            <value><fullName>材料起因</fullName><default>false</default><label>材料起因</label></value>
+            <value><fullName>外注加工</fullName><default>false</default><label>外注加工</label></value>
+            <value><fullName>その他</fullName><default>false</default><label>その他</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

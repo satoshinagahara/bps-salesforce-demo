@@ -1,0 +1,76 @@
+<template>
+    <lightning-card>
+        <div slot="title">
+            <lightning-icon icon-name="standard:timesheet_entry" size="small" class="slds-m-right_x-small"></lightning-icon>
+            活動工数トラッカー
+        </div>
+
+        <div class="effort-wrap">
+
+            <!-- Loading -->
+            <template lwc:if={isLoading}>
+                <div class="center-pad">
+                    <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Error -->
+            <template lwc:elseif={error}>
+                <div class="error-box">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span class="slds-m-left_x-small">{error}</span>
+                </div>
+            </template>
+
+            <!-- Main -->
+            <template lwc:elseif={hasData}>
+
+                <!-- KPI Tiles -->
+                <div class="kpi-row">
+                    <div class="kpi-tile" style="--kpi-clr:#0176d3">
+                        <div class="kpi-num">{totalHours}</div>
+                        <div class="kpi-lbl">合計工数</div>
+                        <div class="kpi-sub">行動の所要時間から算出</div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#2e844a">
+                        <div class="kpi-num">{totalActivities}</div>
+                        <div class="kpi-lbl">活動件数</div>
+                        <div class="kpi-sub">行動 {totalEvents}件 / ToDo {totalTasks}件</div>
+                    </div>
+                    <div class="kpi-tile" style="--kpi-clr:#9050e9">
+                        <div class="kpi-num">{memberCount}</div>
+                        <div class="kpi-lbl">関与メンバー</div>
+                        <div class="kpi-sub">{dateRange}</div>
+                    </div>
+                </div>
+
+                <!-- Member Effort Breakdown -->
+                <div class="section-card">
+                    <div class="section-title">メンバー別工数</div>
+                    <template for:each={memberBars} for:item="m">
+                        <div key={m.key} class="member-row">
+                            <div class="member-header">
+                                <span class="member-dot" style={m.dotStyle}></span>
+                                <span class="member-name">{m.name}</span>
+                                <span class="member-hours">{m.hours}</span>
+                            </div>
+                            <div class="member-bar-row">
+                                <div class="bar-track">
+                                    <div class="bar-fill" style={m.barStyle}></div>
+                                </div>
+                                <span class="member-detail">行動 {m.eventCount} / ToDo {m.taskCount}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+            </template>
+
+            <!-- No Data -->
+            <template lwc:else>
+                <p class="no-data">関連する活動がありません</p>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

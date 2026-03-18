@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>D5_Permanent_Action__c</fullName>
+    <label>D5 恒久対策</label>
+    <type>LongTextArea</type>
+    <length>10000</length>
+    <visibleLines>4</visibleLines>
+</CustomField>

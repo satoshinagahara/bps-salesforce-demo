@@ -1,0 +1,282 @@
+<template>
+    <lightning-card title="需要変動インパクト分析" icon-name="standard:entitlement">
+        <template if:true={error}>
+            <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+        </template>
+
+        <!-- Tabs -->
+        <div class="tabs-bar">
+            <button class={actualTabClass} data-tab="actual" onclick={handleTab}>実績分析</button>
+            <button class={whatifTabClass} data-tab="whatif" onclick={handleTab}>What-ifシミュレーション</button>
+        </div>
+
+        <!-- ═══ Tab 1: 実績ベース乖離分析 ═══ -->
+        <template if:true={isActualTab}>
+            <template if:true={hasData}>
+                <template for:each={data.products} for:item="prod">
+                    <div key={prod.key} class="product-section">
+                        <div class="prod-header">
+                            <span class="prod-name">{prod.productName}</span>
+                            <span class={prod.varianceClass}>
+                                累計乖離: {prod.totalVarianceQtyFmt} ({prod.totalVariancePctFmt})
+                            </span>
+                        </div>
+                        <template if:true={prod.hasMonths}>
+                            <div class="section-title">月別乖離（5%以上）</div>
+                            <table class="impact-table">
+                                <thead>
+                                    <tr><th>月</th><th>計画</th><th>実績</th><th>乖離数量</th><th>乖離率</th></tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={prod.months} for:item="m">
+                                        <tr key={m.key} class={m.rowClass}>
+                                            <td>{m.monthLabel}</td>
+                                            <td class="num">{m.planFmt}</td>
+                                            <td class="num">{m.actualFmt}</td>
+                                            <td class="num">{m.varianceFmt}</td>
+                                            <td class="num">{m.variancePctFmt}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template if:true={prod.hasSuppliers}>
+                            <div class="section-title">サプライチェーン影響（BOM展開）</div>
+                            <template for:each={prod.suppliers} for:item="sup">
+                                <div key={sup.key} class="supplier-card">
+                                    <div class="sup-header">
+                                        <lightning-icon icon-name="standard:account" size="x-small"></lightning-icon>
+                                        <span class="sup-name">{sup.supplierName}</span>
+                                        <span class={sup.impactClass}>影響数量: {sup.totalImpactFmt}</span>
+                                    </div>
+                                    <table class="parts-table">
+                                        <thead><tr><th>部品</th><th>品番</th><th>単位数量</th><th>影響数量</th></tr></thead>
+                                        <tbody>
+                                            <template for:each={sup.parts} for:item="pt">
+                                                <tr key={pt.key}>
+                                                    <td>{pt.partName}</td><td>{pt.partNumber}</td>
+                                                    <td class="num">{pt.qtyPerUnitFmt}</td>
+                                                    <td class="num">{pt.impactFmt}</td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                    <template if:true={sup.hasCapacities}>
+                                        <div class="capacity-section">
+                                            <div class="capacity-title">供給キャパシティ</div>
+                                            <template for:each={sup.capacities} for:item="cap">
+                                                <div key={cap.key} class="capacity-row">
+                                                    <div class="cap-info">
+                                                        <span class="cap-part">{cap.partName}</span>
+                                                        <span class="cap-site">{cap.siteName}</span>
+                                                    </div>
+                                                    <div class="cap-bar-area">
+                                                        <div class="cap-bar-track">
+                                                            <div class={cap.barClass} style={cap.barWidth}></div>
+                                                        </div>
+                                                        <span class={cap.utilizationClass}>{cap.utilizationFmt}</span>
+                                                    </div>
+                                                    <div class="cap-nums">
+                                                        <span>需要: {cap.demandFmt}</span>
+                                                        <span>上限: {cap.capacityFmt}</span>
+                                                    </div>
+                                                    <template if:true={cap.isOverCapacity}>
+                                                        <template if:true={cap.hasAlternatives}>
+                                                            <div class="cap-alternatives">
+                                                                <span class="alt-label">代替拠点:</span>
+                                                                <template for:each={cap.alternatives} for:item="alt">
+                                                                    <span key={alt.key} class="alt-chip">
+                                                                        {alt.siteName}（余剰: {alt.spareCapacityFmt}）
+                                                                    </span>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <template if:false={cap.hasAlternatives}>
+                                                            <div class="cap-no-alt">代替拠点なし — 別サプライヤー検討要</div>
+                                                        </template>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </template>
+                        <template if:false={prod.hasSuppliers}>
+                            <div class="no-bom">BOMデータが未登録のため、サプライチェーン影響を算出できません</div>
+                        </template>
+                    </div>
+                </template>
+            </template>
+            <template if:false={hasData}>
+                <div class="slds-p-around_medium slds-text-color_weak">実績データがないため、乖離分析を表示できません</div>
+            </template>
+        </template>
+
+        <!-- ═══ Tab 2: What-If シミュレーション ═══ -->
+        <template if:true={isWhatIfTab}>
+            <div class="whatif-body">
+                <!-- Preset buttons -->
+                <div class="preset-row">
+                    <span class="preset-label">プリセット:</span>
+                    <button class="preset-btn up" data-pct="10" onclick={handlePreset}>+10%</button>
+                    <button class="preset-btn up" data-pct="20" onclick={handlePreset}>+20%</button>
+                    <button class="preset-btn down" data-pct="-10" onclick={handlePreset}>-10%</button>
+                    <button class="preset-btn down" data-pct="-20" onclick={handlePreset}>-20%</button>
+                    <button class="preset-btn reset" onclick={handleReset}>リセット</button>
+                </div>
+
+                <!-- Per-product input -->
+                <template if:true={hasScenarioInputs}>
+                    <div class="scenario-inputs">
+                        <template for:each={scenarioInputs} for:item="si">
+                            <div key={si.key} class="scenario-row">
+                                <span class="scenario-prod">{si.productName}</span>
+                                <div class="scenario-input-wrap">
+                                    <input type="number" class="scenario-input"
+                                        value={si.changePct}
+                                        data-product-id={si.productId}
+                                        onchange={handleChangePct}
+                                        step="5">
+                                    <span class="scenario-unit">%</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Simulate button -->
+                <div class="sim-action">
+                    <lightning-button
+                        label="シミュレーション実行"
+                        variant="brand"
+                        onclick={handleSimulate}
+                        disabled={simulateDisabled}
+                        icon-name="utility:analytics">
+                    </lightning-button>
+                    <template if:true={whatIfLoading}>
+                        <lightning-spinner size="small" class="sim-spinner"></lightning-spinner>
+                        <span class="sim-loading-text">BOM展開＋AI分析中...</span>
+                    </template>
+                </div>
+
+                <!-- Error -->
+                <template if:true={whatIfError}>
+                    <div class="whatif-error">{whatIfError}</div>
+                </template>
+
+                <!-- Results -->
+                <template if:true={hasWhatIfResult}>
+                    <!-- AI Analysis (top) -->
+                    <template if:true={whatIfResult.aiAnalysis}>
+                        <div class="ai-panel">
+                            <div class="ai-header">
+                                <lightning-icon icon-name="utility:einstein" size="x-small"></lightning-icon>
+                                <span class="ai-title">AI洞察</span>
+                            </div>
+                            <div class="ai-content">{whatIfResult.aiAnalysis}</div>
+                        </div>
+                    </template>
+
+                    <template if:true={hasWhatIfProducts}>
+                        <template for:each={whatIfProducts} for:item="wp">
+                            <div key={wp.key} class="sim-product-section">
+                                <div class="sim-prod-header">
+                                    <span class="prod-name">{wp.productName}</span>
+                                    <span class={wp.changeClass}>{wp.changePctFmt}</span>
+                                    <span class="sim-summary">
+                                        計画: {wp.totalPlanFmt} → シミュレーション: {wp.totalSimFmt}（差: {wp.totalDeltaFmt}）
+                                    </span>
+                                </div>
+
+                                <template if:true={wp.hasMonths}>
+                                    <div class="section-title">月別シミュレーション</div>
+                                    <table class="impact-table sim-table">
+                                        <thead>
+                                            <tr><th>月</th><th>計画</th><th>実績</th><th>シミュレーション</th><th>差分</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={wp.months} for:item="m">
+                                                <tr key={m.key}>
+                                                    <td>{m.monthLabel}</td>
+                                                    <td class="num">{m.planFmt}</td>
+                                                    <td class="num actual-col">{m.actualFmt}</td>
+                                                    <td class="num sim-col">{m.simFmt}</td>
+                                                    <td class="num">{m.deltaFmt}</td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </template>
+
+                                <template if:true={wp.hasSuppliers}>
+                                    <div class="section-title">サプライヤー影響（シミュレーション）</div>
+                                    <template for:each={wp.suppliers} for:item="sup">
+                                        <div key={sup.key} class="supplier-card">
+                                            <div class="sup-header">
+                                                <lightning-icon icon-name="standard:account" size="x-small"></lightning-icon>
+                                                <span class="sup-name">{sup.supplierName}</span>
+                                                <span class={sup.impactClass}>影響数量: {sup.totalImpactFmt}</span>
+                                            </div>
+                                            <table class="parts-table">
+                                                <thead><tr><th>部品</th><th>品番</th><th>単位数量</th><th>影響数量</th></tr></thead>
+                                                <tbody>
+                                                    <template for:each={sup.parts} for:item="pt">
+                                                        <tr key={pt.key}>
+                                                            <td>{pt.partName}</td><td>{pt.partNumber}</td>
+                                                            <td class="num">{pt.qtyPerUnitFmt}</td>
+                                                            <td class="num">{pt.impactFmt}</td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                            <template if:true={sup.hasCapacities}>
+                                                <div class="capacity-section">
+                                                    <div class="capacity-title">供給キャパシティ</div>
+                                                    <template for:each={sup.capacities} for:item="cap">
+                                                        <div key={cap.key} class="capacity-row">
+                                                            <div class="cap-info">
+                                                                <span class="cap-part">{cap.partName}</span>
+                                                                <span class="cap-site">{cap.siteName}</span>
+                                                            </div>
+                                                            <div class="cap-bar-area">
+                                                                <div class="cap-bar-track">
+                                                                    <div class={cap.barClass} style={cap.barWidth}></div>
+                                                                </div>
+                                                                <span class={cap.utilizationClass}>{cap.utilizationFmt}</span>
+                                                            </div>
+                                                            <div class="cap-nums">
+                                                                <span>需要: {cap.demandFmt}</span>
+                                                                <span>上限: {cap.capacityFmt}</span>
+                                                            </div>
+                                                            <template if:true={cap.isOverCapacity}>
+                                                                <template if:true={cap.hasAlternatives}>
+                                                                    <div class="cap-alternatives">
+                                                                        <span class="alt-label">代替拠点:</span>
+                                                                        <template for:each={cap.alternatives} for:item="alt">
+                                                                            <span key={alt.key} class="alt-chip">
+                                                                                {alt.siteName}（余剰: {alt.spareCapacityFmt}）
+                                                                            </span>
+                                                                        </template>
+                                                                    </div>
+                                                                </template>
+                                                                <template if:false={cap.hasAlternatives}>
+                                                                    <div class="cap-no-alt">代替拠点なし — 別サプライヤー検討要</div>
+                                                                </template>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+                        </template>
+                    </template>
+
+                </template>
+            </div>
+        </template>
+    </lightning-card>
+</template>

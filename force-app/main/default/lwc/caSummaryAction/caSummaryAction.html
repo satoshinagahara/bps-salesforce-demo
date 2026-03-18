@@ -1,0 +1,40 @@
+<template>
+    <template if:true={isLoading}>
+        <div class="loading-container">
+            <lightning-spinner alternative-text="生成中" size="medium"></lightning-spinner>
+            <p class="loading-text">AIがサマリーを生成しています...</p>
+            <div class="loading-dots">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+        </div>
+    </template>
+
+    <template if:true={error}>
+        <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_small slds-m-horizontal_small" role="alert">
+            <span class="slds-assistive-text">エラー</span>
+            <h2>{error}</h2>
+        </div>
+        <div class="footer-buttons">
+            <lightning-button label="閉じる" onclick={handleClose}></lightning-button>
+            <lightning-button label="再生成" variant="brand" onclick={handleRegenerate}></lightning-button>
+        </div>
+    </template>
+
+    <template if:true={hasResult}>
+        <div class="summary-card">
+            <div class="summary-body">
+                <template for:each={summaryLines} for:item="line">
+                    <p key={line.key} class={line.className}>{line.text}</p>
+                </template>
+            </div>
+            <div class="summary-footer">
+                <lightning-icon icon-name="utility:clock" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                {generatedTime} 生成
+            </div>
+        </div>
+        <div class="footer-buttons">
+            <lightning-button label="閉じる" onclick={handleClose}></lightning-button>
+            <lightning-button label="再生成" icon-name="utility:refresh" variant="neutral" onclick={handleRegenerate}></lightning-button>
+        </div>
+    </template>
+</template>

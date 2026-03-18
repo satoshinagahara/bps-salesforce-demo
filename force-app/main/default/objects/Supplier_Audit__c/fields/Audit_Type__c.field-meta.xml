@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Audit_Type__c</fullName>
+    <label>監査種別</label>
+    <type>Picklist</type>
+    <required>true</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>初回監査</fullName><default>false</default><label>初回監査</label></value>
+            <value><fullName>定期監査</fullName><default>false</default><label>定期監査</label></value>
+            <value><fullName>特別監査</fullName><default>false</default><label>特別監査</label></value>
+            <value><fullName>フォローアップ監査</fullName><default>false</default><label>フォローアップ監査</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

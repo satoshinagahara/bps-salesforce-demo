@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "caseInfo": {
+      "type": "string",
+      "description": "取引先に紐づくケース情報テキスト"
+    }
+  }
+}

@@ -1,0 +1,165 @@
+:host {
+    display: block;
+}
+
+/* Add bar */
+.add-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafbfc;
+    flex-wrap: wrap;
+}
+.add-field {
+    width: 200px;
+}
+.add-field-sm {
+    width: 120px;
+}
+
+.empty-msg {
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+/* Grid */
+.grid-container {
+    padding: 12px 16px 16px;
+}
+
+.product-section {
+    margin-bottom: 20px;
+    border: 1px solid #e1e5eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.product-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+.product-name {
+    flex: 1;
+}
+
+/* Year block */
+.year-block {
+    border-top: 1px solid #e5e7eb;
+}
+.year-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #f0f0f0;
+}
+.year-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+.year-total {
+    font-size: 0.75rem;
+    color: #6b7280;
+    flex: 1;
+}
+.remove-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.remove-btn:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+/* Quarter table */
+.q-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+}
+.q-table th {
+    padding: 6px 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.7rem;
+    background: #fafbfc;
+    border-bottom: 1px solid #f0f0f0;
+}
+.th-label {
+    width: 50px;
+}
+.q-table td {
+    padding: 4px 6px;
+    text-align: center;
+    border-bottom: 1px solid #f5f5f5;
+}
+.row-label {
+    text-align: right;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.7rem;
+    padding-right: 10px;
+    width: 50px;
+}
+
+/* Inputs */
+.q-input {
+    width: 100%;
+    max-width: 110px;
+    padding: 4px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    background: #fff;
+}
+.q-input:focus {
+    outline: none;
+    border-color: #0176d3;
+    box-shadow: 0 0 0 1px #0176d3;
+}
+.price-input {
+    width: 100%;
+    max-width: 160px;
+    padding: 4px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    background: #fffbeb;
+}
+.price-input:focus {
+    outline: none;
+    border-color: #d97706;
+    box-shadow: 0 0 0 1px #d97706;
+}
+
+/* Amount row */
+.amount-row {
+    background: #f8f9fa;
+}
+.amount-cell {
+    font-weight: 600;
+    color: #059669;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+}

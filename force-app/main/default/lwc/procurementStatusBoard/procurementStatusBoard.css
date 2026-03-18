@@ -1,0 +1,238 @@
+/* サマリーカード */
+.kpi-summary {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    flex-wrap: wrap;
+}
+
+.kpi-card {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 16px 8px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e1e5eb;
+}
+
+.kpi-card--warning {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 16px 8px;
+    border-radius: 8px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #1a1a2e;
+}
+
+.kpi-value--danger { color: #e74c3c; }
+.kpi-value--warning { color: #f39c12; }
+.kpi-value--success { color: #27ae60; }
+
+.kpi-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* セクション */
+.kpi-section {
+    padding: 0 16px 16px;
+}
+
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* カテゴリバッジ */
+.category-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    flex: 1;
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 8px;
+    border-radius: 8px;
+    color: #fff;
+}
+
+.category-count {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.category-label {
+    font-size: 0.65rem;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+
+/* RFQ一覧 */
+.rfq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rfq-row {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #f8f9fa;
+    border-left: 3px solid #3498db;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.rfq-row:hover {
+    background: #eef2f7;
+}
+
+.rfq-row--due-soon {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #fffbeb;
+    border-left: 3px solid #f39c12;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.rfq-row--due-soon:hover {
+    background: #fef3c7;
+}
+
+.rfq-row--overdue {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #fef2f2;
+    border-left: 3px solid #e74c3c;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.rfq-row--overdue:hover {
+    background: #fee2e2;
+}
+
+.rfq-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.rfq-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.status-badge {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.due-badge {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.due-badge--soon {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.due-badge--overdue {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.rfq-title {
+    font-size: 0.75rem;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.rfq-details {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.rfq-detail {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+/* 見積回答 */
+.quote-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.quote-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #f8f9fa;
+}
+
+.quote-supplier {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e3a5f;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.quote-details {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.quote-detail {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.price-value {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.price-value--best {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #27ae60;
+}

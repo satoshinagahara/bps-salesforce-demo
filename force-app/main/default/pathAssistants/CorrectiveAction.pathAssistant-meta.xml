@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Corrective_Action__c</entityName>
+    <fieldName>Phase__c</fieldName>
+    <masterLabel>是正措置</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Product__c</fieldNames>
+        <fieldNames>Severity__c</fieldNames>
+        <fieldNames>Team_Lead__c</fieldNames>
+        <fieldNames>Target_Close_Date__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;不具合の概要を把握し、対応チームを編成します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;重大度に応じて適切なスキルを持つメンバーを選定してください。重大度「重大」の場合は24時間以内にチーム編成を完了し、経営層への初動報告を行ってください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D1 チーム編成</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Category__c</fieldNames>
+        <fieldNames>BOM_Part__c</fieldNames>
+        <fieldNames>Supplier__c</fieldNames>
+        <fieldNames>D2_Problem_Description__c</fieldNames>
+        <fieldNames>Impact_Scope__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;不具合事象を5W1Hで正確に定義します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;発生条件、発生率、影響範囲を定量的に記述してください。「何が、いつから、どの条件で、何件発生&lt;/em&gt; &lt;em&gt;しているか」を明確にし、影響範囲キーワードには水平展開検索用のキーワードを設定してください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D2 問題定義</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>D3_Containment__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;顧客および市場への被害拡大を防止する暫定措置を実施します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;出荷停止、在庫隔離、顧客への注意喚起、代替品手配など、即座に実行可能な対策を講じてください。暫定対応の実施日と効果確認結果も記録してください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D3 暫定対応</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>D4_Root_Cause__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;なぜなぜ分析や特性要因図を用いて、直接原因と根本原因を特定します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;「直接原因」（物理的・技術的な原因）と「根本原因」（管理的・仕組み上の原因）を分けて記述してください。原因が部品・材料に起因する場合は、サプライヤー調査を作成して調査を依頼してください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D4 原因分析</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>D5_Permanent_Action__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;根本原因を排除する恒久対策を立案します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;設計変更、工程変更、部品変更、検査強化、サプライヤー品質協定の改訂など、具体的な対策と実施スケジュールを記載してください。対策の有効性をどのように検証するかも合わせて計画してください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D5 恒久対策立案</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>D6_Verification__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt; &lt;em&gt;恒久対策を実施し、その有効性を検証します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;対策実施前後の比較データ、加速試験結果、市場フィードバック等で効果を確認してください。検証が不十分な場合はD4に戻って原因を再分析してください。暫定対応（D3）の解除判断もこの段階で行います。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D6 実施・検証</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>D7_Prevention__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;同種の不具合が他の製品・工程・部品で発生しないよう、水平展開を実施します。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;設計基準・検査基準・部品選定基準の改訂、サプライヤーとの品質会議での合意事項を記録してください。影響範囲キーワードで類似案件を検索し、関連する是正処置があればParent_CA（親是正処置）で紐付けてください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D7 再発防止</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Actual_Close_Date__c</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;&lt;em&gt;全フェーズの完了を確認し、是正処置をクローズします。&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;チームメンバーの貢献を評価し、得られた教訓をナレッジとして記録してください。紐づくサプライヤー調査が全て「完了」ステータスであることを確認してから完了にしてください。&lt;/em&gt;&lt;/p&gt;</info>
+        <picklistValueName>D8 完了</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>__MASTER__</recordTypeName>
+</PathAssistant>

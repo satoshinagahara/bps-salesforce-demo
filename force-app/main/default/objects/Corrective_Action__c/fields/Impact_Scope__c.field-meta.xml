@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Impact_Scope__c</fullName>
+    <label>影響範囲キーワード</label>
+    <description>水平展開検索用。原因部品番号、サプライヤー名、材料カテゴリ、工程種別など影響範囲を特定するキーワードを記録</description>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+</CustomField>

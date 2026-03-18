@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Process_Type__c</fullName>
+    <label>工程種別</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>切削</fullName><default>false</default><label>切削</label></value>
+            <value><fullName>溶接</fullName><default>false</default><label>溶接</label></value>
+            <value><fullName>組立</fullName><default>false</default><label>組立</label></value>
+            <value><fullName>外注</fullName><default>false</default><label>外注</label></value>
+            <value><fullName>購買</fullName><default>false</default><label>購買</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

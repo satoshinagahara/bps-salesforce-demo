@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先名をもとに関連する商談（フェーズ・金額・完了予定日・担当者など）の一覧を返します。</description>
+    <invocationTarget>AccountSummaryGetOpportunities</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>関連商談取得</masterLabel>
+</GenAiFunction>

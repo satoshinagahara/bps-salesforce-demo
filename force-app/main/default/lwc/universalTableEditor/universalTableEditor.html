@@ -1,0 +1,161 @@
+<template>
+    <lightning-card icon-name="standard:datatable">
+        <div slot="title">ユニバーサルテーブルエディター</div>
+
+        <!-- ── Actions（未保存バッジ＋保存/破棄ボタン）── -->
+        <div slot="actions">
+            <template lwc:if={hasPending}>
+                <span class="pending-badge slds-m-right_x-small">{pendingBadgeLabel}</span>
+                <lightning-button-group>
+                    <lightning-button
+                        label="すべて保存"
+                        variant="brand"
+                        icon-name="utility:save"
+                        onclick={handleSaveAll}
+                        disabled={isSaving}>
+                    </lightning-button>
+                    <lightning-button
+                        label="変更を破棄"
+                        icon-name="utility:undo"
+                        onclick={handleDiscard}
+                        disabled={isSaving}>
+                    </lightning-button>
+                </lightning-button-group>
+            </template>
+        </div>
+
+        <div class="ute-wrap">
+
+            <!-- ── ツールバー ── -->
+            <div class="toolbar">
+                <div class="toolbar-main">
+                    <template lwc:if={isLoadingObjects}>
+                        <div class="skeleton-select"></div>
+                    </template>
+                    <template lwc:else>
+                        <lightning-combobox
+                            label="オブジェクト"
+                            placeholder="選択してください..."
+                            value={selectedObject}
+                            options={objectOptions}
+                            onchange={handleObjectChange}>
+                        </lightning-combobox>
+                    </template>
+                </div>
+                <div class="toolbar-side">
+                    <lightning-input
+                        type="number"
+                        label="最大件数"
+                        value={recordLimit}
+                        min="1"
+                        max="200"
+                        step="10"
+                        class="limit-input"
+                        onchange={handleLimitChange}>
+                    </lightning-input>
+                    <div class="btn-bottom">
+                        <lightning-button
+                            label="再読込"
+                            icon-name="utility:refresh"
+                            onclick={handleRefresh}
+                            disabled={isRefreshDisabled}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── フィールド選択パネル ── -->
+            <template lwc:if={hasSchema}>
+                <div class="field-selector-bar">
+                    <lightning-button
+                        label={fieldSelectorLabel}
+                        icon-name="utility:settings"
+                        variant="base"
+                        onclick={toggleFieldSelector}>
+                    </lightning-button>
+
+                    <template lwc:if={showFieldSelector}>
+                        <div class="field-panel">
+                            <div class="field-panel-header">
+                                <span>表示フィールドを選択 &nbsp;（🖊 編集可 &nbsp;／&nbsp; 👁 参照のみ）</span>
+                                <lightning-button-group>
+                                    <lightning-button label="すべて選択" variant="base" onclick={handleSelectAllFields}></lightning-button>
+                                    <lightning-button label="クリア" variant="base" onclick={handleClearFields}></lightning-button>
+                                </lightning-button-group>
+                            </div>
+                            <div class="field-grid">
+                                <template for:each={schemaFieldsDisplay} for:item="f">
+                                    <label key={f.fieldName} class="field-item">
+                                        <input
+                                            type="checkbox"
+                                            data-field={f.fieldName}
+                                            checked={f.visible}
+                                            onchange={handleFieldToggle}/>
+                                        <span class="field-label">{f.label}</span>
+                                        <span class="field-api">{f.fieldName}</span>
+                                        <span class={f.editBadgeClass}>{f.editBadge}</span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- ── コンテンツ ── -->
+            <div class="content-area">
+
+                <!-- ローディング -->
+                <template lwc:if={isLoadingData}>
+                    <div class="center-pad">
+                        <lightning-spinner alternative-text="読込中" size="medium"></lightning-spinner>
+                    </div>
+                </template>
+
+                <!-- エラー -->
+                <template lwc:elseif={errorMessage}>
+                    <div class="msg-box msg-error">
+                        <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                        <span class="slds-m-left_x-small">{errorMessage}</span>
+                    </div>
+                </template>
+
+                <!-- テーブル -->
+                <template lwc:elseif={hasData}>
+                    <div class="table-container">
+                        <lightning-datatable
+                            key-field="Id"
+                            data={tableData}
+                            columns={tableColumns}
+                            draft-values={draftValues}
+                            sorted-by={sortField}
+                            sorted-direction={sortDirection}
+                            onsave={handleCellSave}
+                            onsort={handleSort}
+                            hide-checkbox-column>
+                        </lightning-datatable>
+                    </div>
+                    <p class="record-count-label">{recordCountLabel}</p>
+                </template>
+
+                <!-- レコードなし -->
+                <template lwc:elseif={isEmpty}>
+                    <div class="msg-box">
+                        <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                        <span class="slds-m-left_x-small">レコードがありません。</span>
+                    </div>
+                </template>
+
+                <!-- オブジェクト未選択 -->
+                <template lwc:else>
+                    <div class="empty-prompt">
+                        <lightning-icon icon-name="utility:table" size="large"></lightning-icon>
+                        <p class="prompt-text">オブジェクトを選択すると、レコードを表形式で表示・編集できます</p>
+                        <p class="prompt-sub">セルをクリックして直接編集 → 「すべて保存」で一括コミット</p>
+                    </div>
+                </template>
+
+            </div>
+        </div>
+    </lightning-card>
+</template>

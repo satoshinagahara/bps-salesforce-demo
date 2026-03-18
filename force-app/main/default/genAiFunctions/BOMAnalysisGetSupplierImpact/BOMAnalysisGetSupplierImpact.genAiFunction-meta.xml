@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>指定サプライヤーが供給する全部品、影響を受ける商品、関連する商談パイプラインへの影響を分析します。ユーザーがサプライヤーのレコードページにいる場合は、現在のレコードIDをそのままsupplierIdとして渡してください。</description>
+    <invocationTarget>BOMAnalysisGetSupplierImpact</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>サプライヤーインパクト分析</masterLabel>
+</GenAiFunction>

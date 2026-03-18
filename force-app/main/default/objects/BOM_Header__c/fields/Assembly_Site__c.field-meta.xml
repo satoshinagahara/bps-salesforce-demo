@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Assembly_Site__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Assembly Site</label>
+    <referenceTo>Manufacturing_Site__c</referenceTo>
+    <relationshipLabel>BOM Headers (Assembly)</relationshipLabel>
+    <relationshipName>BOM_Headers_Assembly</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>

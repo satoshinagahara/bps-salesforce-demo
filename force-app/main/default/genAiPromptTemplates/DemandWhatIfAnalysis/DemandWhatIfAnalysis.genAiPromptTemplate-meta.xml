@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>DemandWhatIfAnalysis</developerName>
+    <masterLabel>需要What-if分析</masterLabel>
+    <templateVersions>
+        <content>あなたは製造業のサプライチェーンリスクアナリストです。
+需要変動シミュレーションのデータから、人間が数表を見ただけでは気づきにくい洞察のみを抽出してください。
+
+## 分析データ
+{!$Input:simulationData}
+
+## 絶対禁止事項
+- シナリオの数値（変動率、数量、サプライヤー影響数量）をそのまま列挙しない。これらは画面上のテーブルで既に表示済み
+- 「〜の確認が必要です」「〜を考慮する必要があります」等の一般論は書かない
+- マークダウンの見出し（#）は使わない。プレーンテキストで箇条書き
+
+## 出力する洞察（3〜6項目、各1〜2行）
+
+以下の観点から、このシナリオ固有の具体的な気づきだけを箇条書きで出力する:
+
+1. トレンドとの矛盾: 過去の計画vs実績パターン（季節性、上振れ/下振れ傾向）を見て、このシミュレーションが現実的かどうか。例：「直近3ヶ月は計画比85%前後で推移しており、+20%シナリオの実現にはトレンド反転が前提」
+
+2. サプライヤー集中リスク: 特定サプライヤーへの影響が不均衡に大きい場合、その事実と影響部品の代替困難度。例：「東亜電子が全影響の60%を占め、かつ2部品を単独供給」
+
+3. 供給キャパシティ逼迫: capacityAlertsデータがある場合、月産上限を超過する部品を特定し、不足数量と対策を具体的に示す。代替拠点（alternativeSites）がある場合はオフロード提案を含める。例：「P-MOS-001 パワーMOSFET: 九州工場の月産上限800に対し需要1,200。同一サプライヤーの本社工場に余剰キャパ500あり、不足400のうち全量をオフロード可能」。代替拠点がない場合は「代替拠点なし。別サプライヤーの開拓または増産設備投資の検討が必要」と明記
+
+4. 品質×増産リスクの交差: 品質問題（是正処置）が出ているサプライヤーに増産を求めるリスク。特にキャパシティ逼迫中のサプライヤーに品質問題がある場合は最優先で警告。品質問題データがない場合は「品質問題の記録なし」と1行で済ませる
+
+5. 時期的な偏り: 実績の月別パターンから、特定の時期に供給逼迫しやすい兆候があるか
+
+6. アクション優先度: 上記の分析を踏まえ、最も早急に対応すべき1〜2項目を「最優先アクション」として示す。例：「最優先: 東亜電子 九州工場のMOSFETキャパ確保交渉（現状120%超過、代替拠点あり）」
+
+出力は箇条書きのみ。前文・後文・まとめは不要。</content>
+        <inputs>
+            <apiName>simulationData</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>simulationData</masterLabel>
+            <referenceName>Input:simulationData</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

@@ -1,0 +1,110 @@
+<template>
+    <lightning-card title="月別スケジュール" icon-name="standard:date_input">
+        <div slot="actions">
+            <lightning-button
+                label={saveLabel}
+                variant="brand"
+                onclick={handleSave}
+                disabled={saveDisabled}
+                icon-name="utility:save">
+            </lightning-button>
+        </div>
+
+        <!-- Revenue Forecast reference -->
+        <template if:true={hasForecasts}>
+            <div class="forecast-ref">
+                <button class="forecast-toggle" onclick={handleToggleForecasts}>{forecastToggleLabel}</button>
+                <template if:true={showForecasts}>
+                    <div class="forecast-lines">
+                        <template for:each={forecastLines} for:item="fl">
+                            <div key={fl.key} class="forecast-line">{fl.text}</div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <template if:false={hasProducts}>
+            <div class="empty-msg">契約製品がありません</div>
+        </template>
+
+        <template if:true={hasProducts}>
+            <template for:each={products} for:item="prod">
+                <div key={prod.key} class="product-section">
+                    <div class="product-header">
+                        <span class="product-name">{prod.productName}</span>
+                        <span class="product-price">単価: {prod.unitPriceFmt}</span>
+                    </div>
+
+                    <div class="grid-scroll">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th class="th-label"></th>
+                                    <template for:each={prod.months} for:item="m">
+                                        <th key={m.key} class="th-month">{m.label}</th>
+                                    </template>
+                                    <th class="th-total">合計</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Plan Qty -->
+                                <tr>
+                                    <td class="row-label">計画数量</td>
+                                    <template for:each={prod.months} for:item="m">
+                                        <td key={m.key}>
+                                            <input type="number" class="cell-input plan-input"
+                                                value={m.planQty}
+                                                data-product={prod.id}
+                                                data-month={m.month}
+                                                onchange={handlePlanQtyChange}>
+                                        </td>
+                                    </template>
+                                    <td class="total-cell">{prod.totalPlanQty}</td>
+                                </tr>
+                                <!-- Plan Amt -->
+                                <tr class="amt-row">
+                                    <td class="row-label">計画金額</td>
+                                    <template for:each={prod.months} for:item="m">
+                                        <td key={m.key} class="amt-cell">{m.planAmtFmt}</td>
+                                    </template>
+                                    <td class="total-cell total-amt">{prod.totalPlanAmt}</td>
+                                </tr>
+                                <!-- Actual Qty -->
+                                <tr>
+                                    <td class="row-label actual-label">実績数量</td>
+                                    <template for:each={prod.months} for:item="m">
+                                        <td key={m.key}>
+                                            <input type="number" class="cell-input actual-input"
+                                                value={m.actualQty}
+                                                data-product={prod.id}
+                                                data-month={m.month}
+                                                onchange={handleActualQtyChange}>
+                                        </td>
+                                    </template>
+                                    <td class="total-cell">{prod.totalActualQty}</td>
+                                </tr>
+                                <!-- Actual Amt -->
+                                <tr class="amt-row">
+                                    <td class="row-label actual-label">実績金額</td>
+                                    <template for:each={prod.months} for:item="m">
+                                        <td key={m.key} class="amt-cell">{m.actualAmtFmt}</td>
+                                    </template>
+                                    <td class="total-cell total-amt">{prod.totalActualAmt}</td>
+                                </tr>
+                                <!-- Variance -->
+                                <tr class="var-row">
+                                    <td class="row-label">乖離率</td>
+                                    <template for:each={prod.months} for:item="m">
+                                        <td key={m.key} class={m.varianceClass}>{m.variance}</td>
+                                    </template>
+                                    <td class="total-cell"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

@@ -1,0 +1,14 @@
+{
+  "required" : [ "Input:analysisData" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "Input:analysisData" : {
+      "title" : "analysisData",
+      "description" : "取引先総合分析からのインプット",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

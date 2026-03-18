@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Initiative__c</fullName>
+    <label>製品施策</label>
+    <type>MasterDetail</type>
+    <referenceTo>Product_Initiative__c</referenceTo>
+    <relationshipLabel>紐付けニーズ</relationshipLabel>
+    <relationshipName>Initiative_Needs</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

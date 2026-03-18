@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Sales_Agreement__c</entityName>
+    <fieldName>Status__c</fieldName>
+    <masterLabel>販売契約パス</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Account__c</fieldNames>
+        <fieldNames>Source_Opportunity__c</fieldNames>
+        <fieldNames>Contract_Start__c</fieldNames>
+        <fieldNames>Contract_End__c</fieldNames>
+        <info>&lt;p&gt;&lt;b&gt;契約が有効な状態です&lt;/b&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;月別スケジュールに計画数量を入力し、顧客と合意してください&lt;/li&gt;
+&lt;li&gt;毎月の実績数量をERPデータまたは手動で更新してください&lt;/li&gt;
+&lt;li&gt;計画と実績の乖離が大きい場合は早期に顧客と協議してください&lt;/li&gt;
+&lt;li&gt;契約終了日の3ヶ月前から更新交渉の準備を開始してください&lt;/li&gt;
+&lt;/ul&gt;</info>
+        <picklistValueName>有効</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Account__c</fieldNames>
+        <fieldNames>Contract_End__c</fieldNames>
+        <info>&lt;p&gt;&lt;b&gt;契約更新の交渉中です&lt;/b&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;現契約期間の実績データを集計し、次期契約の数量・価格交渉の材料にしてください&lt;/li&gt;
+&lt;li&gt;需要予測の変動がある場合、最新のフォーキャストを基に条件を見直してください&lt;/li&gt;
+&lt;li&gt;合意に達したら新しい契約期間・条件で販売契約を更新または新規作成してください&lt;/li&gt;
+&lt;li&gt;交渉が不成立の場合はステータスを「終了」に変更してください&lt;/li&gt;
+&lt;/ul&gt;</info>
+        <picklistValueName>更新交渉中</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Account__c</fieldNames>
+        <fieldNames>Contract_Start__c</fieldNames>
+        <fieldNames>Contract_End__c</fieldNames>
+        <info>&lt;p&gt;&lt;b&gt;契約が終了しました&lt;/b&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;全ての実績データが正確に入力されていることを確認してください&lt;/li&gt;
+&lt;li&gt;後継の販売契約がある場合、取引先フォーキャストパネルで引き継ぎを確認してください&lt;/li&gt;
+&lt;li&gt;契約期間全体の達成率を振り返り、次回交渉の参考にしてください&lt;/li&gt;
+&lt;/ul&gt;</info>
+        <picklistValueName>終了</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>Standard</recordTypeName>
+</PathAssistant>

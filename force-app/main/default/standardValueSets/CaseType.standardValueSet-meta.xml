@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Product Support</fullName>
+        <default>false</default>
+        <label>製品サポート</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Technical Issue</fullName>
+        <default>false</default>
+        <label>技術的問題</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Account Support</fullName>
+        <default>false</default>
+        <label>取引先サポート</label>
+    </standardValue>
+    <standardValue>
+        <fullName>General</fullName>
+        <default>false</default>
+        <label>一般問い合わせ</label>
+    </standardValue>
+</StandardValueSet>

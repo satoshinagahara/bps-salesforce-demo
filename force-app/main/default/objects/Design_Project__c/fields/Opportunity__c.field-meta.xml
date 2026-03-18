@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Opportunity__c</fullName>
+    <label>関連商談</label>
+    <required>false</required>
+    <type>Lookup</type>
+    <referenceTo>Opportunity</referenceTo>
+    <relationshipLabel>設計開発プロジェクト</relationshipLabel>
+    <relationshipName>Design_Projects</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

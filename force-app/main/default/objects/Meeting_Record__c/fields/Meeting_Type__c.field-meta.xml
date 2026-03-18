@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Meeting_Type__c</fullName>
+    <label>面談種別</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>顧客訪問</fullName><default>true</default><label>顧客訪問</label></value>
+            <value><fullName>Web会議</fullName><default>false</default><label>Web会議</label></value>
+            <value><fullName>電話</fullName><default>false</default><label>電話</label></value>
+            <value><fullName>展示会</fullName><default>false</default><label>展示会</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

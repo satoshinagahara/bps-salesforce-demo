@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>取引先サマリーAgentの推論エンジン。ユーザーの質問を分析し、適切なアクションを選択・実行してサマリーを生成します。</description>
+    <plannerLabel>AccountSummaryPlanner</plannerLabel>
+    <plannerType>ReAct</plannerType>
+    <plugins>
+        <pluginName>AccountSummaryTopic</pluginName>
+    </plugins>
+</GenAiPlannerBundle>

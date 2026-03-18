@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <description>Automate common business tasks and assist users in their flow of work. Agentforce Employee Agent can search knowledge articles and other data sources. Customize it further to meet your employees&apos; business needs.</description>
+    <localActionLinks>
+        <genAiFunctionName>AnswerQuestionsWithKnowledge_16jIe0000008Owc</genAiFunctionName>
+    </localActionLinks>
+    <localTopicLinks>
+        <genAiPluginName>Account_Intelligence_16jIe0000008Owc</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>GeneralFAQ_16jIe0000008Owc</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>Account_Intelligence_16jIe0000008Owc</fullName>
+        <aiPluginUtterances>
+            <developerName>utterance_0_1772854987595</developerName>
+            <language>ja</language>
+            <masterLabel>utterance_0_1772854987595</masterLabel>
+            <utterance>## 対応する質問の例
+  - 「この取引先の状況を教えて」
+  - 「この取引先を分析して」
+  - 「次に何をすべき？」
+  - 「商談やケースの状況は？」</utterance>
+        </aiPluginUtterances>
+        <canEscalate>false</canEscalate>
+        <description>Provides in-depth analysis of account status, including deal performance, case trends, and actionable insights. Tailored for decision-making scenarios where strategic recommendations and detailed evaluations are required.</description>
+        <developerName>Account_Intelligence_16jIe0000008Owc</developerName>
+        <genAiPluginInstructions>
+            <description>1. まず「取引先総合分析」アクションを実行し、取引先のデータを取得する
+     - accountId には現在表示中の取引先のIDを渡す</description>
+            <developerName>instructions_0_1772854987309</developerName>
+            <language>ja</language>
+            <masterLabel>instructions_0_1772854987309</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>2. 次に「取引先インサイトとアクション示唆」アクションを実行する
+     - analysisData には手順1で取得したデータをそのまま渡す</description>
+            <developerName>instructions_1_1772854987316</developerName>
+            <language>ja</language>
+            <masterLabel>instructions_1_1772854987316</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>3. 手順2の結果をユーザーに返す</description>
+            <developerName>instructions_2_1772854987317</developerName>
+            <language>ja</language>
+            <masterLabel>instructions_2_1772854987317</masterLabel>
+            <sortOrder>2</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>Xc002586f_819b_3d6f_2bb2_45e1f77dc5e9_179Ie000000wnHq</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>X324aa0e7_7671_ac7a_13ab_bc72393c8438_179Ie000000wnHq</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>Xc002586f_819b_3d6f_2bb2_45e1f77dc5e9_179Ie000000wnHq</fullName>
+            <description>取引先の基本情報・商談・ケース・責任者・活動を一括取得し、分析用の構造化データを返します</description>
+            <developerName>Xc002586f_819b_3d6f_2bb2_45e1f77dc5e9_179Ie000000wnHq</developerName>
+            <invocationTarget>AccountInsightFullAnalysis</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>Xc002586f_819b_3d6f_2bb2_45e1f77dc5e9</localDeveloperName>
+            <masterLabel>取引先総合分析</masterLabel>
+            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>X324aa0e7_7671_ac7a_13ab_bc72393c8438_179Ie000000wnHq</fullName>
+            <description>取引先の総合分析を求められた場合、まず『取引先総合分析』アクションでデータを取得し、その結果を『取引先インサイトとアクション示唆』アクションのanalysisDataに渡して、分析レポートを生成してください</description>
+            <developerName>X324aa0e7_7671_ac7a_13ab_bc72393c8438_179Ie000000wnHq</developerName>
+            <invocationTarget>AccountInsightSuggestions</invocationTarget>
+            <invocationTargetType>generatePromptResponse</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>X324aa0e7_7671_ac7a_13ab_bc72393c8438</localDeveloperName>
+            <masterLabel>取引先インサイトとアクション示唆</masterLabel>
+            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>Account_Intelligence</localDeveloperName>
+        <masterLabel>取引先分析</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>Your job is only to provide detailed evaluations of account status, including deal performance analysis, case trend identification, and actionable insights. You should focus exclusively on strategic recommendations and avoid addressing general customer inquiries or unrelated topics.</scope>
+    </localTopics>
+    <localTopics>
+        <fullName>GeneralFAQ_16jIe0000008Owc</fullName>
+        <canEscalate>false</canEscalate>
+        <description>This topic is for helping answer customer&apos;s questions by searching through the knowledge articles and providing information from those articles. The questions can be about the company and its products, policies or business procedures</description>
+        <developerName>GeneralFAQ_16jIe0000008Owc</developerName>
+        <genAiPluginInstructions>
+            <description>If the customer&apos;s question is too vague or general, ask for more details and clarification to give a better answer.</description>
+            <developerName>requestmoredetails</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>request-more-details</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>If you are unable to help the customer even after asking clarifying questions, ask if they want to escalate this issue to a live agent.</description>
+            <developerName>unabletohelpafterclarifying</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>unable-to-help-after-clarifying</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>If you are unable to answer customer&apos;s questions, ask if they want to escalate this issue to a live agent.</description>
+            <developerName>unabletoanswerquestions</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>unable-to-answer-questions</masterLabel>
+            <sortOrder>2</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>Never provide generic information, advice or troubleshooting steps, unless retrieved from searching knowledge articles.</description>
+            <developerName>avoidgenericinformation</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>avoid-generic-information</masterLabel>
+            <sortOrder>3</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>Include sources in your response when available from the knowledge articles, otherwise proceed without them.</description>
+            <developerName>includearticlesources</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>include-article-sources</masterLabel>
+            <sortOrder>4</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>AnswerQuestionsWithKnowledge_179Ie000000wnCf</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>AnswerQuestionsWithKnowledge_179Ie000000wnCf</fullName>
+            <description>Answers questions about company policies and procedures, troubleshooting steps, or product information. For example: &quot;What is your return policy?&quot; &quot;How do I fix an issue?&quot; or &quot;What features does a product have?&quot;</description>
+            <developerName>AnswerQuestionsWithKnowledge_179Ie000000wnCf</developerName>
+            <invocationTarget>streamKnowledgeSearch</invocationTarget>
+            <invocationTargetType>standardInvocableAction</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>AnswerQuestionsWithKnowledge</localDeveloperName>
+            <masterLabel>Answer Questions with Knowledge</masterLabel>
+            <progressIndicatorMessage>Getting answers</progressIndicatorMessage>
+            <source>EmployeeCopilot__AnswerQuestionsWithKnowledge</source>
+        </localActions>
+        <localDeveloperName>GeneralFAQ</localDeveloperName>
+        <masterLabel>General FAQ</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>Your job is solely to help with issues and answer questions about the company, its products, procedures, or policies by searching knowledge articles.</scope>
+        <source>SvcCopilotTmpl__GeneralFAQ</source>
+    </localTopics>
+    <masterLabel>Agentforce Employee Agent</masterLabel>
+    <plannerActions>
+        <fullName>AnswerQuestionsWithKnowledge_16jIe0000008Owc</fullName>
+        <description>Answers questions about company policies and procedures, troubleshooting steps, or product information. For example: &quot;What is your return policy?&quot; &quot;How do I fix an issue?&quot; or &quot;What features does a product have?&quot;</description>
+        <developerName>AnswerQuestionsWithKnowledge_16jIe0000008Owc</developerName>
+        <invocationTarget>streamKnowledgeSearch</invocationTarget>
+        <invocationTargetType>standardInvocableAction</invocationTargetType>
+        <isConfirmationRequired>false</isConfirmationRequired>
+        <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+        <localDeveloperName>AnswerQuestionsWithKnowledge</localDeveloperName>
+        <masterLabel>Answer Questions with Knowledge</masterLabel>
+        <progressIndicatorMessage>Getting answers</progressIndicatorMessage>
+        <source>EmployeeCopilot__AnswerQuestionsWithKnowledge</source>
+    </plannerActions>
+    <plannerSurfaces>
+        <adaptiveResponseAllowed>true</adaptiveResponseAllowed>
+        <callRecordingAllowed>false</callRecordingAllowed>
+        <surface>SurfaceAction__Messaging</surface>
+        <surfaceType>Messaging</surfaceType>
+    </plannerSurfaces>
+    <plannerType>AiCopilot__ReAct</plannerType>
+</GenAiPlannerBundle>

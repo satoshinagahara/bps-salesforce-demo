@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Corrective_Action__c</fullName>
+    <label>是正処置</label>
+    <type>MasterDetail</type>
+    <referenceTo>Corrective_Action__c</referenceTo>
+    <relationshipLabel>サプライヤー調査</relationshipLabel>
+    <relationshipName>Supplier_Investigations</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

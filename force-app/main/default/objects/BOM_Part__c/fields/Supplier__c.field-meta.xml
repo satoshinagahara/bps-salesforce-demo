@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Supplier__c</fullName>
+    <label>サプライヤー</label>
+    <referenceTo>Account</referenceTo>
+    <relationshipLabel>BOM Parts (サプライヤー)</relationshipLabel>
+    <relationshipName>BOM_Parts_Supplier</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>

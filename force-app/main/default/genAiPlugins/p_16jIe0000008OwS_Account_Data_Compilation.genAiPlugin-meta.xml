@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <canEscalate>false</canEscalate>
+    <description>This topic is chosen when a user requests aggregation of account-related information, including opportunities and cases.</description>
+    <developerName>p_16jIe0000008OwS_Account_Data_Compilation</developerName>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__QueryRecords</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__SummarizeRecord</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>EmployeeCopilot__AnswerQuestionsWithKnowledge</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the user requests a summary of the account data, use EmployeeCopilot__SummarizeRecord.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the query is about retrieving account-related opportunities and cases, use EmployeeCopilot__QueryRecords.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jIe0000008OwS_Account_Data_Compilation</localDeveloperName>
+    <masterLabel>Account Data Compilation</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to only compile and summarize account information such as opportunities and cases. You aren&apos;t able to create or modify account records.</scope>
+</GenAiPlugin>

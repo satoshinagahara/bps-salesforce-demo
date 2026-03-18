@@ -1,0 +1,77 @@
+<template>
+    <lightning-card title="品質KPIパネル" icon-name="standard:metrics">
+
+        <!-- サマリーカード行 -->
+        <div class="kpi-summary">
+            <div class="kpi-card">
+                <div class="kpi-value">{totalOpen}</div>
+                <div class="kpi-label">オープン中</div>
+            </div>
+            <div class={overdueClass}>
+                <div class="kpi-value kpi-value--danger">{overdueCount}</div>
+                <div class="kpi-label">期限超過</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value kpi-value--warning">{dueThisMonth}</div>
+                <div class="kpi-label">今月期限</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value kpi-value--success">{totalClosed}</div>
+                <div class="kpi-label">完了済み</div>
+            </div>
+        </div>
+
+        <!-- 重大度別 -->
+        <div class="kpi-section">
+            <h3 class="kpi-section-title">重大度別（オープン中）</h3>
+            <div class="severity-row">
+                <template for:each={severityItems} for:item="item">
+                    <div key={item.label} class="severity-badge" style={item.style}>
+                        <span class="severity-count">{item.count}</span>
+                        <span class="severity-label">{item.label}</span>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- 8Dフェーズ分布 -->
+        <div class="kpi-section">
+            <h3 class="kpi-section-title">8Dフェーズ分布</h3>
+            <div class="phase-chart">
+                <template for:each={phaseItems} for:item="item">
+                    <div key={item.key} class="phase-row">
+                        <div class="phase-label" title={item.fullLabel}>{item.label}</div>
+                        <div class="phase-bar-container">
+                            <div class="phase-bar" style={item.barStyle}></div>
+                        </div>
+                        <div class="phase-count">{item.count}</div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- カテゴリ別 -->
+        <template if:true={hasCategories}>
+            <div class="kpi-section">
+                <h3 class="kpi-section-title">不具合区分（オープン中）</h3>
+                <div class="category-list">
+                    <template for:each={categoryItems} for:item="item">
+                        <div key={item.label} class="category-item">
+                            <span class="category-dot" style={item.style}></span>
+                            <span class="category-name">{item.label}</span>
+                            <span class="category-count">{item.count}件</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- エラー -->
+        <template if:true={error}>
+            <div class="slds-text-color_error slds-p-around_small">
+                データの取得中にエラーが発生しました。
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

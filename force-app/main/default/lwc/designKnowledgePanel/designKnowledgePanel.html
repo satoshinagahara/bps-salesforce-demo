@@ -1,0 +1,47 @@
+<template>
+    <lightning-card title="関連ナレッジ" icon-name="standard:knowledge">
+        <div slot="actions">
+            <lightning-badge label={articleCountLabel}></lightning-badge>
+        </div>
+
+        <template if:true={isLoading}>
+            <div class="slds-align_absolute-center slds-p-around_large">
+                <lightning-spinner alternative-text="読み込み中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:false={hasArticles}>
+                <div class="empty-state">
+                    <lightning-icon icon-name="utility:info" size="small" class="slds-m-right_x-small"></lightning-icon>
+                    関連するナレッジ記事が見つかりませんでした
+                </div>
+            </template>
+
+            <template if:true={hasArticles}>
+                <div class="article-list">
+                    <template for:each={articles} for:item="article">
+                        <div key={article.id} class="article-card" data-id={article.id} onclick={handleArticleClick}>
+                            <div class="article-header">
+                                <div class="article-title-row">
+                                    <span class="article-title">{article.title}</span>
+                                    <span class={article.scoreClass}>関連度: {article.scoreLabel}</span>
+                                </div>
+                                <div class="article-meta">
+                                    <span class={article.categoryClass}>{article.category}</span>
+                                    <span class="match-reason">{article.matchReason}</span>
+                                </div>
+                            </div>
+                            <template if:true={article.lessonSummary}>
+                                <div class="article-summary">{article.lessonSummary}</div>
+                            </template>
+                            <template if:true={article.sourceCAs}>
+                                <div class="article-source">出典: {article.sourceCAs}</div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

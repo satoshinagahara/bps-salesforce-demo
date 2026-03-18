@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BusinessProcess xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Design_Win_Process</fullName>
+    <isActive>true</isActive>
+    <values>
+        <fullName>DW_Inquiry</fullName>
+        <default>false</default>
+    </values>
+    <values>
+        <fullName>DW_Proposal</fullName>
+        <default>false</default>
+    </values>
+    <values>
+        <fullName>DW_Prototype</fullName>
+        <default>false</default>
+    </values>
+    <values>
+        <fullName>DW_Qualification</fullName>
+        <default>false</default>
+    </values>
+    <values>
+        <fullName>DW_FinalNegotiation</fullName>
+        <default>false</default>
+    </values>
+    <values>
+        <fullName>Design_Win</fullName>
+        <default>false</default>
+    </values>
+    <values>
+        <fullName>DW_Lost</fullName>
+        <default>false</default>
+    </values>
+</BusinessProcess>

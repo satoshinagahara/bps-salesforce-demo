@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Owner__c</fullName>
+    <label>フェーズ責任者</label>
+    <required>false</required>
+    <type>Lookup</type>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>担当設計フェーズ</relationshipLabel>
+    <relationshipName>Design_Phases_Owner</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

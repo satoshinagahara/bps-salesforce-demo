@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sub_Total_Cost__c</fullName>
+    <label>サブコンポーネント原価合計</label>
+    <summarizedField>BOM_SubComponent__c.Extended_Cost__c</summarizedField>
+    <summaryForeignKey>BOM_SubComponent__c.BOM_Line__c</summaryForeignKey>
+    <summaryOperation>SUM</summaryOperation>
+    <type>Summary</type>
+</CustomField>

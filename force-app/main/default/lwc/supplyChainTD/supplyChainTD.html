@@ -1,0 +1,78 @@
+<template>
+    <div class="game-wrapper">
+        <canvas class="game-canvas" data-id="gameCanvas"
+                onmousedown={handleCanvasClick}
+                onmousemove={handleCanvasMove}></canvas>
+        <template lwc:if={showHud}>
+            <div class="hud-overlay">
+                <div class="hud-top">
+                    <div class="hud-item">
+                        <span class="hud-label">WAVE</span>
+                        <span class="hud-value">{currentWave} / {maxWaves}</span>
+                    </div>
+                    <div class="hud-item">
+                        <span class="hud-label">MONEY</span>
+                        <span class="hud-value">{displayMoney}</span>
+                    </div>
+                    <div class="hud-item">
+                        <span class="hud-label">SCORE</span>
+                        <span class="hud-value">{score}</span>
+                    </div>
+                </div>
+                <template lwc:if={isPlanning}>
+                    <div class="tower-panel">
+                        <div class="panel-title">DEFENSE</div>
+                        <template for:each={towerTypes} for:item="tw">
+                            <div key={tw.id}
+                                 class={tw.cssClass}
+                                 onclick={handleTowerSelect}
+                                 data-tower-id={tw.id}>
+                                <div class="tw-icon" style={tw.iconStyle}>{tw.icon}</div>
+                                <div class="tw-info">
+                                    <div class="tw-name">{tw.name}</div>
+                                    <div class="tw-cost">{tw.costLabel}</div>
+                                </div>
+                                <div class="tw-desc">{tw.desc}</div>
+                            </div>
+                        </template>
+                        <button class="start-wave-btn" onclick={handleStartWave}>
+                            {startWaveLabel}
+                        </button>
+                    </div>
+                </template>
+                <div class="factory-hp-panel">
+                    <div class="panel-title">FACTORY HP</div>
+                    <template for:each={factoryHpList} for:item="fh">
+                        <div key={fh.key} class="factory-hp-row">
+                            <span class="fh-name">{fh.name}</span>
+                            <div class="fh-bar-bg">
+                                <div class="fh-bar" style={fh.barStyle}></div>
+                            </div>
+                            <span class="fh-val">{fh.hp}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+        <template lwc:if={showTitle}>
+            <div class="title-screen">
+                <div class="title-text">
+                    <div class="title-main">SUPPLY CHAIN</div>
+                    <div class="title-sub">TOWER DEFENSE</div>
+                    <div class="title-desc">Protect your factories from disasters!</div>
+                </div>
+                <button class="start-btn" onclick={handleGameStart}>START</button>
+            </div>
+        </template>
+        <template lwc:if={showResult}>
+            <div class="result-screen">
+                <div class="result-box">
+                    <div class="result-title">{resultTitle}</div>
+                    <div class="result-score">SCORE: {score}</div>
+                    <div class="result-detail">{resultDetail}</div>
+                    <button class="start-btn" onclick={handleRestart}>RETRY</button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>false</enableActivities>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <label>年度別受注予測</label>
+    <nameField>
+        <displayFormat>RF-{0000}</displayFormat>
+        <label>予測番号</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>年度別受注予測</pluralLabel>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

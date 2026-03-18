@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <description>製造業向けBOM（部品表）分析エージェント。製品のBOM構成分析とサプライヤーリスク分析を行い、コスト最適化や供給リスクの可視化を支援します。</description>
+    <localActionLinks>
+        <genAiFunctionName>AnswerQuestionsWithKnowledge_16jIe0000008Ox3</genAiFunctionName>
+    </localActionLinks>
+    <localTopicLinks>
+        <genAiPluginName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>e758d601_ae07_2d09_0bfa_6f63c4899179_16jIe0000008Ox3</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>e758d601_ae07_2d09_0bfa_6f63c4899179_16jIe0000008Ox3</fullName>
+        <aiPluginUtterances>
+            <developerName>utterance_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Utterance 1</masterLabel>
+            <utterance>- 東亜電子工業が供給停止したらどうなる？
+  - このサプライヤーのリスクを分析して
+  - サプライヤーの影響度を調べてほしい
+  - この取引先が納品できなくなった場合の影響範囲は？
+  - サプライヤー依存度が高い製品はどれですか？
+  - 供給リスクのある商談を教えて</utterance>
+        </aiPluginUtterances>
+        <canEscalate>false</canEscalate>
+        <description>ユーザーがサプライヤーのリスク分析、供給停止時の影響、依存度を知りたい時。「このサプライヤーが停止したら？」「サプライヤーリスクを分析して」「供給停止の影響は？」など。</description>
+        <developerName>e758d601_ae07_2d09_0bfa_6f63c4899179_16jIe0000008Ox3</developerName>
+        <genAiPluginInstructions>
+            <description>1. ユーザーの質問から対象のサプライヤー（Account、レコードタイプ: Supplier）を特定する
+     - サプライヤー名が含まれている場合はそれを使う
+     - 不明な場合はユーザーに確認する</description>
+            <developerName>instruction_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 1</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>2. 「サプライヤーインパクト分析」アクション（BOMAnalysisGetSupplierImpact）を実行する
+     - 入力: 特定したサプライヤーのレコードID（supplierId）
+     - このアクションはサプライヤーの供給部品、影響商品、商談パイプラインへの影響をJSON形式で返す</description>
+            <developerName>instruction_2</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 2</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>3. 手順2の出力（analysisData）を「サプライヤーインパクト分析レポート」アクション（BOMSupplierImpactAnalysis）の入力に渡す
+     - 入力: analysisDataに手順2で取得したJSON文字列をそのまま渡す</description>
+            <developerName>instruction_3</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 3</masterLabel>
+            <sortOrder>2</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>4. 手順3の出力（分析レポート）をそのままユーザーに返す
+     - レポートにはサプライヤー概要、供給部品一覧、影響商品、商談パイプライン影響、リスク評価、推奨アクションが含まれる</description>
+            <developerName>instruction_4</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 4</masterLabel>
+            <sortOrder>3</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>X92712a97_4a78_370f_ebdb_22cbb3361970_179Ie000000wnI5</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>Xa0887360_2b69_42f0_841c_08799e01f15f_179Ie000000wnI5</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>X92712a97_4a78_370f_ebdb_22cbb3361970_179Ie000000wnI5</fullName>
+            <description>ユーザーが指定したサプライヤーの供給部品、影響商品、商談パイプラインへの影響データを取得します。サプライヤーのレコードIDが必要です。</description>
+            <developerName>X92712a97_4a78_370f_ebdb_22cbb3361970_179Ie000000wnI5</developerName>
+            <invocationTarget>BOMAnalysisGetSupplierImpact</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>X92712a97_4a78_370f_ebdb_22cbb3361970</localDeveloperName>
+            <masterLabel>サプライヤーインパクト分析</masterLabel>
+            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>Xa0887360_2b69_42f0_841c_08799e01f15f_179Ie000000wnI5</fullName>
+            <description>サプライヤーインパクト分析アクション（BOMAnalysisGetSupplierImpact）で取得したJSON形式の分析データをもとに、サプライヤーインパクト分析レポートを生成します。必ず先にBOMAnalysisGetSupplierImpactを実行してからこのアクションを呼び出してください。</description>
+            <developerName>Xa0887360_2b69_42f0_841c_08799e01f15f_179Ie000000wnI5</developerName>
+            <invocationTarget>BOMSupplierImpactAnalysis</invocationTarget>
+            <invocationTargetType>generatePromptResponse</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>Xa0887360_2b69_42f0_841c_08799e01f15f</localDeveloperName>
+            <masterLabel>サプライヤーインパクト分析レポート</masterLabel>
+            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>e758d601_ae07_2d09_0bfa_6f63c4899179</localDeveloperName>
+        <masterLabel>サプライヤーインパクト分析</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>指定サプライヤーが供給する全部品、影響を受ける商品、商談パイプラインへの影響を分析し、リスク評価と推奨アクションを提示します。</scope>
+    </localTopics>
+    <localTopics>
+        <fullName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</fullName>
+        <aiPluginUtterances>
+            <developerName>utterance_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Utterance 1</masterLabel>
+            <utterance>- Battery, High Capacityの BOM構成を分析して                                                                                      
+  - B-1000のBOMコスト内訳を教えて                           
+  - この製品のサプライヤー依存度はどうなっていますか？                                                                              
+  - 製品のBOM階層を見せて                                   
+  - BOMのコスト削減余地はありますか？
+  - この製品に関連する商談パイプラインへの影響は？</utterance>
+        </aiPluginUtterances>
+        <canEscalate>false</canEscalate>
+        <description>ユーザーが製品のBOM構成、コスト分析、サプライヤー依存度、商談パイプラインへの影響を知りたい時。「この製品のBOを分析して」「BOM構成を教えて」「製品のコスト内訳は？」など。</description>
+        <developerName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</developerName>
+        <genAiPluginInstructions>
+            <description>1. ユーザーの質問から対象の製品（Product2）を特定する                                                                             
+     - 製品名やProductCodeが含まれている場合はそれを使う    
+     - 不明な場合はユーザーに確認する</description>
+            <developerName>instruction_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 1</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>2. 「製品BOM構成取得」アクション（BOMAnalysisGetProductBOM）を実行する
+     - 入力: 特定した製品のレコードID（productId）
+     - このアクションはBOM全階層データ、サプライヤー情報、商談パイプラインをJSON形式で返す</description>
+            <developerName>instruction_2</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 2</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>3. 手順2の出力（analysisData）を「製品BOM分析レポート」アクション（BOMProductAnalysis）の入力に渡す
+     - 入力: analysisDataに手順2で取得したJSON文字列をそのまま渡す</description>
+            <developerName>instruction_3</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 3</masterLabel>
+            <sortOrder>2</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>4. 手順3の出力（分析レポート）をそのままユーザーに返す
+     - レポートには製品概要、BOM階層構成、コスト分析、サプライヤー依存度、商談パイプライン影響、リスクと推奨事項が含まれる</description>
+            <developerName>instruction_4</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 4</masterLabel>
+            <sortOrder>3</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>Ask clarifying questions to gather necessary details for accurate analysis.</description>
+            <developerName>instruction_5</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 5</masterLabel>
+            <sortOrder>4</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>X7d896b01_c3fe_d1a7_db95_ce3940da791b_179Ie000000wnI0</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>X8257d0da_3001_747a_a831_ba5febf724a0_179Ie000000wnI0</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>X8257d0da_3001_747a_a831_ba5febf724a0_179Ie000000wnI0</fullName>
+            <description>製品BOM構成取得アクション（BOMAnalysisGetProductBOM）で取得したJSON形式の分析データをもとに、BOM分析レポートを生成します。必ず先に  BOMAnalysisGetProductBOMを実行してからこのアクションを呼び出してください。</description>
+            <developerName>X8257d0da_3001_747a_a831_ba5febf724a0_179Ie000000wnI0</developerName>
+            <invocationTarget>BOMSupplierImpactAnalysis</invocationTarget>
+            <invocationTargetType>generatePromptResponse</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>X8257d0da_3001_747a_a831_ba5febf724a0</localDeveloperName>
+            <masterLabel>サプライヤーインパクト分析レポート</masterLabel>
+            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>X7d896b01_c3fe_d1a7_db95_ce3940da791b_179Ie000000wnI0</fullName>
+            <description>指定サプライヤーが供給する全部品、影響を受ける商品、関連する商談パイプラインへの影響を取得します</description>
+            <developerName>X7d896b01_c3fe_d1a7_db95_ce3940da791b_179Ie000000wnI0</developerName>
+            <invocationTarget>BOMAnalysisGetSupplierImpact</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>X7d896b01_c3fe_d1a7_db95_ce3940da791b</localDeveloperName>
+            <masterLabel>サプライヤーインパクト分析</masterLabel>
+            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>Product_Analysis_and_BOM_Insights</localDeveloperName>
+        <masterLabel>製品BOM分析</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>この製品に関連するBOM全階層（Header→Line→SubComponent→Part）の構成、コスト分析、サプライヤー依存度、関連商談への影響を分析します。</scope>
+    </localTopics>
+    <masterLabel>BOM Analysis Agent</masterLabel>
+    <plannerActions>
+        <fullName>AnswerQuestionsWithKnowledge_16jIe0000008Ox3</fullName>
+        <description>Answers questions about company policies and procedures, troubleshooting steps, or product information. For example: “What is your return policy?” “How do I fix an issue?” or “What features does a product have?”</description>
+        <developerName>AnswerQuestionsWithKnowledge_16jIe0000008Ox3</developerName>
+        <invocationTarget>streamKnowledgeSearch</invocationTarget>
+        <invocationTargetType>standardInvocableAction</invocationTargetType>
+        <isConfirmationRequired>false</isConfirmationRequired>
+        <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+        <localDeveloperName>AnswerQuestionsWithKnowledge</localDeveloperName>
+        <masterLabel>Answer Questions with Knowledge</masterLabel>
+        <progressIndicatorMessage>Getting answers</progressIndicatorMessage>
+        <source>EmployeeCopilot__AnswerQuestionsWithKnowledge</source>
+    </plannerActions>
+    <plannerSurfaces>
+        <adaptiveResponseAllowed>true</adaptiveResponseAllowed>
+        <callRecordingAllowed>false</callRecordingAllowed>
+        <surface>SurfaceAction__Messaging</surface>
+        <surfaceType>Messaging</surfaceType>
+    </plannerSurfaces>
+    <plannerType>AiCopilot__ReAct</plannerType>
+</GenAiPlannerBundle>

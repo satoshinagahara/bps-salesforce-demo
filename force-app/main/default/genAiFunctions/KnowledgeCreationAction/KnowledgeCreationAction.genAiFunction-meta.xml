@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>是正措置（CA）の8Dプロセスで得られた知見をナレッジ記事として作成する。既存の類似ナレッジがある場合は統合判断も行う。ユーザーがCAのレコードページにいる場合は、現在のレコードIDをそのままcaIdとして渡してください。</description>
+    <invocationTarget>KnowledgeCreationAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <masterLabel>ナレッジ作成</masterLabel>
+</GenAiFunction>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Root_Cause_by_Supplier__c</fullName>
+    <label>サプライヤー特定の根本原因</label>
+    <required>false</required>
+    <type>LongTextArea</type>
+    <length>10000</length>
+    <visibleLines>6</visibleLines>
+</CustomField>

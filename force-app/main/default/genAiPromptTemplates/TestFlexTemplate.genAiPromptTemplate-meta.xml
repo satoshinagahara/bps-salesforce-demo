@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <activeVersionIdentifier>La7Gmv6M9pMKw1Oe7A8H2j1pu3Uvy864utqq1PDVhDQ=_1</activeVersionIdentifier>
+    <developerName>TestFlexTemplate</developerName>
+    <masterLabel>TestFlexTemplate</masterLabel>
+    <templateVersions>
+        <content>日本の首都はどこですか？
+</content>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <versionIdentifier>La7Gmv6M9pMKw1Oe7A8H2j1pu3Uvy864utqq1PDVhDQ=_1</versionIdentifier>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

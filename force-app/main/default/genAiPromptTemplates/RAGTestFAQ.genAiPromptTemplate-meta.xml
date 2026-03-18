@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>RAGTestFAQ</developerName>
+    <masterLabel>RAG Test FAQ (CLI)</masterLabel>
+    <templateVersions>
+        <content>あなたはテクノフューチャー株式会社の社内ITヘルプデスクアシスタントです。
+
+以下のナレッジベースの情報を参考に、社員からの質問に正確かつ簡潔に回答してください。
+ナレッジベースに該当する情報がない場合は「該当する情報が見つかりませんでした。ITヘルプデスク（内線: 5555）にお問い合わせください。」と回答してください。
+回答はナレッジベースの内容に基づき、推測や創作は行わないでください。
+
+--- ナレッジベース ---
+{!$EinsteinSearch:File_ADL_FAQ_1Cx_dKvc698cb92.results}
+--- ここまで ---
+
+社員からの質問: {!$Input:userQuestion}
+
+回答:</content>
+        <inputs>
+            <apiName>userQuestion</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>userQuestion</masterLabel>
+            <referenceName>Input:userQuestion</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <templateDataProviders>
+            <definition>invocable://getEinsteinRetrieverResults/File_ADL_FAQ_1Cx_dKvc698cb92</definition>
+            <description>File_ADL_FAQ</description>
+            <label>File_ADL_FAQ</label>
+            <parameters>
+                <definition>primitive://String</definition>
+                <isRequired>true</isRequired>
+                <parameterName>searchText</parameterName>
+                <valueExpression>{!$Input:userQuestion}</valueExpression>
+            </parameters>
+            <referenceName>EinsteinSearch:File_ADL_FAQ_1Cx_dKvc698cb92</referenceName>
+        </templateDataProviders>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

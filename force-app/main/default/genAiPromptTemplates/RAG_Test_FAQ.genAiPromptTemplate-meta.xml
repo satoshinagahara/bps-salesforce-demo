@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>RAG_Test_FAQ</developerName>
+    <masterLabel>RAG Test FAQ</masterLabel>
+    <templateVersions>
+        <content>{!$EinsteinSearch:File_ADL_FAQ_1Cx_dKvc698cb92.results} PCの電源ってどうやってONにするの？
+</content>
+        <inputs>
+            <apiName>userQuestion</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>userQuestion</masterLabel>
+            <referenceName>Input:userQuestion</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Draft</status>
+        <templateDataProviders>
+            <definition>invocable://getEinsteinRetrieverResults/File_ADL_FAQ_1Cx_dKvc698cb92</definition>
+            <description>File_ADL_FAQ</description>
+            <label>File_ADL_FAQ</label>
+            <parameters>
+                <definition>primitive://String</definition>
+                <isRequired>true</isRequired>
+                <parameterName>searchText</parameterName>
+                <valueExpression>{!$Input:userQuestion}</valueExpression>
+            </parameters>
+            <referenceName>EinsteinSearch:File_ADL_FAQ_1Cx_dKvc698cb92</referenceName>
+        </templateDataProviders>
+        <versionIdentifier>La7Gmv6M9pMKw1Oe7A8H2j1pu3Uvy864utqq1PDVhDQ=_1</versionIdentifier>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

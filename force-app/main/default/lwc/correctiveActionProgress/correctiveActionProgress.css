@@ -1,0 +1,218 @@
+/* CA Card */
+.ca-card {
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    background: #fff;
+}
+
+/* Header */
+.ca-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.ca-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ca-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #0176d3;
+    cursor: pointer;
+    text-decoration: none;
+}
+.ca-title:hover {
+    text-decoration: underline;
+}
+
+/* Severity Badges */
+.severity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+}
+.severity-critical {
+    background: #c23934;
+}
+.severity-major {
+    background: #fe9339;
+}
+.severity-minor {
+    background: #54698d;
+}
+
+/* Phase label & completed badge */
+.phase-label {
+    font-size: 12px;
+    color: #54698d;
+    font-weight: 500;
+}
+.completed-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: #04844b;
+}
+
+/* 8D Progress */
+.phase-progress {
+    margin-bottom: 12px;
+    position: relative;
+}
+.phase-bar-track {
+    height: 6px;
+    background: #e5e5e5;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+.phase-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0176d3, #04844b);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+.phase-steps {
+    display: flex;
+    justify-content: space-between;
+}
+.phase-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+.phase-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d8dde6;
+    margin-bottom: 2px;
+}
+.phase-text {
+    font-size: 10px;
+    color: #b0adab;
+}
+.phase-completed .phase-dot {
+    background: #04844b;
+}
+.phase-completed .phase-text {
+    color: #04844b;
+    font-weight: 600;
+}
+.phase-current .phase-dot {
+    background: #0176d3;
+    box-shadow: 0 0 0 3px rgba(1, 118, 211, 0.3);
+}
+.phase-current .phase-text {
+    color: #0176d3;
+    font-weight: 700;
+}
+
+/* Details Grid */
+.ca-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px 16px;
+    margin-bottom: 8px;
+}
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+.detail-label {
+    font-size: 11px;
+    color: #706e6b;
+    margin-bottom: 1px;
+}
+.detail-value {
+    font-size: 13px;
+    color: #181818;
+}
+
+/* Impact Scope */
+.impact-scope {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: #f3f3f3;
+    border-radius: 4px;
+}
+.scope-tags {
+    font-size: 12px;
+    color: #444;
+    margin-left: 8px;
+}
+
+/* Supplier Investigation Section */
+.si-section {
+    border-top: 1px solid #e5e5e5;
+    padding-top: 8px;
+}
+.si-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: #54698d;
+    margin-bottom: 6px;
+}
+.si-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+.si-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    min-width: 50px;
+    text-align: center;
+}
+.status-requested {
+    background: #706e6b;
+}
+.status-investigating {
+    background: #0176d3;
+}
+.status-responded {
+    background: #fe9339;
+}
+.status-implementing {
+    background: #9050e9;
+}
+.status-completed {
+    background: #04844b;
+}
+.si-link {
+    font-size: 12px;
+    color: #0176d3;
+    cursor: pointer;
+}
+.si-link:hover {
+    text-decoration: underline;
+}
+.si-supplier {
+    font-size: 12px;
+    color: #54698d;
+}
+.overdue-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    background: #c23934;
+}

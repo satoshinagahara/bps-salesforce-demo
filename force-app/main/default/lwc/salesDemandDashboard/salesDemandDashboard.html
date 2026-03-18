@@ -1,0 +1,142 @@
+<template>
+    <lightning-card title="営業需要ダッシュボード" icon-name="standard:forecasts">
+        <template if:true={error}>
+            <div class="slds-p-around_medium slds-text-color_error">{error}</div>
+        </template>
+
+        <template if:true={hasData}>
+            <!-- Summary Bar -->
+            <div class="kpi-summary">
+                <div class="kpi-card kpi-confirmed">
+                    <div class="kpi-value kpi-value--success">{confirmedFmt}</div>
+                    <div class="kpi-label">確定収益（SA計画）</div>
+                </div>
+                <div class="kpi-card kpi-dw">
+                    <div class="kpi-value kpi-value--info">{dwPipelineFmt}</div>
+                    <div class="kpi-label">DWパイプライン（加重）</div>
+                </div>
+                <div class="kpi-card kpi-std">
+                    <div class="kpi-value kpi-value--purple">{stdPipelineFmt}</div>
+                    <div class="kpi-label">通常パイプライン（加重）</div>
+                </div>
+                <div class="kpi-card kpi-close">
+                    <div class="kpi-value kpi-value--warning">{closeThisMonthFmt}</div>
+                    <div class="kpi-label">今月クローズ予定</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-bar">
+                <button class={revenueTabClass} data-tab="revenue" onclick={handleTab}>年度別レベニュー</button>
+                <button class={stageTabClass} data-tab="stage" onclick={handleTab}>パイプラインステージ</button>
+                <button class={productTabClass} data-tab="product" onclick={handleTab}>製品別需要</button>
+            </div>
+
+            <!-- Tab 1: FY Revenue -->
+            <template if:true={isRevenueTab}>
+                <div class="tab-content">
+                    <div class="fy-chart">
+                        <template for:each={fyChartData} for:item="fy">
+                            <div key={fy.key} class="fy-row">
+                                <div class="fy-label">{fy.fiscalYear}</div>
+                                <div class="stacked-bar-container">
+                                    <template if:true={fy.hasBar}>
+                                        <div class="bar-segment confirmed" style={fy.confirmedWidth}></div>
+                                        <div class="bar-segment dw" style={fy.dwWidth}></div>
+                                        <div class="bar-segment std" style={fy.stdWidth}></div>
+                                    </template>
+                                </div>
+                                <div class="fy-total">{fy.totalFmt}</div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><span class="legend-dot confirmed-dot"></span>確定（SA）</div>
+                        <div class="legend-item"><span class="legend-dot dw-dot"></span>DW（加重）</div>
+                        <div class="legend-item"><span class="legend-dot std-dot"></span>通常（加重）</div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Tab 2: Pipeline Stages -->
+            <template if:true={isStageTab}>
+                <div class="tab-content">
+                    <template if:true={hasDWStages}>
+                        <div class="stage-section">
+                            <h3 class="section-title">Design Win パイプライン</h3>
+                            <template for:each={dwStageItems} for:item="s">
+                                <div key={s.key} class="stage-row">
+                                    <div class="stage-label">{s.label}</div>
+                                    <div class="stage-bar-wrap">
+                                        <div class="stage-bar dw-bar" style={s.barWidth}></div>
+                                    </div>
+                                    <div class="stage-meta">
+                                        <span class="stage-count">{s.count}件</span>
+                                        <span class="stage-amount">{s.amountFmt}</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template if:true={hasStdStages}>
+                        <div class="stage-section">
+                            <h3 class="section-title">通常商談パイプライン</h3>
+                            <template for:each={stdStageItems} for:item="s">
+                                <div key={s.key} class="stage-row">
+                                    <div class="stage-label">{s.label}</div>
+                                    <div class="stage-bar-wrap">
+                                        <div class="stage-bar std-bar" style={s.barWidth}></div>
+                                    </div>
+                                    <div class="stage-meta">
+                                        <span class="stage-count">{s.count}件</span>
+                                        <span class="stage-amount">{s.amountFmt}</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Tab 3: Product Demand -->
+            <template if:true={isProductTab}>
+                <div class="tab-content">
+                    <template if:true={hasProducts}>
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>製品</th>
+                                    <th>ファミリ</th>
+                                    <th class="num">確定数量（SA）</th>
+                                    <th class="num">DW予測数量</th>
+                                    <th class="num">合計</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={productItems} for:item="p">
+                                    <tr key={p.key}>
+                                        <td class="prod-name">{p.productName}</td>
+                                        <td class="prod-family">{p.productFamily}</td>
+                                        <td class="num">{p.saQtyFmt}</td>
+                                        <td class="num">{p.dwQtyFmt}</td>
+                                        <td class="num total-col">{p.totalQtyFmt}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template if:false={hasProducts}>
+                        <div class="empty-msg">製品別需要データはありません</div>
+                    </template>
+                </div>
+            </template>
+        </template>
+
+        <template if:false={hasData}>
+            <template if:false={error}>
+                <div class="empty-msg">データを読み込み中...</div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

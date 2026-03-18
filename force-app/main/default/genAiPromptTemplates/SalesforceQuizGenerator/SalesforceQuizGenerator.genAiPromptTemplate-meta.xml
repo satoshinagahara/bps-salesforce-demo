@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>SalesforceQuizGenerator</developerName>
+    <masterLabel>Salesforceクイズ生成</masterLabel>
+    <templateVersions>
+        <content>あなたはSalesforce認定試験の問題作成の専門家です。
+
+以下の条件に従って、Salesforce認定試験風のクイズ問題を10問生成してください。
+
+## 条件
+- カテゴリ: {!$Input:category}
+- 難易度: {!$Input:difficulty}
+
+## 出力形式
+必ず以下のJSON配列形式のみを出力してください。JSON以外のテキストは一切含めないでください。
+
+[
+  {
+    &quot;id&quot;: 1,
+    &quot;question&quot;: &quot;問題文&quot;,
+    &quot;choices&quot;: [
+      {&quot;label&quot;: &quot;A&quot;, &quot;text&quot;: &quot;選択肢A&quot;},
+      {&quot;label&quot;: &quot;B&quot;, &quot;text&quot;: &quot;選択肢B&quot;},
+      {&quot;label&quot;: &quot;C&quot;, &quot;text&quot;: &quot;選択肢C&quot;},
+      {&quot;label&quot;: &quot;D&quot;, &quot;text&quot;: &quot;選択肢D&quot;}
+    ],
+    &quot;answer&quot;: &quot;C&quot;,
+    &quot;explanation&quot;: &quot;解説文&quot;
+  }
+]
+
+## 問題作成ルール
+- 4択問題（A/B/C/D）とすること
+- 正解は1つのみ
+- 実際のSalesforce認定試験に出題されそうな実践的な内容にすること
+- 解説は簡潔に2-3文で、なぜその選択肢が正解なのかを説明すること
+- 不正解の選択肢もそれらしい内容にして、しっかり考えないと間違えるレベルにすること
+- 問題の正解がA〜Dに偏らないように分散させること
+- 日本語で出力すること</content>
+        <inputs>
+            <apiName>category</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>category</masterLabel>
+            <referenceName>Input:category</referenceName>
+            <required>true</required>
+        </inputs>
+        <inputs>
+            <apiName>difficulty</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>difficulty</masterLabel>
+            <referenceName>Input:difficulty</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

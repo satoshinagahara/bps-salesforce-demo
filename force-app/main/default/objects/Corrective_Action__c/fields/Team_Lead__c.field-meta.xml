@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Team_Lead__c</fullName>
+    <label>チームリーダー</label>
+    <type>Lookup</type>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>是正処置（リーダー）</relationshipLabel>
+    <relationshipName>Corrective_Actions_Lead</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

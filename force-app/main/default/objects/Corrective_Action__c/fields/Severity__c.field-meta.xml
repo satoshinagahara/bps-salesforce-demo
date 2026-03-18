@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Severity__c</fullName>
+    <label>重大度</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>重大</fullName><default>false</default><label>重大</label></value>
+            <value><fullName>重要</fullName><default>false</default><label>重要</label></value>
+            <value><fullName>軽微</fullName><default>false</default><label>軽微</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

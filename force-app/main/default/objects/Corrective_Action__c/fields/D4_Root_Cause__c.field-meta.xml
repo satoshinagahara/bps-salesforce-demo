@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>D4_Root_Cause__c</fullName>
+    <label>D4 原因分析</label>
+    <type>LongTextArea</type>
+    <length>10000</length>
+    <visibleLines>4</visibleLines>
+</CustomField>

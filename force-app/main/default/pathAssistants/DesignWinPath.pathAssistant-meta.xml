@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>Opportunity</entityName>
+    <fieldName>StageName</fieldName>
+    <masterLabel>Design Win パス</masterLabel>
+    <pathAssistantSteps>
+        <fieldNames>Amount</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;顧客から引き合いを受けた初期段階です。&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;顧客の製品ロードマップ・開発計画をヒアリングし、採用検討の背景を把握してください&lt;/li&gt;&lt;li&gt;対象製品・必要スペック・想定数量・採用時期を確認してください&lt;/li&gt;&lt;li&gt;競合他社の検討状況（ベンチマーク対象）を把握してください&lt;/li&gt;&lt;li&gt;年度別受注予測（Revenue Forecast）の初期レコードを作成してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>DW_Inquiry</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Amount</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;技術提案・見積を提示する段階です。&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;顧客の技術要件に対する適合性を技術部門と確認してください&lt;/li&gt;&lt;li&gt;提案書（技術仕様・価格・納期）を作成し、提出してください&lt;/li&gt;&lt;li&gt;カスタマイズや特殊仕様が必要な場合、設計開発部門と連携してください&lt;/li&gt;&lt;li&gt;Revenue Forecastの数量・単価を提案内容に合わせて更新してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>DW_Proposal</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;試作品の提供・評価を行う段階です。&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;試作品（サンプル）を手配し、顧客の評価スケジュールを確認してください&lt;/li&gt;&lt;li&gt;顧客の評価基準・テスト項目を把握し、技術サポート体制を整えてください&lt;/li&gt;&lt;li&gt;評価結果のフィードバックを受け、必要に応じて仕様調整を検討してください&lt;/li&gt;&lt;li&gt;サプライヤーへの非公式な需要打診を開始してください（確度50%）&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>DW_Prototype</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;顧客の品質認定・承認プロセスを通過する段階です。&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;顧客の品質認定テスト（信頼性試験・環境試験等）に対応してください&lt;/li&gt;&lt;li&gt;認定に必要な技術文書・試験成績書を準備・提出してください&lt;/li&gt;&lt;li&gt;RFQを発行し、主要サプライヤーのキャパシティ確認・工場計画を開始してください（確度75%）&lt;/li&gt;&lt;li&gt;Revenue Forecastの精度を見直し、量産スケジュールを反映してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>DW_Qualification</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <fieldNames>Amount</fieldNames>
+        <fieldNames>NextStep</fieldNames>
+        <info>&lt;p&gt;&lt;strong&gt;採用内定後の最終条件交渉の段階です。&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;量産価格・数量コミットメント・納期条件について最終合意を進めてください&lt;/li&gt;&lt;li&gt;長期供給契約（Sales Agreement）の条件を詰めてください&lt;/li&gt;&lt;li&gt;サプライヤーとの長期契約交渉・設備投資承認を並行で進めてください（確度90%）&lt;/li&gt;&lt;li&gt;社内承認（量産体制・設備投資）を完了させてください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>DW_FinalNegotiation</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;&lt;strong&gt;Design Win獲得おめでとうございます！&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Sales Agreement（販売契約）を作成し、月別スケジュールを設定してください&lt;/li&gt;&lt;li&gt;Revenue Forecastのステータスを「契約移行済」に更新してください&lt;/li&gt;&lt;li&gt;量産に向けた設計開発プロジェクト（Design Project）を確認・更新してください&lt;/li&gt;&lt;li&gt;製造拠点・サプライチェーンの量産準備状況を最終確認してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>Design_Win</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;&lt;strong&gt;Design Win失注となりました。&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;失注理由（技術・価格・品質・競合・タイミング等）を詳細に記録してください&lt;/li&gt;&lt;li&gt;競合の採用製品・条件が分かれば記録してください（将来の提案に活用）&lt;/li&gt;&lt;li&gt;次世代モデルでの再提案に向けたフォローアップ計画を立ててください&lt;/li&gt;&lt;li&gt;Revenue Forecastのステータスを「失注」に更新してください&lt;/li&gt;&lt;/ul&gt;</info>
+        <picklistValueName>DW_Lost</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>Design_Win</recordTypeName>
+</PathAssistant>

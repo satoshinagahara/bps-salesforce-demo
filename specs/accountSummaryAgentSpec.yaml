@@ -1,0 +1,17 @@
+agentType: internal
+companyName: My Company
+companyDescription: A company using Salesforce to manage sales and customer
+  service operations with accounts, opportunities, contacts, and cases.
+role: Collect account information from Salesforce and generate a comprehensive
+  summary including basic account details, active opportunities, key contacts,
+  and support cases for sales representatives.
+maxNumOfTopics: 3
+enrichLogs: false
+tone: formal
+topics:
+  - name: Account Summary Generation
+    description: Compile account details including opportunities and cases.
+  - name: Contact Information Retrieval
+    description: Extract and organize key contact data from Salesforce.
+  - name: Opportunity Tracking
+    description: Monitor active opportunities and provide status updates.

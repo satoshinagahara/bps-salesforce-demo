@@ -1,0 +1,141 @@
+<template>
+    <lightning-card title="見積比較" icon-name="standard:quotes">
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="読み込み中"></lightning-spinner>
+        </template>
+
+        <template if:true={hasData}>
+            <!-- RFQ Header Info -->
+            <div class="rfq-header slds-p-around_medium">
+                <div class="rfq-header-grid">
+                    <div class="rfq-header-item">
+                        <span class="rfq-label">カテゴリ</span>
+                        <span class="rfq-value">{headerInfo.category}</span>
+                    </div>
+                    <div class="rfq-header-item">
+                        <span class="rfq-label">部品番号</span>
+                        <span class="rfq-value">{headerInfo.partNumber}</span>
+                    </div>
+                    <div class="rfq-header-item">
+                        <span class="rfq-label">必要数量</span>
+                        <span class="rfq-value">{headerInfo.requiredQty}</span>
+                    </div>
+                    <div class="rfq-header-item">
+                        <span class="rfq-label">目標単価</span>
+                        <span class="rfq-value price-target">
+                            <template if:true={headerInfo.targetPrice}>
+                                &yen;{headerInfo.targetPrice}
+                            </template>
+                            <template if:false={headerInfo.targetPrice}>—</template>
+                        </span>
+                    </div>
+                    <div class="rfq-header-item">
+                        <span class="rfq-label">現行単価</span>
+                        <span class="rfq-value">
+                            <template if:true={headerInfo.currentCost}>
+                                &yen;{headerInfo.currentCost}
+                            </template>
+                            <template if:false={headerInfo.currentCost}>—</template>
+                        </span>
+                    </div>
+                    <div class="rfq-header-item">
+                        <span class="rfq-label">回答期限</span>
+                        <span class="rfq-value">{headerInfo.dueDate}</span>
+                    </div>
+                </div>
+                <template if:true={headerInfo.partSpec}>
+                    <div class="rfq-spec">
+                        <span class="rfq-label">仕様</span>
+                        <span class="rfq-value">{headerInfo.partSpec}</span>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Quote Comparison Table -->
+            <div class="quote-table-wrapper slds-p-horizontal_medium slds-p-bottom_medium">
+                <div class="quote-count">
+                    回答 {quoteCount} 件
+                    <template if:true={isDecided}>
+                        <span class="decided-badge">決定済</span>
+                    </template>
+                </div>
+                <table class="quote-table">
+                    <thead>
+                        <tr>
+                            <th>サプライヤー</th>
+                            <th>製造拠点</th>
+                            <th>ステータス</th>
+                            <th class="num-col">単価</th>
+                            <th class="num-col">vs目標</th>
+                            <th class="num-col">vs現行</th>
+                            <th class="num-col">リードタイム</th>
+                            <th class="num-col">MOQ</th>
+                            <th class="num-col">スコア</th>
+                            <th>有効期限</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={quotes} for:item="q">
+                            <tr key={q.Id} class={q.rowClass}>
+                                <td class="supplier-cell">{q.SupplierName}</td>
+                                <td>{q.SiteName}</td>
+                                <td><span class={q.statusClass}>{q.Status}</span></td>
+                                <td class="num-col">
+                                    <span class={q.priceClass}>
+                                        <template if:true={q.UnitPrice}>&yen;{q.UnitPrice}</template>
+                                        <template if:false={q.UnitPrice}>—</template>
+                                    </span>
+                                </td>
+                                <td class="num-col">
+                                    <template if:true={q.priceDiffPercent}>
+                                        <span class={q.priceDiffClass}>{q.priceDiffPercent}%</span>
+                                    </template>
+                                    <template if:false={q.priceDiffPercent}>—</template>
+                                </td>
+                                <td class="num-col">
+                                    <template if:true={q.costDiffPercent}>
+                                        <span class={q.costDiffClass}>{q.costDiffPercent}%</span>
+                                    </template>
+                                    <template if:false={q.costDiffPercent}>—</template>
+                                </td>
+                                <td class="num-col">
+                                    <span class={q.leadTimeClass}>
+                                        <template if:true={q.LeadTimeDays}>{q.LeadTimeDays}日</template>
+                                        <template if:false={q.LeadTimeDays}>—</template>
+                                    </span>
+                                </td>
+                                <td class="num-col">
+                                    <template if:true={q.MOQ}>{q.MOQ}</template>
+                                    <template if:false={q.MOQ}>—</template>
+                                </td>
+                                <td class="num-col">
+                                    <template if:true={q.Score}>{q.Score}</template>
+                                    <template if:false={q.Score}>—</template>
+                                </td>
+                                <td>{q.ValidUntil}</td>
+                                <td>
+                                    <template if:true={q.isSelected}>
+                                        <lightning-icon icon-name="utility:check" size="x-small" variant="success" title="採用済"></lightning-icon>
+                                    </template>
+                                    <template if:true={q.isAdoptable}>
+                                        <lightning-button
+                                            label="採用"
+                                            variant="brand"
+                                            size="small"
+                                            data-quote-id={q.Id}
+                                            data-supplier-name={q.SupplierName}
+                                            onclick={handleAdopt}>
+                                        </lightning-button>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

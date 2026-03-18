@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Needs_Card__c</fullName>
+    <label>ニーズカード</label>
+    <referenceTo>Needs_Card__c</referenceTo>
+    <relationshipLabel>ソース面談</relationshipLabel>
+    <relationshipName>Needs_Card_Sources</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <type>MasterDetail</type>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

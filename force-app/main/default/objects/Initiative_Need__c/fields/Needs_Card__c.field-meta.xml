@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Needs_Card__c</fullName>
+    <label>ニーズカード</label>
+    <type>Lookup</type>
+    <referenceTo>Needs_Card__c</referenceTo>
+    <relationshipLabel>紐付け施策</relationshipLabel>
+    <relationshipName>Initiative_Needs</relationshipName>
+    <required>true</required>
+    <deleteConstraint>Restrict</deleteConstraint>
+</CustomField>

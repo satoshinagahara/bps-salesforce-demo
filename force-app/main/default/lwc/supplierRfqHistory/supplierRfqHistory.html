@@ -1,0 +1,109 @@
+<template>
+    <lightning-card title="購買見積 回答履歴" icon-name="standard:record">
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="読み込み中"></lightning-spinner>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:false={hasData}>
+                <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                    このサプライヤーへの購買見積依頼はまだありません
+                </div>
+            </template>
+
+            <template if:true={hasData}>
+                <!-- Stats Bar -->
+                <div class="stats-bar slds-p-around_medium">
+                    <div class="stat-item">
+                        <span class="stat-label">依頼総数</span>
+                        <span class="stat-value">{stats.total}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">回答数</span>
+                        <span class="stat-value">{stats.responded}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">採用数</span>
+                        <span class="stat-value">{stats.adopted}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">採用率</span>
+                        <span class={stats.adoptionRateClass}>{stats.adoptionRate}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">辞退数</span>
+                        <span class="stat-value">{stats.declined}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">平均スコア</span>
+                        <span class={stats.scoreClass}>
+                            <template if:true={stats.avgScore}>{stats.avgScore}</template>
+                            <template if:false={stats.avgScore}>—</template>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- History Table -->
+                <div class="table-wrapper slds-p-horizontal_medium slds-p-bottom_medium">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>RFQ</th>
+                                <th>部品番号</th>
+                                <th>カテゴリ</th>
+                                <th>ステータス</th>
+                                <th class="num-col">回答単価</th>
+                                <th class="num-col">vs目標</th>
+                                <th class="num-col">リードタイム</th>
+                                <th class="num-col">スコア</th>
+                                <th>製造拠点</th>
+                                <th>回答日</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={quotes} for:item="q">
+                                <tr key={q.Id} class={q.rowClass} data-rfq-id={q.RFQId} onclick={handleRowClick}>
+                                    <td class="rfq-cell">
+                                        <div class="rfq-name">{q.RFQName}</div>
+                                        <div class="rfq-title">{q.RFQTitle}</div>
+                                    </td>
+                                    <td>{q.RFQPartNumber}</td>
+                                    <td>{q.RFQCategory}</td>
+                                    <td><span class={q.statusClass}>{q.Status}</span></td>
+                                    <td class="num-col">
+                                        <template if:true={q.UnitPrice}>&yen;{q.UnitPrice}</template>
+                                        <template if:false={q.UnitPrice}>—</template>
+                                    </td>
+                                    <td class="num-col">
+                                        <template if:true={q.vsTargetLabel}>
+                                            <span class={q.vsTargetClass}>{q.vsTargetLabel}</span>
+                                        </template>
+                                        <template if:false={q.vsTargetLabel}>—</template>
+                                    </td>
+                                    <td class="num-col">
+                                        <template if:true={q.LeadTimeDays}>{q.LeadTimeDays}日</template>
+                                        <template if:false={q.LeadTimeDays}>—</template>
+                                    </td>
+                                    <td class="num-col">
+                                        <template if:true={q.Score}>{q.Score}</template>
+                                        <template if:false={q.Score}>—</template>
+                                    </td>
+                                    <td>{q.SiteName}</td>
+                                    <td>{q.ResponseDate}</td>
+                                    <td>
+                                        <template if:true={q.adoptedIcon}>
+                                            <lightning-icon icon-name="utility:check" size="x-small" variant="success" title="採用"></lightning-icon>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+        </template>
+
+    </lightning-card>
+</template>
