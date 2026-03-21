@@ -1,0 +1,207 @@
+<template>
+    <lightning-card title="契約製品 × BOM配分" icon-name="standard:contract">
+        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="読み込み中" size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:false={hasProducts}>
+                    <p class="slds-text-color_weak slds-p-vertical_medium">契約製品がありません。</p>
+                </template>
+
+                <template if:true={hasProducts}>
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col" style="width: 22%;"><div class="slds-truncate">製品</div></th>
+                                <th scope="col" style="width: 18%;"><div class="slds-truncate">BOM</div></th>
+                                <th scope="col" style="width: 15%;"><div class="slds-truncate">組立拠点</div></th>
+                                <th scope="col" style="width: 10%;"><div class="slds-truncate">ステータス</div></th>
+                                <th scope="col" style="width: 10%;"><div class="slds-truncate">月間数量</div></th>
+                                <th scope="col" style="width: 25%;"><div class="slds-truncate">操作</div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={products} for:item="p">
+                                <tr key={p.sapId} class={p.rowClass}>
+                                    <td><div class="slds-truncate">{p.productName}</div></td>
+                                    <td>
+                                        <template if:true={p.hasBom}>
+                                            <div class="slds-truncate">{p.bomDisplay}</div>
+                                        </template>
+                                        <template if:false={p.hasBom}>
+                                            <span class="slds-text-color_error">
+                                                未設定
+                                                <template if:true={p.needsAttention}>
+                                                    ({p.bomCandidateCount}件のBOMあり)
+                                                </template>
+                                            </span>
+                                        </template>
+                                    </td>
+                                    <td><div class="slds-truncate">{p.assemblySite}</div></td>
+                                    <td>
+                                        <template if:true={p.hasBom}>
+                                            <lightning-badge label={p.bomStatus} class={p.statusClass}></lightning-badge>
+                                        </template>
+                                    </td>
+                                    <td class="slds-text-align_right">
+                                        <template if:true={p.monthlyQty}>
+                                            {p.monthlyQtyDisplay}
+                                        </template>
+                                    </td>
+                                    <td>
+                                        <lightning-button-group>
+                                            <lightning-button
+                                                label={p.bomButtonLabel}
+                                                variant={p.bomButtonVariant}
+                                                data-sap-id={p.sapId}
+                                                data-product-id={p.productId}
+                                                onclick={handleSelectBom}
+                                                icon-name="utility:assignment"
+                                            ></lightning-button>
+                                            <template if:true={p.canSplit}>
+                                                <lightning-button
+                                                    label="分割"
+                                                    data-sap-id={p.sapId}
+                                                    data-product-id={p.productId}
+                                                    onclick={handleSplit}
+                                                    icon-name="utility:flow"
+                                                ></lightning-button>
+                                            </template>
+                                        </lightning-button-group>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+
+    <!-- BOM選択モーダル -->
+    <template if:true={showBomModal}>
+        <section class="slds-modal slds-fade-in-open" role="dialog">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" onclick={handleCloseModal}>
+                        <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                    </button>
+                    <h2 class="slds-modal__title">BOM選択: {modalProductName}</h2>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <template if:true={loadingCandidates}>
+                        <lightning-spinner alternative-text="読み込み中" size="small"></lightning-spinner>
+                    </template>
+                    <template if:false={loadingCandidates}>
+                        <template for:each={bomCandidates} for:item="c">
+                            <div key={c.bomHeaderId} class={c.cardClass} onclick={handleCandidateClick} data-bom-id={c.bomHeaderId}>
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col slds-m-right_small">
+                                        <lightning-input
+                                            type="radio"
+                                            name="bomSelect"
+                                            value={c.bomHeaderId}
+                                            checked={c.isSelected}
+                                            variant="label-hidden"
+                                            label={c.bomNumber}
+                                        ></lightning-input>
+                                    </div>
+                                    <div class="slds-col slds-grow">
+                                        <p class="slds-text-heading_small">
+                                            {c.bomNumber} Rev.{c.revision}
+                                            <lightning-badge label={c.status} class={c.statusBadgeClass}></lightning-badge>
+                                        </p>
+                                        <p class="slds-text-body_small slds-m-top_xx-small">
+                                            <lightning-icon icon-name="standard:shift" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                            {c.assemblySiteDisplay} / 部品{c.partCount} / サプライヤー{c.supplierCount}社
+                                        </p>
+                                        <template if:true={c.description}>
+                                            <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">{c.description}</p>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+                <div class="slds-modal__footer">
+                    <lightning-button label="キャンセル" onclick={handleCloseModal}></lightning-button>
+                    <lightning-button variant="brand" label="選択を確定" onclick={handleConfirmBom} disabled={confirmDisabled} class="slds-m-left_x-small"></lightning-button>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- 分割モーダル -->
+    <template if:true={showSplitModal}>
+        <section class="slds-modal slds-fade-in-open" role="dialog">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" onclick={handleCloseSplit}>
+                        <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                    </button>
+                    <h2 class="slds-modal__title">行分割: {modalProductName}</h2>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <template if:true={loadingCandidates}>
+                        <lightning-spinner alternative-text="読み込み中" size="small"></lightning-spinner>
+                    </template>
+                    <template if:false={loadingCandidates}>
+                        <p class="slds-m-bottom_medium">
+                            分割元: <strong>{splitSourceBom}</strong>（月間 {splitSourceQty} 台）
+                        </p>
+
+                        <!-- 分割比率スライダー -->
+                        <lightning-slider
+                            label="分割比率（新しい行の割合）"
+                            min="10"
+                            max="90"
+                            step="5"
+                            value={splitPercent}
+                            onchange={handleSplitPercentChange}
+                        ></lightning-slider>
+
+                        <div class="slds-grid slds-m-top_medium slds-m-bottom_medium">
+                            <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                                <div class="slds-box slds-theme_shade">
+                                    <p class="slds-text-title_caps">行1（元）</p>
+                                    <p class="slds-text-heading_small">{splitKeepQty} 台/月 ({splitKeepPct}%)</p>
+                                    <p class="slds-text-body_small">{splitSourceBom}</p>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-left_small">
+                                <div class="slds-box slds-theme_shade">
+                                    <p class="slds-text-title_caps">行2（新規）</p>
+                                    <p class="slds-text-heading_small">{splitNewQty} 台/月 ({splitPercent}%)</p>
+                                    <lightning-combobox
+                                        label="BOM"
+                                        value={splitNewBomId}
+                                        options={splitBomOptions}
+                                        onchange={handleSplitBomChange}
+                                        class="slds-m-top_x-small"
+                                    ></lightning-combobox>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="slds-text-body_small">
+                            合計: {splitSourceQty} 台/月
+                            <template if:true={splitValid}>
+                                <lightning-icon icon-name="utility:success" size="xx-small" variant="success" class="slds-m-left_xx-small"></lightning-icon>
+                            </template>
+                        </p>
+                    </template>
+                </div>
+                <div class="slds-modal__footer">
+                    <lightning-button label="キャンセル" onclick={handleCloseSplit}></lightning-button>
+                    <lightning-button variant="brand" label="分割を確定" onclick={handleConfirmSplit} disabled={splitConfirmDisabled} class="slds-m-left_x-small"></lightning-button>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

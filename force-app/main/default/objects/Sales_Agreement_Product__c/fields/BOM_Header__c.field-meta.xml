@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>BOM_Header__c</fullName>
+    <label>BOM</label>
+    <type>Lookup</type>
+    <referenceTo>BOM_Header__c</referenceTo>
+    <relationshipName>Sales_Agreement_Products</relationshipName>
+    <relationshipLabel>契約製品</relationshipLabel>
+    <required>false</required>
+    <deleteConstraint>SetNull</deleteConstraint>
+</CustomField>

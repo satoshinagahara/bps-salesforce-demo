@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Default_Site__c</fullName>
+    <label>プライマリ製造拠点</label>
+    <type>Lookup</type>
+    <referenceTo>Manufacturing_Site__c</referenceTo>
+    <relationshipName>Supplier_Parts</relationshipName>
+    <relationshipLabel>サプライヤー品目</relationshipLabel>
+    <required>false</required>
+</CustomField>

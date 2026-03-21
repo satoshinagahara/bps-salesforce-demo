@@ -127,3 +127,9 @@
     border-radius: 3px;
     padding: 0 4px;
 }
+
+/* ── Matching confidence ───────────────────────────────────────────────  */
+:host .confidence-high  { color: #2e844a; font-weight: 600; }
+:host .confidence-mid   { color: #9a5f00; font-weight: 600; }
+:host .confidence-low   { color: #c23934; font-weight: 600; }
+:host .confidence-manual { color: #0176d3; font-weight: 600; }

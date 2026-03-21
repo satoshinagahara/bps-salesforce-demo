@@ -53,7 +53,7 @@ public with sharing class BOMTreeController {
                        Make_or_Buy__c, Manufacturer__c, Material__c,
                        Quantity__c, Unit_of_Measure__c,
                        Unit_Cost__c, Extended_Cost__c,
-                       Supplier__r.Name,
+                       Supplier__r.Name, Matching_Confidence__c,
                        Manufacturing_Site__c, Manufacturing_Site__r.Name
                 FROM BOM_Part__c
                 WHERE BOM_SubComponent__c IN :subIds
@@ -231,9 +231,20 @@ public with sharing class BOMTreeController {
         n.put('uom',           p.Unit_of_Measure__c);
         n.put('unitCost',      p.Unit_Cost__c);
         n.put('extendedCost',  p.Extended_Cost__c);
+        n.put('confidence',    p.Matching_Confidence__c);
         Boolean isShared = p.Part_Number__c != null && sharedPartNumbers.contains(p.Part_Number__c);
         n.put('isShared',           isShared);
         n.put('sharedProductCount', isShared ? sharedProductCounts.get(p.Part_Number__c) : 0);
         return n;
+    }
+
+    @AuraEnabled
+    public static void updatePartSupplier(Id partId, Id supplierId) {
+        BOM_Part__c part = new BOM_Part__c(Id = partId);
+        part.Supplier__c = supplierId;
+        if (supplierId != null) {
+            part.Matching_Confidence__c = 'Manual';
+        }
+        update part;
     }
 }

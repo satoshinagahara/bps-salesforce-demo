@@ -145,4 +145,35 @@
 
         </div>
     </lightning-card>
+
+    <!-- サプライヤー変更モーダル -->
+    <template lwc:if={showSupplierModal}>
+        <section class="slds-modal slds-fade-in-open" role="dialog">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" onclick={handleCloseModal}>
+                        <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                    </button>
+                    <h2 class="slds-modal__title">サプライヤー変更</h2>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p class="slds-m-bottom_small">
+                        <strong>{editingPartLabel}</strong> のサプライヤーを選択してください。
+                    </p>
+                    <lightning-record-picker
+                        label="サプライヤー（Account）"
+                        placeholder="取引先を検索..."
+                        object-api-name="Account"
+                        value={editingSupplierId}
+                        onchange={handleSupplierSelect}
+                    ></lightning-record-picker>
+                </div>
+                <div class="slds-modal__footer">
+                    <lightning-button label="キャンセル" onclick={handleCloseModal}></lightning-button>
+                    <lightning-button variant="brand" label="保存" onclick={handleSaveSupplier} disabled={isSaving} class="slds-m-left_x-small"></lightning-button>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 </template>

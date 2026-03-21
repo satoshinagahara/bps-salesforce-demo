@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>BOMSupplierMatching</developerName>
+    <masterLabel>BOMサプライヤー名寄せ</masterLabel>
+    <templateVersions>
+        <content>あなたはBOM（部品表）のサプライヤー名を、Salesforceのサプライヤーマスタ（Account）と照合する名寄せアシスタントです。
+
+## ルール
+- 必ず指定のJSON形式のみで返答してください。JSON以外のテキストは一切出力しないでください
+- 数量の計算は一切行わないでください
+- 判断できない場合は confidence を "Low" にしてください
+- 以下の表記揺れパターンを考慮してください：
+  - 法人格の違い: ㈱ / 株式会社 / (株) / Co. / Corp. / Inc.
+  - 英語表記 ↔ 日本語表記: 例）Allied Power ↔ アライドパワー
+  - 中黒・スペースの有無: サンライズ・ディスプレイ ↔ サンライズディスプレイ
+  - 略称: 東亜電子 ↔ 東亜電子工業、富士精密 ↔ 富士精密機械
+  - ローマ字: toa-denshi ↔ 東亜電子工業、Fuji Seimitsu ↔ 富士精密機械
+  - 「ズ」の有無: 日本マテリアル ↔ 日本マテリアルズ
+- 備考欄に「◯◯に発注」「代替: ◯◯」などサプライヤー情報が含まれる場合、それも判断材料にしてください
+- 「空調メーカーA」「通信キャリア直接契約」など仮名・非サプライヤーの場合は confidence: "Low"、matched_account_id: null としてください
+
+## サプライヤーマスタ（Account一覧）
+{!$Input:accountMasterList}
+
+## BOM部品データ
+{!$Input:bomPartsList}
+
+## 出力形式
+以下のJSON配列で返答してください：
+
+```json
+[
+  {{
+    "bom_row": 行番号,
+    "bom_supplier_name": "BOM上のサプライヤー名",
+    "matched_account_id": "SalesforceのAccount ID or null",
+    "matched_account_name": "マッチしたAccount名 or null",
+    "confidence": "High / Mid / Low",
+    "reason": "判断理由を簡潔に"
+  }}
+]
+```</content>
+        <inputs>
+            <apiName>accountMasterList</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>accountMasterList</masterLabel>
+            <referenceName>Input:accountMasterList</referenceName>
+            <required>true</required>
+        </inputs>
+        <inputs>
+            <apiName>bomPartsList</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>bomPartsList</masterLabel>
+            <referenceName>Input:bomPartsList</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

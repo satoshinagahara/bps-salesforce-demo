@@ -6,7 +6,7 @@ public with sharing class DemandImpactController {
 
         // Get schedules with variance
         List<Sales_Agreement_Product__c> saps = [
-            SELECT Product__c, Product__r.Name, Unit_Price__c,
+            SELECT Product__c, Product__r.Name, Unit_Price__c, BOM_Header__c,
                 (SELECT Schedule_Month__c, Plan_Quantity__c, Actual_Quantity__c,
                         Plan_Amount__c, Actual_Amount__c
                  FROM Schedules__r
@@ -18,6 +18,8 @@ public with sharing class DemandImpactController {
 
         Set<Id> productIds = new Set<Id>();
         Map<Id, ProductImpact> productMap = new Map<Id, ProductImpact>();
+        // BOM_Header__c指定がある場合はそのIDで展開、なければProduct__cで展開（後方互換）
+        Map<Id, Set<Id>> bomIdsByProduct = new Map<Id, Set<Id>>();
 
         for (Sales_Agreement_Product__c sap : saps) {
             ProductImpact pi = new ProductImpact();
@@ -50,6 +52,14 @@ public with sharing class DemandImpactController {
             productIds.add(sap.Product__c);
             productMap.put(sap.Product__c, pi);
             result.products.add(pi);
+
+            // BOM指定を記録
+            if (sap.BOM_Header__c != null) {
+                if (!bomIdsByProduct.containsKey(sap.Product__c)) {
+                    bomIdsByProduct.put(sap.Product__c, new Set<Id>());
+                }
+                bomIdsByProduct.get(sap.Product__c).add(sap.BOM_Header__c);
+            }
         }
 
         if (productIds.isEmpty()) return result;
@@ -67,7 +77,7 @@ public with sharing class DemandImpactController {
             planQtyByProduct.put(sap.Product__c, totalPlan);
             maxMonths = Math.max(maxMonths, cnt);
         }
-        expandBOM(productIds, productMap, planQtyByProduct, maxMonths);
+        expandBOM(productIds, productMap, planQtyByProduct, maxMonths, bomIdsByProduct);
 
         return result;
     }
@@ -83,7 +93,7 @@ public with sharing class DemandImpactController {
         }
 
         List<Sales_Agreement_Product__c> saps = [
-            SELECT Product__c, Product__r.Name, Unit_Price__c,
+            SELECT Product__c, Product__r.Name, Unit_Price__c, BOM_Header__c,
                 (SELECT Schedule_Month__c, Plan_Quantity__c, Actual_Quantity__c
                  FROM Schedules__r
                  ORDER BY Schedule_Month__c)
@@ -96,6 +106,7 @@ public with sharing class DemandImpactController {
         Set<Id> productIds = new Set<Id>();
         Map<Id, ProductImpact> impactMap = new Map<Id, ProductImpact>();
         Map<Id, Decimal> totalSimQtyByProduct = new Map<Id, Decimal>();
+        Map<Id, Set<Id>> bomIdsByProduct = new Map<Id, Set<Id>>();
         Integer maxMonthCount = 1;
 
         for (Sales_Agreement_Product__c sap : saps) {
@@ -135,6 +146,14 @@ public with sharing class DemandImpactController {
             totalSimQtyByProduct.put(sap.Product__c, totalSimulated);
             maxMonthCount = Math.max(maxMonthCount, scheduleMonthCount);
 
+            // BOM指定を記録
+            if (sap.BOM_Header__c != null) {
+                if (!bomIdsByProduct.containsKey(sap.Product__c)) {
+                    bomIdsByProduct.put(sap.Product__c, new Set<Id>());
+                }
+                bomIdsByProduct.get(sap.Product__c).add(sap.BOM_Header__c);
+            }
+
             // SupplierImpact用の仮ProductImpact
             ProductImpact pi = new ProductImpact();
             pi.productName = wp.productName;
@@ -147,7 +166,7 @@ public with sharing class DemandImpactController {
         }
 
         if (!productIds.isEmpty()) {
-            expandBOM(productIds, impactMap, totalSimQtyByProduct, maxMonthCount);
+            expandBOM(productIds, impactMap, totalSimQtyByProduct, maxMonthCount, bomIdsByProduct);
             // WhatIfProductのsuppliersにコピー
             for (WhatIfProduct wp : result.products) {
                 ProductImpact pi = impactMap.get(wp.productId);
@@ -224,23 +243,57 @@ public with sharing class DemandImpactController {
         return result;
     }
 
-    // BOM Expansion (共通)
+    // BOM Expansion (共通) - 後方互換: BOM指定なし
     private static void expandBOM(Set<Id> productIds, Map<Id, ProductImpact> productMap, Map<Id, Decimal> totalSimQtyByProduct) {
-        expandBOM(productIds, productMap, totalSimQtyByProduct, 1);
+        expandBOM(productIds, productMap, totalSimQtyByProduct, 1, new Map<Id, Set<Id>>());
     }
 
     private static void expandBOM(Set<Id> productIds, Map<Id, ProductImpact> productMap, Map<Id, Decimal> totalSimQtyByProduct, Integer monthCount) {
-        List<BOM_Part__c> parts = [
-            SELECT Part_Name__c, Part_Number__c, Quantity__c, Supplier__c, Supplier__r.Name,
-                   Manufacturing_Site__c, Manufacturing_Site__r.Name,
-                   BOM_SubComponent__r.BOM_Line__r.Quantity__c,
-                   BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__c,
-                   BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__r.Name
-            FROM BOM_Part__c
-            WHERE BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__c IN :productIds
-              AND BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Status__c = '承認済'
-              AND Supplier__c != null
-        ];
+        expandBOM(productIds, productMap, totalSimQtyByProduct, monthCount, new Map<Id, Set<Id>>());
+    }
+
+    private static void expandBOM(Set<Id> productIds, Map<Id, ProductImpact> productMap, Map<Id, Decimal> totalSimQtyByProduct, Integer monthCount, Map<Id, Set<Id>> bomIdsByProduct) {
+        // BOM_Header__c指定があればそのBOMのみ、なければProduct__cの承認済みBOM全て
+        Set<Id> specifiedBomIds = new Set<Id>();
+        Set<Id> unspecifiedProductIds = new Set<Id>();
+        for (Id prodId : productIds) {
+            if (bomIdsByProduct.containsKey(prodId) && !bomIdsByProduct.get(prodId).isEmpty()) {
+                specifiedBomIds.addAll(bomIdsByProduct.get(prodId));
+            } else {
+                unspecifiedProductIds.add(prodId);
+            }
+        }
+
+        List<BOM_Part__c> parts = new List<BOM_Part__c>();
+
+        // 指定BOMがある場合: そのBOM IDで直接検索
+        if (!specifiedBomIds.isEmpty()) {
+            parts.addAll([
+                SELECT Part_Name__c, Part_Number__c, Quantity__c, Supplier__c, Supplier__r.Name,
+                       Manufacturing_Site__c, Manufacturing_Site__r.Name,
+                       BOM_SubComponent__r.BOM_Line__r.Quantity__c,
+                       BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__c,
+                       BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__r.Name
+                FROM BOM_Part__c
+                WHERE BOM_SubComponent__r.BOM_Line__r.BOM_Header__c IN :specifiedBomIds
+                  AND Supplier__c != null
+            ]);
+        }
+
+        // BOM未指定の製品: 従来通りProduct__c + 承認済みで検索（後方互換）
+        if (!unspecifiedProductIds.isEmpty()) {
+            parts.addAll([
+                SELECT Part_Name__c, Part_Number__c, Quantity__c, Supplier__c, Supplier__r.Name,
+                       Manufacturing_Site__c, Manufacturing_Site__r.Name,
+                       BOM_SubComponent__r.BOM_Line__r.Quantity__c,
+                       BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__c,
+                       BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__r.Name
+                FROM BOM_Part__c
+                WHERE BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Product__c IN :unspecifiedProductIds
+                  AND BOM_SubComponent__r.BOM_Line__r.BOM_Header__r.Status__c = '承認済'
+                  AND Supplier__c != null
+            ]);
+        }
 
         // 1. サプライヤー影響を構築
         Map<String, SupplierImpact> supplierMap = new Map<String, SupplierImpact>();

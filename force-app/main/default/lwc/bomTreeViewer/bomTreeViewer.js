@@ -1,5 +1,8 @@
 import { LightningElement, api, wire, track } from 'lwc';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
 import getBOMTree from '@salesforce/apex/BOMTreeController.getBOMTree';
+import updatePartSupplier from '@salesforce/apex/BOMTreeController.updatePartSupplier';
 
 // ── Column definitions ────────────────────────────────────────────────────
 const COLUMNS = [
@@ -77,10 +80,21 @@ const COLUMNS = [
         cellAttributes: { alignment: 'right' }
     },
     {
+        label: '信頼度',
+        fieldName: 'confidence',
+        type: 'text',
+        initialWidth: 70,
+        cellAttributes: { alignment: 'center', class: { fieldName: 'confidenceClass' } }
+    },
+    {
         label: '補足',
         fieldName: 'note',
         type: 'text',
         wrapText: false
+    },
+    {
+        type: 'action',
+        typeAttributes: { rowActions: { fieldName: 'rowActions' } }
     }
 ];
 
@@ -167,6 +181,12 @@ function transformNode(raw, totalCost) {
                 ? '/lightning/r/Account/' + raw.supplierId + '/view'
                 : null;
             n.siteName = raw.siteName ?? '';
+            n.confidence = raw.confidence ?? '';
+            n.confidenceClass = raw.confidence === 'High' ? 'confidence-high'
+                : raw.confidence === 'Low' ? 'confidence-low'
+                : raw.confidence === 'Mid' ? 'confidence-mid'
+                : raw.confidence === 'Manual' ? 'confidence-manual' : '';
+            n.rowActions = [{ label: 'サプライヤー変更', name: 'change_supplier' }];
             n.note = raw.manufacturer ?? '';
             if (totalCost > 0 && raw.extendedCost != null) {
                 const pct = (raw.extendedCost / totalCost) * 100;
@@ -267,11 +287,21 @@ export default class BomTreeViewer extends LightningElement {
     @track searchTerm   = '';
     @track maxDepth     = 4;
 
+    // サプライヤー変更モーダル
+    @track showSupplierModal = false;
+    editingPartId = null;
+    editingPartLabel = '';
+    editingSupplierId = null;
+    isSaving = false;
+
     columns  = COLUMNS;
     _summary = null;
+    _wiredResult = null;
 
     @wire(getBOMTree, { productId: '$recordId' })
-    wiredTree({ data, error }) {
+    wiredTree(result) {
+        this._wiredResult = result;
+        const { data, error } = result;
         this.isLoading = false;
         if (data) {
             this._treeData = data.map(node => transformNode(node, 0));
@@ -353,7 +383,49 @@ export default class BomTreeViewer extends LightningElement {
         this.expandedRows = [];
     }
 
-    handleRowAction() {
-        // Future
+    handleRowAction(event) {
+        const action = event.detail.action;
+        const row = event.detail.row;
+        if (action.name === 'change_supplier') {
+            this.editingPartId = row.id;
+            this.editingPartLabel = row.displayLabel || row.componentName || '';
+            this.editingSupplierId = row.supplierId || null;
+            this.showSupplierModal = true;
+        }
+    }
+
+    handleSupplierSelect(event) {
+        this.editingSupplierId = event.detail.recordId;
+    }
+
+    handleCloseModal() {
+        this.showSupplierModal = false;
+        this.editingPartId = null;
+    }
+
+    async handleSaveSupplier() {
+        this.isSaving = true;
+        try {
+            await updatePartSupplier({
+                partId: this.editingPartId,
+                supplierId: this.editingSupplierId
+            });
+            this.showSupplierModal = false;
+            this.editingPartId = null;
+            this.dispatchEvent(new ShowToastEvent({
+                title: '保存完了',
+                message: 'サプライヤーを更新しました。',
+                variant: 'success'
+            }));
+            await refreshApex(this._wiredResult);
+        } catch (err) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'エラー',
+                message: err.body ? err.body.message : err.message,
+                variant: 'error'
+            }));
+        } finally {
+            this.isSaving = false;
+        }
     }
 }

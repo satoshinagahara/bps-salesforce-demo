@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <objects>
+                <object>Sales_Agreement__c</object>
+            </objects>
+        </targetConfig>
+    </targetConfigs>
+    <masterLabel>BOM配分</masterLabel>
+    <description>販売契約の契約製品にBOMを割り当て、行分割でBOM配分を管理するコンポーネント</description>
+</LightningComponentBundle>
