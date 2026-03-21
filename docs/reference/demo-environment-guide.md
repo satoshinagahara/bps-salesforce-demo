@@ -333,6 +333,7 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 | `salesforceQuizBattle` | Salesforce知識クイズ（AI生成問題、温度0.7） |
 | `universalTableEditor` | 汎用テーブルエディタ |
 | `launcherPanel` | ランチャーパネル |
+| `batchLauncher` | バッチ処理ランチャー（ホームページ配置。Apex Batchを即時起動・ステータス監視。`BatchLauncherController.getAvailableBatches()` にバッチを追加するだけで拡張可能） |
 | `opportunityRoadmap` | 商談ロードマップ |
 
 ---
@@ -347,6 +348,7 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 | `qualityKpiPanel` | 品質KPIパネル |
 | `procurementStatusBoard` | 調達ステータスボード |
 | `allSitesMap` | サプライチェーンマップ＋災害シミュレーション |
+| `batchLauncher` | バッチ処理ランチャー |
 
 ### サプライヤーAccountページ
 
@@ -408,6 +410,12 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 | LWC | 内容 |
 |---|---|
 | `rfqComparison` | 見積比較 |
+
+### Campaignページ
+
+| LWC | 内容 |
+|---|---|
+| `campaignSurveyAnalysis` | イベントアンケート反響分析（AI分析実行ボタン、結果表示、再分析。Data Cloud Retriever経由） |
 
 ### BOM_Header__cページ
 

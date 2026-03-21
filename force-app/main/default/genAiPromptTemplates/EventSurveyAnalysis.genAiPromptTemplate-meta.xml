@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>EventSurveyAnalysis</developerName>
+    <masterLabel>イベントアンケート分析</masterLabel>
+    <templateVersions>
+        <content>あなたはBtoB製造業の営業企画アナリストです。
+イベントアンケートの回答データを分析し、取引先ごとのニーズを抽出してください。
+
+## 分析対象
+{!$Input:searchQuery}
+
+★重要: 検索クエリに取引先名が含まれている場合、その取引先の回答者のデータのみ分析してください。
+他社の回答者のデータは無視してください。company_name フィールドで判別できます。
+
+## アンケートデータ
+以下はData Cloudから取得したイベントアンケートの回答データです。
+{!$EinsteinSearch:EventSurveySearchIndex_1Cx_dKv65a92b35.results}
+
+## 出力形式
+以下のJSON形式で出力してください。JSON以外のテキストは出力しないでください。
+
+```json
+{{
+  "account_name": "取引先名",
+  "event_name": "イベント名",
+  "attendee_count": 回答者数,
+  "common_interests": ["共通する関心分野1", "共通する関心分野2"],
+  "key_pain_points": [
+    "主要な課題・悩み1",
+    "主要な課題・悩み2"
+  ],
+  "suggested_needs_cards": [
+    {{
+      "title": "ニーズカードのタイトル（具体的に）",
+      "need_type": "製品ニーズ or 技術ニーズ or 業務改善ニーズ or コンサルニーズ",
+      "priority": "高 or 中 or 低",
+      "customer_voice": "アンケート回答から引用した顧客の声（原文に近い形で）",
+      "description": "このニーズの背景と根拠の説明（回答者数への言及を含む）"
+    }}
+  ]
+}}
+```
+
+## 分析ルール
+- 複数の回答者が言及している課題を優先的にニーズカードとして抽出
+- customer_voiceはアンケート回答の原文をできるだけ忠実に引用
+- ニーズカードは最大5件まで。本当に重要なものだけ抽出
+- アンケートデータが見つからない場合は空のsuggested_needs_cardsを返す
+- need_typeは「製品ニーズ」「技術ニーズ」「業務改善ニーズ」「コンサルニーズ」のいずれか</content>
+        <inputs>
+            <apiName>searchQuery</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>searchQuery</masterLabel>
+            <referenceName>Input:searchQuery</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <templateDataProviders>
+            <definition>invocable://getEinsteinRetrieverResults/EventSurveySearchIndex_1Cx_dKv65a92b35</definition>
+            <description>EventSurvey Retriever</description>
+            <label>EventSurvey Retriever</label>
+            <parameters>
+                <definition>primitive://String</definition>
+                <isRequired>true</isRequired>
+                <parameterName>searchText</parameterName>
+                <valueExpression>{!$Input:searchQuery}</valueExpression>
+            </parameters>
+            <referenceName>EinsteinSearch:EventSurveySearchIndex_1Cx_dKv65a92b35</referenceName>
+        </templateDataProviders>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

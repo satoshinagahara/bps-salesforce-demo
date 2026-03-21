@@ -1,0 +1,68 @@
+<template>
+    <lightning-card title="イベントアンケート分析" icon-name="standard:campaign">
+        <div class="slds-p-horizontal_medium slds-p-bottom_medium slds-is-relative">
+            <template if:true={isLoading}>
+                <div class="slds-align_absolute-center" style="min-height: 200px;">
+                    <div class="slds-text-align_center">
+                        <lightning-spinner alternative-text="分析中..." size="medium"></lightning-spinner>
+                        <p class="slds-m-top_large">分析中です。しばらくお待ちください...</p>
+                    </div>
+                </div>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:false={hasResults}>
+                    <p class="slds-m-bottom_small">
+                        このキャンペーンに紐づくイベントアンケートをAIで分析します。
+                    </p>
+                    <ul class="slds-list_dotted slds-m-bottom_medium">
+                        <li>イベントの反響評価（ポジティブ／ネガティブ）</li>
+                        <li>主要な発見事項・参加者セグメント</li>
+                        <li>ポジティブ・ネガティブ反応</li>
+                        <li>次回改善点・次回イベント企画提案</li>
+                    </ul>
+                    <p class="slds-text-color_weak slds-m-bottom_medium">
+                        ※ 処理に30秒〜1分程度かかります。
+                    </p>
+                    <lightning-button
+                        variant="brand"
+                        label="分析を実行"
+                        onclick={handleAnalyze}
+                    ></lightning-button>
+                </template>
+
+                <template if:true={hasResults}>
+                    <div class="slds-m-bottom_medium">
+                        <lightning-badge label={sentiment}></lightning-badge>
+                        <span class="slds-m-left_small slds-text-color_weak">分析完了</span>
+                    </div>
+
+                    <template if:true={keyFindings}>
+                        <div class="slds-m-bottom_medium">
+                            <lightning-formatted-rich-text value={keyFindingsHtml}></lightning-formatted-rich-text>
+                        </div>
+                    </template>
+
+                    <template if:true={improvements}>
+                        <div class="slds-m-bottom_medium">
+                            <lightning-formatted-rich-text value={improvementsHtml}></lightning-formatted-rich-text>
+                        </div>
+                    </template>
+
+                    <lightning-button
+                        variant="neutral"
+                        label="再分析"
+                        onclick={handleAnalyze}
+                        class="slds-m-top_small"
+                    ></lightning-button>
+                </template>
+            </template>
+
+            <template if:true={errorMessage}>
+                <div class="slds-notify slds-notify_alert slds-alert_error slds-m-top_medium" role="alert">
+                    <p>{errorMessage}</p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

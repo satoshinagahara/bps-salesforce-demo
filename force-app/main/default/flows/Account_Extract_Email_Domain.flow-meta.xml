@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <assignments>
+        <name>Set_Email_Domain</name>
+        <label>Email Domainを設定</label>
+        <locationX>314</locationX>
+        <locationY>158</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Email_Domain__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>ExtractedDomain</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+    <decisions>
+        <name>Check_Website_Not_Blank</name>
+        <label>Websiteが空でないか</label>
+        <locationX>182</locationX>
+        <locationY>158</locationY>
+        <defaultConnectorLabel>Websiteが空</defaultConnectorLabel>
+        <rules>
+            <name>Website_Has_Value</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Website</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Set_Email_Domain</targetReference>
+            </connector>
+            <label>Websiteに値あり</label>
+        </rules>
+    </decisions>
+    <formulas>
+        <name>ExtractedDomain</name>
+        <dataType>String</dataType>
+        <expression>IF(
+    ISBLANK({!$Record.Website}),
+    NULL,
+    IF(
+        LEFT(
+            IF(
+                CONTAINS({!$Record.Website}, "://"),
+                MID(
+                    {!$Record.Website},
+                    FIND("://", {!$Record.Website}) + 3,
+                    IF(
+                        CONTAINS(MID({!$Record.Website}, FIND("://", {!$Record.Website}) + 3, LEN({!$Record.Website})), "/"),
+                        FIND("/", MID({!$Record.Website}, FIND("://", {!$Record.Website}) + 3, LEN({!$Record.Website}))) - 1,
+                        LEN({!$Record.Website}) - FIND("://", {!$Record.Website}) - 2
+                    )
+                ),
+                IF(
+                    CONTAINS({!$Record.Website}, "/"),
+                    LEFT({!$Record.Website}, FIND("/", {!$Record.Website}) - 1),
+                    {!$Record.Website}
+                )
+            ),
+            4
+        ) = "www.",
+        MID(
+            IF(
+                CONTAINS({!$Record.Website}, "://"),
+                MID(
+                    {!$Record.Website},
+                    FIND("://", {!$Record.Website}) + 3,
+                    IF(
+                        CONTAINS(MID({!$Record.Website}, FIND("://", {!$Record.Website}) + 3, LEN({!$Record.Website})), "/"),
+                        FIND("/", MID({!$Record.Website}, FIND("://", {!$Record.Website}) + 3, LEN({!$Record.Website}))) - 1,
+                        LEN({!$Record.Website}) - FIND("://", {!$Record.Website}) - 2
+                    )
+                ),
+                IF(
+                    CONTAINS({!$Record.Website}, "/"),
+                    LEFT({!$Record.Website}, FIND("/", {!$Record.Website}) - 1),
+                    {!$Record.Website}
+                )
+            ),
+            5,
+            255
+        ),
+        IF(
+            CONTAINS({!$Record.Website}, "://"),
+            MID(
+                {!$Record.Website},
+                FIND("://", {!$Record.Website}) + 3,
+                IF(
+                    CONTAINS(MID({!$Record.Website}, FIND("://", {!$Record.Website}) + 3, LEN({!$Record.Website})), "/"),
+                    FIND("/", MID({!$Record.Website}, FIND("://", {!$Record.Website}) + 3, LEN({!$Record.Website}))) - 1,
+                    LEN({!$Record.Website}) - FIND("://", {!$Record.Website}) - 2
+                )
+            ),
+            IF(
+                CONTAINS({!$Record.Website}, "/"),
+                LEFT({!$Record.Website}, FIND("/", {!$Record.Website}) - 1),
+                {!$Record.Website}
+            )
+        )
+    )
+)</expression>
+    </formulas>
+    <interviewLabel>取引先メールドメイン抽出 {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>取引先メールドメイン抽出</label>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Check_Website_Not_Blank</targetReference>
+        </connector>
+        <filterLogic>or</filterLogic>
+        <filters>
+            <field>Website</field>
+            <operator>IsChanged</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <object>Account</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

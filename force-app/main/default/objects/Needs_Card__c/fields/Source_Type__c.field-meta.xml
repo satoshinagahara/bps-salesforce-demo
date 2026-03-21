@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Source_Type__c</fullName>
+    <label>ソース種別</label>
+    <description>ニーズカードの情報ソース種別。イベントアンケート経由の場合、回答者のマッチタイプを記録。</description>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>営業ヒアリング</fullName>
+                <default>false</default>
+                <label>営業ヒアリング</label>
+            </value>
+            <value>
+                <fullName>イベントアンケート（既存担当者）</fullName>
+                <default>false</default>
+                <label>イベントアンケート（既存担当者）</label>
+            </value>
+            <value>
+                <fullName>イベントアンケート（既存顧客・未登録者）</fullName>
+                <default>false</default>
+                <label>イベントアンケート（既存顧客・未登録者）</label>
+            </value>
+            <value>
+                <fullName>イベントアンケート（新規）</fullName>
+                <default>false</default>
+                <label>イベントアンケート（新規）</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

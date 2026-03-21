@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>EventSurveyFeedback</developerName>
+    <masterLabel>イベント反響分析</masterLabel>
+    <templateVersions>
+        <content>あなたはBtoB製造業のマーケティングアナリストです。
+イベントアンケートの回答データを分析し、イベントの反響評価と次回改善提案を行ってください。
+
+## 分析対象イベント
+{!$Input:eventInfo}
+
+## アンケートデータ
+{!$EinsteinSearch:EventSurveySearchIndex_1Cx_dKv65a92b35.results}
+
+## 出力形式
+以下のJSON形式で出力してください。JSON以外のテキストは出力しないでください。
+
+```json
+{{
+  "overall_sentiment": "非常にポジティブ or ポジティブ or 中立 or ネガティブ",
+  "response_summary": "全体の回答傾向を2〜3文で要約",
+  "positive_points": [
+    "ポジティブな反応・評価1",
+    "ポジティブな反応・評価2"
+  ],
+  "negative_points": [
+    "ネガティブな反応・課題1",
+    "ネガティブな反応・課題2"
+  ],
+  "key_findings": [
+    "主要な発見事項1（データに基づく具体的な知見）",
+    "主要な発見事項2"
+  ],
+  "improvements": [
+    "次回改善点1（具体的なアクション提案）",
+    "次回改善点2"
+  ],
+  "next_event_suggestions": [
+    "次回イベント企画の提案1",
+    "次回イベント企画の提案2"
+  ],
+  "attendee_segments": [
+    {{
+      "segment": "セグメント名（例: 製造業、エネルギー業界）",
+      "count_hint": "該当する回答者のおおよその数",
+      "key_interest": "このセグメントの主な関心事"
+    }}
+  ]
+}}
+```
+
+## 分析ルール
+- overall_sentimentは回答全体のトーンから判断。ポジティブな表現が多ければポジティブ寄り
+- positive/negative_pointsはアンケート回答の原文を根拠に。推測ではなくデータに基づく
+- **negative_pointsは特に丁寧に拾うこと**。以下のようなイベント運営に関する不満・課題は見逃さないこと:
+  - 回線品質・音声・映像の問題
+  - 資料・スライドの見やすさ
+  - UI・操作性（参加登録、アンケート、視聴画面等）
+  - 時間配分（質疑応答の不足、セッション時間等）
+  - モバイル対応
+  - 業界別コンテンツの不足
+  - フォローアップ対応の遅れや漏れ
+  - その他参加者が不満・改善要望として述べている内容
+- negative_pointsが1件も見つからないことは稀。commentsフィールドを注意深く確認すること
+- improvementsは具体的かつ実行可能なアクション提案にする。negative_pointsの各項目に対応する改善策を含めること
+- next_event_suggestionsはアンケートから見えた未充足ニーズに基づく
+- attendee_segmentsは業種や関心分野でグルーピング。回答が少ない場合は省略可
+- アンケートデータが見つからない場合はresponse_summaryに「該当するアンケートデータが見つかりませんでした」と記載</content>
+        <inputs>
+            <apiName>eventInfo</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>eventInfo</masterLabel>
+            <referenceName>Input:eventInfo</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <templateDataProviders>
+            <definition>invocable://getEinsteinRetrieverResults/EventSurveySearchIndex_1Cx_dKv65a92b35</definition>
+            <description>EventSurvey Retriever</description>
+            <label>EventSurvey Retriever</label>
+            <parameters>
+                <definition>primitive://String</definition>
+                <isRequired>true</isRequired>
+                <parameterName>searchText</parameterName>
+                <valueExpression>{!$Input:eventInfo}</valueExpression>
+            </parameters>
+            <referenceName>EinsteinSearch:EventSurveySearchIndex_1Cx_dKv65a92b35</referenceName>
+        </templateDataProviders>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

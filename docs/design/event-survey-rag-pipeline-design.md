@@ -137,24 +137,102 @@ LLM出力のJSONをパースし、Needs_Card__c レコードを作成：
    - Salesバンドル（Account/Contact/Lead/Opportunity/User/OpportunityContactRole）をデータストリームとして追加
    - 自動でDMOマッピング + 取り込み完了（Account 23件等）
    - Data Cloudの個人データ構造: Lead/ContactのFirst/Last Name → Individual DMO、Email → Contact Point Email DMO
-5. ⚠️ **データストリーム作り直し（DLO分割）** — 次のステップ
+5. ✅ **データストリーム作り直し（DLO分割）** — 完了（2026-03-20）
    - **経緯**: 当初EventSurveyを「エンゲージメント」カテゴリ1つのDLOで作成したが、エンゲージメントカテゴリではIndividual/Contact Point EmailにマッピングできずID解決に参加できない制約が判明（詳細: `docs/reference/data-cloud-lessons-learned.md`）
    - **対応**: 既存のEventSurveyデータストリームを削除し、DLOを2つに分割して再作成
      - **プロファイルDLO**（プロファイルカテゴリ）: `attendee_email` + `attendee_name` → Individual DMO + Contact Point Email DMO にマッピング → ID解決の対象になる
-     - **エンゲージメントDLO**（エンゲージメントカテゴリ）: 回答内容（pain_points, comments, interest_area, product_interest等）→ カスタムDMO `EventSurvey` にマッピング → Contact Point Emailへのリレーションで紐付け
-   - **作業手順**:
-     1. 既存の EventSurvey データストリーム・DLO・DMO・Data Graph・Search Index を削除
-     2. プロファイルDLOデータストリーム新規作成（S3同一コネクタ、プロファイルカテゴリ）
-        - `survey_id`, `attendee_email`, `attendee_name` をIndividual + Contact Point Emailにマッピング
-     3. エンゲージメントDLOデータストリーム新規作成（S3同一コネクタ、エンゲージメントカテゴリ）
-        - 回答内容をカスタムDMO EventSurveyにマッピング
-        - Contact Point Emailへのリレーション設定
-     4. ID解決ルールセット「Email Match」を再実行 → 統合率が改善されるはず
-6. **Data Graph再定義**（Account × Individual × Contact Point Email × EventSurvey）
-7. **Search Index + Retriever作成**（EventSurvey DMOに対して作成）
-8. **Prompt Template作成**（CLI: アンケート分析 → ニーズカードJSON出力、Retriever + Data Graph併用）
-9. **Apex作成**（CLI: JSON → Needs_Card__c レコード作成）
-10. **テスト実行**
+     - **エンゲージメントDLO**（エンゲージメントカテゴリ）: 回答内容（pain_points, comments, interest_area, product_interest等）→ カスタムDMO `EventSurvey` にマッピング
+   - **完了した作業**:
+     1. ✅ 既存の EventSurvey データストリーム・DLO・DMO・Data Graph・Search Index を全削除
+     2. ✅ `Account.Email_Domain__c` フィールド作成・デプロイ（ドメインマッチ用）
+     3. ✅ `BOM_Full_Access` 権限セットに `Account.Email_Domain__c` 権限追加・デプロイ
+     4. ✅ レコードトリガーフロー `Account_Extract_Email_Domain` 作成・デプロイ・有効化
+     5. ✅ 既存Account 16件のドメイン一括設定（Apex実行）
+     6. ✅ プロファイルDLOデータストリーム `*.csv Event Survey S3` 新規作成（プロファイルカテゴリ、PK: survey_id）
+        - Individual: Individual Id(PK) ← survey_id, Last Name ← attendee_name, Current Employer Name ← company_name
+        - Contact Point Email: Contact Point Email Id(PK) ← survey_id, Email Address ← attendee_email, Email Domain ← email_domain, Party ← survey_id
+     7. ✅ エンゲージメントDLOデータストリーム `*.csv Event Survey Engagement S3` 新規作成（エンゲージメントカテゴリ、PK: survey_id）
+        - カスタムDMO `EventSurvey` に全13フィールドをマッピング
+     8. ✅ ID解決ルールセット「Email Match」再実行 → 468ソース → 455統合（統合率3%、13件統合）
+   - **注意点（作業中に判明）**:
+     - DLO削除はSearch Index → Data Graph → DMO → DLOの順で依存関係を解消する必要がある
+     - Data GraphはUIに削除ボタンがなく、API（`DELETE /ssot/data-graphs/<name>`）で削除可能
+     - プロファイルDLOのContact Point EmailにはPartyフィールドのマッピングが必須（Individual紐付け用）。これがないとID解決でマッチしない
+     - DLOのプライマリキーは作成後に変更不可。`event_id`（イベント単位）ではなく`survey_id`（回答単位）を選択すること
+6. ✅ **Data Graph再定義** — 完了（2026-03-20）
+   - Data Graph名: `EventSurveyAccountGraph`（API参照名同じ）
+   - 構造: Account → Individual → Contact Point Email → EventSurvey
+   - レコード件数: 23件（Account数と一致）、スケジュール: Every 1 Hour
+   - **注意点**: EventSurvey DMOにContact Point Emailへのリレーション（attendee_email → Email Address、1対1）を先に作成し、**有効トグルをオン**にしないとData Graphに追加できない
+7. ✅ **Search Index + Retriever作成** — 完了（2026-03-21）
+   - Search Index `EventSurveySearchIndex`: Hybrid、Multilingual E5 Large
+     - チャンキング対象: pain_points, comments, interest_area, product_interest
+     - 検索条件の関連項目: event_name, attendee_name, company_name, follow_up_requested, event_id
+   - Retriever: `EventSurveySearchIndex_1Cx_dKv65a92b35`（Einstein Studio → Retrievers で有効化済み）
+     - 返却フィールド: event_name, attendee_name, company_name, follow_up_requested, event_id
+     - 返却チャンク数: 20
+8. ✅ **Prompt Template作成** — 完了（2026-03-21）
+   - `EventSurveyAnalysis`（イベントアンケート分析）: Flex Template、Retrieverグラウンディング付き → 後方互換用（searchQuery指定時）
+   - `EventSurveyAccountNeeds`（取引先別アンケートニーズ抽出）: Flex Template、**Retriever不使用** → 取引先単位分析の本命
+     - 入力: accountSurveyData（Data Cloud queryv2で取得した取引先のアンケート回答テキスト）
+     - Retrieverではなく構造化データを直接渡すことで、取引先単位の正確な分析を実現
+   - `EventSurveyFeedback`（イベント反響分析）: Flex Template、Retrieverグラウンディング付き → キャンペーン全体の反響分析用
+   - デプロイ後にPrompt Builder UIで手動Activate必須（3つとも）
+9. ✅ **Apex作成** — 完了（2026-03-21）
+   - `EventSurveyNeedsAction`（InvocableMethod: イベントアンケートニーズ抽出）
+     - **キャンペーンID指定モード（本命）**: Data Cloud queryv2でアンケート回答者メール取得 → CRM Contact/Accountとマッチ → 取引先ごとにData Cloud queryv2で回答データ取得 → 取引先ごとにPrompt Template呼び出し → ニーズカード作成
+     - **searchQuery指定モード（後方互換）**: Retriever経由のイベント全体検索
+     - Apexのcallout/DML制約対策: 全取引先のHTTP callout+LLM呼び出しを先に実行（callout phase）、その後まとめてDML実行（DML phase）
+   - `CampaignSurveyAnalysisAction`（InvocableMethod: キャンペーンアンケート分析）
+     - キャンペーンIDからイベント反響分析 + ニーズカード自動生成を一括実行
+     - 結果をCampaignレコードのカスタムフィールドに保存
+   - `EventSurveyNeedsBatch`（Schedulable + Batchable: 自動ニーズカード生成）
+     - 未分析のイベント系キャンペーンを自動検出して処理
+   - Needs_Card__c に新規フィールド追加:
+     - `Source_Survey_Id__c`（External ID、重複防止用upsert。event_name + accountId + title のSHA-256ハッシュ）
+     - `Source_Type__c`（ソース種別ピックリスト）
+   - Campaign に新規フィールド追加:
+     - `Survey_Sentiment__c`（イベント反響）、`Survey_Key_Findings__c`（主要発見事項）
+     - `Survey_Improvements__c`（次回改善点）、`Survey_Analysis__c`（分析全文）、`Survey_Analyzed_Date__c`（分析実行日）
+   - **信頼度判定ロジック**:
+     - 既存担当者（Contact.Emailがアンケートメールと一致する取引先）→ 優先度そのまま、ステータス「新規」
+     - 既存顧客・未登録者（Account.Email_Domain__cがアンケートドメインと一致）→ 優先度そのまま、ステータス「確認済」
+     - 取引先不在の回答者 → ニーズカード作成しない（キャンペーン反響分析にのみ反映）
+   - **設計判断（作業中に判明）**:
+     - Retriever（セマンティック検索）は取引先単位のフィルタリングに不向き。チャンキング対象フィールドにないメタデータ（company_name等）での絞り込みができない
+     - 取引先別ニーズカード生成は Data Cloud queryv2 で構造的にデータを取得し、Prompt Templateに直接渡す方式が正確
+     - Data Cloud queryv2 のHTTPステータスコードは200ではなく**201**（Created）。ステータスチェックに注意
+     - Apexでは DML実行後にHTTP calloutができない。calloutを先に全て実行し、DMLをまとめて後から実行する設計が必要
+10. ✅ **テスト実行** — 完了（2026-03-21）
+    - キャンペーンID指定 → 5取引先を自動特定、17件ニーズカード作成
+      - ノヴァテックエレクトロニクス: 5件（既存担当者）
+      - 丸菱商事: 4件（既存担当者）
+      - 関東広域エネルギー公社: 3件（既存担当者）
+      - 東日本フィナンシャルグループ: 3件（既存担当者）
+      - 東亜電子工業: 2件（既存担当者）
+    - 取引先不在の回答者はニーズカード非生成（設計通り）
+
+## 追加実装（2026-03-21）
+
+### キャンペーン反響分析 LWC
+- `campaignSurveyAnalysis` LWC: キャンペーンレコードページに配置
+  - 「分析を実行」ボタン → Retriever経由でイベント全体のアンケートを分析
+  - 結果表示: 反響（バッジ）、回答傾向、主要発見事項、参加者セグメント、ポジティブ/ネガティブ反応、次回改善点、次回イベント企画提案
+  - 「再分析」ボタンで再実行可能
+  - `CampaignSurveyAnalysisAction.analyzeCampaignSurveyLwc` を `@AuraEnabled` で呼び出し
+- キャンペーンの反響分析は**全回答者（新規含む）**のデータを対象。ニーズカードは**既存取引先の回答者のみ**対象
+
+### スケジュールBatch（ニーズカード自動生成）
+- `EventSurveyNeedsBatch`: Schedulable + Batchable + AllowsCallouts
+- **差分検知**: Data Cloudデータストリームの最終更新日とCampaign.Survey_Analyzed_Date__cを比較。新CSVが取り込まれた場合のみ処理実行
+- スケジュール登録: `EventSurveyNeedsBatch.scheduleDaily()` で毎日朝6時実行（未登録）
+
+### 設計判断
+- **LWCの反響分析ではニーズカード生成しない**（Batchに任せる）。理由: 責務の分離、LLM呼び出し回数の最適化
+- **Screen Flowは不採用** → キャンペーンオブジェクトのLWC制約（動的フォーム非対応）のため直接LWCで実装
+- `@InvocableMethod` と `@AuraEnabled` は同一クラスの同一内部クラスで併用不可 → LWC用は別メソッド `analyzeCampaignSurveyLwc` として分離
+
+## 実装完了（2026-03-21）
 
 ## 再利用する既存アセット
 

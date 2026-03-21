@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Survey_Sentiment__c</fullName>
+    <label>イベント反響</label>
+    <description>イベントアンケートの全体的な反響評価</description>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>非常にポジティブ</fullName><default>false</default><label>非常にポジティブ</label></value>
+            <value><fullName>ポジティブ</fullName><default>false</default><label>ポジティブ</label></value>
+            <value><fullName>中立</fullName><default>false</default><label>中立</label></value>
+            <value><fullName>ネガティブ</fullName><default>false</default><label>ネガティブ</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
