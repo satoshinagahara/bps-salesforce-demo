@@ -27,11 +27,10 @@
 - **Prompt TemplateはデプロイだけではActivateされない**: Prompt Builder UIで手動Activate必要
 
 ## Agentforce
-- **InternalCopilot はUIでのみ作成可能**: CLIでは不可
-- **BotDefinition.Type は書き換え不可**: Apex/REST/Metadata APIいずれも不可
-- **localTopics追加はMetadata API不可**: UIのAgent Builderでのみ
-- **GenAiPlannerBundle/AiAuthoringBundleは削除不可**: UIから削除が必要
-- **レコードページコンテキスト**: トピックInstructions・GenAiFunction description・InvocableVariable descriptionの3箇所に明示
-- **Agentforce入力のID解決**: Agent LLMはCA名（CA-0000）を渡すことがある。Name検索→ID変換のフォールバック必要
-- **トピック競合回避**: 既存トピックの範囲に対象外を明示、新トピックにキーワード列挙
-- **分析系プロンプトは「事実のみ」スタイル推奨**: 「提案は含めない」を明示
+
+> **注**: Agentforceの一般的な技術制約（メタデータ構造、CLI制限、アーキテクチャ指針等）は `salesforce-admin` スキルの `metadata-agentforce.md` に集約済み。以下は**このorg固有の問題・運用メモ**のみ記載。
+
+### このorg固有の問題
+- **Agentforce（デフォルト）を使用中**: 従業員エージェントへの移行が推奨されているが未実施
+- **Agentforce入力のID解決**: Agent LLMはCA名（CA-0000）を渡すことがある。Name検索→ID変換のフォールバックをApex側で実装済み
+- **分析系プロンプトは「事実のみ」スタイル**: 「提案は含めない」を明示する運用にしている

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>tableau_pod_url</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>tableau_site_name</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>ts_ca_iss</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>ts_ca_kid</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>ts_ca_secret</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>ts_ca_user_id</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>vizHeight</name>
+                    <value>1080</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>vizToolbar</name>
+                    <value>hidden</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>vizURL</name>
+                </componentInstanceProperties>
+                <componentName>P4SF_Standalone:sDO_Tab_View</componentName>
+                <identifier>P4SF_Standalone_sDO_Tab_View</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>main</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <masterLabel>Tableau Insights</masterLabel>
+    <template>
+        <name>flexipage:defaultAppHomeTemplate</name>
+    </template>
+    <type>AppPage</type>
+</FlexiPage>
