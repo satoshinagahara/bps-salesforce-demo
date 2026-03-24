@@ -1,0 +1,14 @@
+.badge-container {
+    border-left: 3px solid #0176d3;
+    min-width: 180px;
+}
+.badge-container:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.opp-link {
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+.badge-won {
+    font-size: 0.625rem;
+}

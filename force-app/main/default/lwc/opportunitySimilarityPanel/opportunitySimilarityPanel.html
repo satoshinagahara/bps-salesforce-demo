@@ -1,0 +1,144 @@
+<template>
+    <lightning-card title="類似商談分析" icon-name="standard:insights">
+
+        <!-- 入力状況セクション -->
+        <div class="slds-p-horizontal_medium slds-p-top_small">
+            <template lwc:if={inputStatus}>
+                <div class={confidenceContainerClass}>
+                    <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                        <div class="slds-grid slds-wrap status-badges">
+                            <span class={summaryBadgeClass} title="サマリカード">
+                                サマリ:{summaryLabel}
+                            </span>
+                            <span class={descBadgeClass} title="Description">
+                                説明:{descLabel}
+                            </span>
+                            <span class={productBadgeClass} title="商品登録">
+                                商品:{productLabel}
+                            </span>
+                            <span class={activityBadgeClass} title="活動記録">
+                                活動:{activityLabel}
+                            </span>
+                        </div>
+                        <div class="confidence-score" title={confidenceTooltip}>
+                            分析の信頼度: {confidenceDots}
+                        </div>
+                    </div>
+                    <template lwc:if={showWarning}>
+                        <p class="slds-text-body_small slds-text-color_error slds-m-top_xx-small">
+                            {warningMessage}
+                        </p>
+                    </template>
+                </div>
+            </template>
+        </div>
+
+        <!-- 質問入力エリア -->
+        <div class="slds-p-horizontal_medium slds-p-vertical_small">
+            <div class="slds-grid slds-gutters_x-small">
+                <div class="slds-col slds-grow">
+                    <lightning-input
+                        type="text"
+                        placeholder="例: 競合に勝つために次に何をすべき？"
+                        value={userQuery}
+                        onchange={handleQueryChange}
+                        onkeyup={handleKeyUp}
+                        variant="label-hidden"
+                        disabled={isLoading}
+                    ></lightning-input>
+                </div>
+                <div class="slds-col slds-no-grow">
+                    <lightning-button
+                        label="分析"
+                        variant="brand"
+                        onclick={handleAnalyze}
+                        disabled={isAnalyzeDisabled}
+                    ></lightning-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ローディング -->
+        <template lwc:if={isLoading}>
+            <div class="slds-p-around_medium slds-text-align_center">
+                <lightning-spinner alternative-text="分析中" size="small"></lightning-spinner>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-top_small">
+                    類似商談を分析中...
+                </p>
+            </div>
+        </template>
+
+        <!-- エラー -->
+        <template lwc:if={error}>
+            <div class="slds-p-around_medium">
+                <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
+                    <p>{error}</p>
+                </div>
+            </div>
+        </template>
+
+        <!-- 分析結果 -->
+        <template lwc:if={hasResults}>
+            <div class="slds-p-horizontal_medium">
+
+                <!-- サマリ -->
+                <template lwc:if={analysisResult.summary}>
+                    <p class="slds-text-body_regular slds-m-bottom_small summary-text">
+                        {analysisResult.summary}
+                    </p>
+                </template>
+
+                <!-- 推奨アクションカード -->
+                <template lwc:if={hasRecommendations}>
+                    <h3 class="slds-text-title_caps slds-m-bottom_x-small">推奨アクション</h3>
+                    <template for:each={analysisResult.recommendations} for:item="rec" for:index="idx">
+                        <c-opportunity-recommendation-card
+                            key={rec.title}
+                            recommendation={rec}
+                            index={idx}
+                            oncreatetodo={handleCreateTodo}
+                        ></c-opportunity-recommendation-card>
+                    </template>
+                </template>
+
+                <!-- リスク -->
+                <template lwc:if={hasRisks}>
+                    <div class="slds-box slds-box_xx-small slds-theme_warning slds-m-bottom_small risk-section">
+                        <h4 class="slds-text-title_bold slds-m-bottom_xx-small">注意すべきリスク</h4>
+                        <ul class="slds-list_dotted">
+                            <template for:each={analysisResult.risks} for:item="risk">
+                                <li key={risk} class="slds-text-body_small">{risk}</li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+
+                <!-- 類似商談（折りたたみ） -->
+                <template lwc:if={hasSimilarOpps}>
+                    <lightning-accordion allow-multiple-sections-open>
+                        <lightning-accordion-section name="similar" label={similarSectionLabel}>
+                            <div class="slds-grid slds-wrap slds-gutters_xx-small">
+                                <template for:each={analysisResult.similarOpportunities} for:item="opp">
+                                    <div key={opp.id} class="slds-col slds-size_1-of-2 slds-m-bottom_xx-small">
+                                        <c-opportunity-similar-opp-badge opp={opp}></c-opportunity-similar-opp-badge>
+                                    </div>
+                                </template>
+                            </div>
+                        </lightning-accordion-section>
+                    </lightning-accordion>
+                </template>
+
+            </div>
+        </template>
+
+        <!-- 初期状態（結果なし） -->
+        <template lwc:if={showInitialState}>
+            <div class="slds-p-around_medium slds-text-align_center">
+                <p class="slds-text-body_small slds-text-color_weak">
+                    質問を入力して「分析」ボタンを押すと、類似商談からの示唆が表示されます
+                </p>
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

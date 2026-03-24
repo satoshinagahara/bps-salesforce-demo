@@ -1,0 +1,5 @@
+{
+  "title": "Opportunity Similarity Result",
+  "description": "類似商談分析の結果",
+  "lightning:type": "@apexClassType/c__OpportunitySimilarityResult"
+}

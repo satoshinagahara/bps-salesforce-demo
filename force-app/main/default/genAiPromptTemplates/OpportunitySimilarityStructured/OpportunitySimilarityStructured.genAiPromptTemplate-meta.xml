@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>OpportunitySimilarityStructured</developerName>
+    <masterLabel>類似商談インサイト（構造化）</masterLabel>
+    <templateVersions>
+        <content>あなたは営業ナレッジ分析の専門家です。
+以下のJSON形式の分析データを分析し、**必ずJSON形式のみ**で回答してください。
+マークダウンやテキストは一切含めないでください。
+
+## 分析データ
+{!$Input:analysisData}
+
+## 指示
+
+上記のJSONには以下が含まれています：
+- 「current」: 現在の商談とそのサマリカード
+- 「similar」: 類似商談のリスト（各商談にid, name, account, reason, challenge, value, lessons等を含む）
+- 「userQuery」（存在する場合）: ユーザーが特に知りたいこと
+
+### 出力フォーマット
+
+以下のJSON構造で**のみ**回答してください。JSONの前後にテキストを含めないでください。
+
+```json
+{{
+  "summary": "現在の商談の概況（1-2文）",
+  "recommendations": [
+    {{
+      "title": "推奨アクションのタイトル（簡潔に）",
+      "rationale": "なぜこのアクションを推奨するか（根拠となる類似商談の具体的な知見を引用）",
+      "sourceOpportunityName": "根拠となった類似商談の名前",
+      "sourceOpportunityId": "根拠となった類似商談のID（similarのidフィールドから取得。不明ならnull）",
+      "actions": [
+        "具体的なアクション項目1",
+        "具体的なアクション項目2",
+        "具体的なアクション項目3"
+      ]
+    }}
+  ],
+  "risks": [
+    "注意すべきリスク1",
+    "注意すべきリスク2"
+  ],
+  "similarOpportunities": [
+    {{
+      "name": "類似商談名",
+      "id": "類似商談のID",
+      "accountName": "顧客名",
+      "matchReason": "類似理由",
+      "isWon": false
+    }}
+  ]
+}}
+```
+
+### ルール
+
+- userQueryが存在する場合、その質問に直接答えるrecommendationsを生成する
+- userQueryがない場合、一般的な推奨アクションを生成する
+- recommendationsは3-5件
+- 各recommendationのactionsは2-4件の具体的なアクション
+- sourceOpportunityIdはsimilarの各商談のidフィールドから正確に取得する
+- risksは2-3件
+- similarOpportunitiesはsimilarのデータをそのまま含める
+- データにない情報は推測しない
+- 出力はJSONのみ。マークダウンのコードブロック記号（```）も含めないこと
+</content>
+        <inputs>
+            <apiName>analysisData</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>analysisData</masterLabel>
+            <referenceName>Input:analysisData</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <versionIdentifier>izkCN2b8wpjihcL1eBaYGOBoo1JGNqKRXrIUMjMcFxs=_1</versionIdentifier>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

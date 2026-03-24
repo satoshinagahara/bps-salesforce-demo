@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Decision_Complexity__c</fullName>
+    <label>意思決定構造</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>単独決裁</fullName>
+                <default>false</default>
+                <label>単独決裁</label>
+            </value>
+            <value>
+                <fullName>委員会・合議</fullName>
+                <default>false</default>
+                <label>委員会・合議</label>
+            </value>
+            <value>
+                <fullName>入札</fullName>
+                <default>false</default>
+                <label>入札</label>
+            </value>
+            <value>
+                <fullName>不明</fullName>
+                <default>false</default>
+                <label>不明</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

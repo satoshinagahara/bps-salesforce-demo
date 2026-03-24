@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sales_Process_Pattern__c</fullName>
+    <label>営業プロセス型</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>技術主導型</fullName>
+                <default>false</default>
+                <label>技術主導型</label>
+            </value>
+            <value>
+                <fullName>関係構築型</fullName>
+                <default>false</default>
+                <label>関係構築型</label>
+            </value>
+            <value>
+                <fullName>PoC主導型</fullName>
+                <default>false</default>
+                <label>PoC主導型</label>
+            </value>
+            <value>
+                <fullName>入札対応型</fullName>
+                <default>false</default>
+                <label>入札対応型</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

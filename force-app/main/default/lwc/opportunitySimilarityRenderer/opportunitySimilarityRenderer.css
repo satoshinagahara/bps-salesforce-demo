@@ -1,0 +1,49 @@
+.renderer-container {
+    max-width: 100%;
+    font-size: 0.8125rem;
+}
+
+.card-item {
+    border-left: 3px solid #0176d3;
+    transition: box-shadow 0.2s;
+}
+
+.card-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.card-won {
+    border-left-color: #2e844a;
+}
+
+.tag-container .slds-badge {
+    font-size: 0.6875rem;
+}
+
+.lessons-box {
+    background-color: #fffbe6;
+    border-left: 2px solid #f59e0b;
+}
+
+.lessons-box p {
+    line-height: 1.4;
+}
+
+.report-text {
+    line-height: 1.6;
+    font-size: 0.8125rem;
+}
+
+.report-text h2 {
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 0.25rem;
+}
+
+.report-text h4 {
+    color: #0176d3;
+}
+
+.report-text li {
+    margin-left: 1rem;
+    list-style-type: disc;
+}

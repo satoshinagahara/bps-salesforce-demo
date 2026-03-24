@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>商談サマリカード</label>
+    <pluralLabel>商談サマリカード</pluralLabel>
+    <nameField>
+        <label>サマリカード名</label>
+        <type>AutoNumber</type>
+        <displayFormat>OSC-{0000}</displayFormat>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+    <description>商談の中間表現。LLMが商談の関連情報（商品・活動・アカウント）を集約・構造化して生成する。類似商談検索の基盤。</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+</CustomObject>

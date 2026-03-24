@@ -1,0 +1,47 @@
+<template>
+    <div class="card-container slds-box slds-box_x-small slds-theme_default slds-m-bottom_small">
+        <!-- ヘッダー -->
+        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-bottom_x-small">
+            <h3 class="slds-text-heading_small card-title">
+                <span class="card-number">{cardNumber}.</span> {recommendation.title}
+            </h3>
+        </div>
+
+        <!-- 根拠 -->
+        <div class="rationale-section slds-m-bottom_x-small">
+            <p class="slds-text-body_small">{recommendation.rationale}</p>
+            <template lwc:if={hasSource}>
+                <div class="slds-m-top_xx-small">
+                    <lightning-icon icon-name="standard:opportunity" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                    <a onclick={navigateToSource} class="slds-text-link source-link">
+                        {recommendation.sourceOpportunityName}
+                    </a>
+                </div>
+            </template>
+        </div>
+
+        <!-- アクション項目 -->
+        <div class="actions-section slds-m-bottom_x-small">
+            <ul class="slds-list_dotted">
+                <template for:each={recommendation.actions} for:item="action">
+                    <li key={action} class="slds-text-body_small action-item">{action}</li>
+                </template>
+            </ul>
+        </div>
+
+        <!-- ToDo作成ボタン -->
+        <div class="slds-text-align_right">
+            <lightning-button
+                label="ToDoとして作成"
+                icon-name="utility:task"
+                variant="neutral"
+                size="small"
+                onclick={handleCreateTodo}
+                disabled={todoCreated}
+            ></lightning-button>
+            <template lwc:if={todoCreated}>
+                <span class="slds-text-color_success slds-m-left_x-small slds-text-body_small">✓ 作成済み</span>
+            </template>
+        </div>
+    </div>
+</template>

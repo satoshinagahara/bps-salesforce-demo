@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Deal_Type__c</fullName>
+    <label>案件タイプ</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>設備導入</fullName>
+                <default>false</default>
+                <label>設備導入</label>
+            </value>
+            <value>
+                <fullName>ソフトウェア・クラウド</fullName>
+                <default>false</default>
+                <label>ソフトウェア・クラウド</label>
+            </value>
+            <value>
+                <fullName>Design Win・OEM</fullName>
+                <default>false</default>
+                <label>Design Win・OEM</label>
+            </value>
+            <value>
+                <fullName>保守・サービス</fullName>
+                <default>false</default>
+                <label>保守・サービス</label>
+            </value>
+            <value>
+                <fullName>コンサルティング</fullName>
+                <default>false</default>
+                <label>コンサルティング</label>
+            </value>
+            <value>
+                <fullName>その他</fullName>
+                <default>false</default>
+                <label>その他</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

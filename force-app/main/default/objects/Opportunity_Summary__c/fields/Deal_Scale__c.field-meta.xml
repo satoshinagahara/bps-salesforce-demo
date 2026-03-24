@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Deal_Scale__c</fullName>
+    <label>案件規模</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>小規模</fullName>
+                <default>false</default>
+                <label>小規模</label>
+            </value>
+            <value>
+                <fullName>中規模</fullName>
+                <default>false</default>
+                <label>中規模</label>
+            </value>
+            <value>
+                <fullName>大規模</fullName>
+                <default>false</default>
+                <label>大規模</label>
+            </value>
+            <value>
+                <fullName>超大規模</fullName>
+                <default>false</default>
+                <label>超大規模</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

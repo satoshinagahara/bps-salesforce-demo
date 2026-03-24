@@ -1,0 +1,14 @@
+<template>
+    <div class="badge-container slds-box slds-box_xx-small slds-theme_default">
+        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+            <a onclick={navigateToRecord} class="slds-text-link slds-truncate opp-link" title={opp.name}>
+                {opp.name}
+            </a>
+            <template lwc:if={opp.isWon}>
+                <lightning-badge label="受注" class="slds-theme_success badge-won"></lightning-badge>
+            </template>
+        </div>
+        <p class="slds-text-body_small slds-text-color_weak">{opp.accountName}</p>
+        <lightning-badge label={opp.matchReason} class="slds-m-top_xx-small"></lightning-badge>
+    </div>
+</template>

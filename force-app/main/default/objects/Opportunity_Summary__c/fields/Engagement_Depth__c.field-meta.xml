@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Engagement_Depth__c</fullName>
+    <label>接点の深さ</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>深い</fullName>
+                <default>false</default>
+                <label>深い</label>
+            </value>
+            <value>
+                <fullName>中程度</fullName>
+                <default>false</default>
+                <label>中程度</label>
+            </value>
+            <value>
+                <fullName>浅い</fullName>
+                <default>false</default>
+                <label>浅い</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
