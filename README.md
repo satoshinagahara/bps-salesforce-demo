@@ -14,10 +14,11 @@ BPS Corporation（架空の再生可能エネルギー機器メーカー）のSa
 
 ### 規模
 
-- **LWC**: 36個
-- **Apexクラス**: 48個
-- **Prompt Template**: 13個
-- **カスタムオブジェクト**: 25個
+- **LWC**: 42個
+- **Apexクラス**: 64個
+- **Prompt Template**: 25個（うちフォルダ管理16個）
+- **カスタムオブジェクト**: 27個
+- **Flow**: 4個
 
 ## 業務機能一覧
 
@@ -45,11 +46,47 @@ Design Win採用活動 → Revenue_Forecast → Sales_Agreement → 月別Schedu
 ### 8. ニーズカード（市場インテリジェンス）
 面談記録からAIが顧客ニーズを構造化抽出。5タブの多軸分析ダッシュボード、AIインラインインサイト、鮮度管理機能。
 
-### 9. Agentforce（従業員エージェント）
-InternalCopilot型エージェント。取引先分析、水平展開分析、ナレッジ作成、BOM分析、サプライヤー影響分析の5トピック。Apex + Prompt Template統合パターン。
+### 9. 商談サマリカード＋類似度分析
+商談のコンテキスト（deal_type, customer_segment, sales_motion等）をLLMが構造化抽出しOpportunity_Summary__cに保存。構造化フィールドベースで類似商談をSOQL検索し、Agentforce Topic経由で分析レポートを生成。LWCパネル（`opportunitySimilarityPanel`）で商談ページに類似商談バッジ表示。
 
-### 10. イベントアンケートRAGパイプライン（構築中）
-S3上のイベントアンケートCSV → Data Cloud → RAGで取引先別傾向分析 → ニーズカード自動生成。詳細は `docs/in-progress/event-survey-rag-pipeline-design.md` を参照。
+### 10. BOM標準化×LLM名寄せ
+BOM_Part__cとSupplier_Part__cのLLMマッチング。Prompt Templateで部品名・スペックの類似判定を行い、サプライヤー部品カタログとの紐付けを自動化。バッチ処理対応。
+
+### 11. Agentforce（従業員エージェント）
+
+**`Agentforce_Employee_Agent`** — InternalCopilot型の従業員エージェント
+
+| トピック | アクション | 機能 |
+|---|---|---|
+| 取引先分析 | AccountInsightFullAnalysis | 取引先の商談・ケース・活動等を総合分析し、アクション示唆を生成 |
+| 取引先サマリ | AccountSummaryTopic | 取引先の概要サマリーを生成 |
+| 水平展開分析 | HorizontalDeploymentAnalysis | 是正処置から類似リスクを検索し、影響レポートを生成 |
+| ナレッジ作成 | KnowledgeCreationAction | 是正処置の調査結果からKnowledge記事ドラフトを自動生成 |
+| BOM分析 | BOMAnalysisGetProductBOM | 製品のBOM構成を分析 |
+| サプライヤー影響分析 | BOMAnalysisGetSupplierImpact | サプライヤーに関連するBOM・製品への影響を分析 |
+| 商談類似分析 | OpportunitySimilaritySearch | 商談サマリカードから類似商談を検索し分析レポート生成 |
+
+アーキテクチャ: Agent LLM = トピック選択＋アクション推論（ルーティングのみ）、Apex内で `ConnectApi.EinsteinLLM.generateMessagesForPromptTemplate()` を呼び出す1アクション統合パターン。
+
+### 12. イベントアンケートRAGパイプライン
+S3上のイベントアンケートCSV → Data Cloud（DLO→DMO→ID解決→Data Graph）→ RAGで取引先別傾向分析。CampaignレコードページにLWC（`campaignSurveyAnalysis`）配置。
+
+### 13. 顧客報告メール
+Screen Flow `Case_Customer_Report` — CaseレコードページのQuick Actionから起動。Prompt Template `CaseCustomerReport` でAIが顧客向け報告メール文面を生成→レビュー→送信。
+
+### 14. その他ユーティリティ
+
+| LWC | 説明 |
+|---|---|
+| `accountDashboard` | Account概要ダッシュボード |
+| `activityEffortTracker` | 汎用工数トラッカー（WhatIdベースでどのレコードにも配置可能） |
+| `opportunityRoadmap` | 商談ロードマップ |
+| `batchLauncher` | バッチ処理ランチャー（Apex Batchを即時起動・ステータス監視） |
+| `universalTableEditor` | 汎用テーブルエディタ |
+| `launcherPanel` | ランチャーパネル |
+| `salesforceMogura` | Salesforceもぐらたたきゲーム |
+| `salesforceQuizBattle` | Salesforce知識クイズ（AI生成問題） |
+| `simpleCalculator` | 電卓 |
 
 ## 製品ラインナップ
 
@@ -103,4 +140,11 @@ sf org assign permset --name BOM_Full_Access --target-org bps-demo
 
 ## ドキュメント
 
-詳細なデータモデル、画面構成、デモデータの説明は [docs/reference/demo-environment-guide.md](docs/reference/demo-environment-guide.md) を参照してください。
+| ドキュメント | 内容 |
+|---|---|
+| [demo-environment-guide.md](docs/reference/demo-environment-guide.md) | データモデル・画面構成・デモデータの詳細ガイド |
+| [agentforce-architecture-guide.md](docs/reference/agentforce-architecture-guide.md) | Agentforceアーキテクチャ（Agent共存・Topic設計・レコードコンテキスト取得） |
+| [data-cloud-lessons-learned.md](docs/reference/data-cloud-lessons-learned.md) | Data Cloud実装知見（DLOカテゴリ制約、ID解決、Data Graph、Search Index等） |
+| [known-issues.md](docs/reference/known-issues.md) | 既知問題・技術制約 |
+| [picklist-values.md](docs/reference/picklist-values.md) | 選択リスト日本語値リファレンス |
+| [rag-vs-direct-query-lessons.md](docs/reference/rag-vs-direct-query-lessons.md) | RAG vs 直接クエリの使い分け知見 |
