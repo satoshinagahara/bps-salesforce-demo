@@ -62,13 +62,13 @@ public class OpportunitySimilaritySearchHelper {
                     SELECT Id, Opportunity__c, Opportunity__r.Name, Opportunity__r.Account.Name,
                            Opportunity__r.IsWon,
                            Deal_Type__c, Sales_Motion__c, Competitive_Situation__c,
-                           Sales_Process_Pattern__c,
+                           Sales_Process_Pattern__c, Confidence_Score__c, Opportunity_Stage__c,
                            Customer_Challenge__c, Our_Value_Proposition__c,
                            Lessons_Or_Insights__c
                     FROM Opportunity_Summary__c
                     WHERE Deal_Type__c = :cs.Deal_Type__c
                       AND Opportunity__c != :opportunityId
-                      AND Sales_Process_Pattern__c != null
+                      AND Confidence_Score__c >= 4
                     ORDER BY CreatedDate DESC LIMIT 2
                 ]) {
                     found.add(s.Id);
@@ -82,14 +82,14 @@ public class OpportunitySimilaritySearchHelper {
                     SELECT Id, Opportunity__c, Opportunity__r.Name, Opportunity__r.Account.Name,
                            Opportunity__r.IsWon,
                            Deal_Type__c, Sales_Motion__c, Competitive_Situation__c,
-                           Sales_Process_Pattern__c,
+                           Sales_Process_Pattern__c, Confidence_Score__c, Opportunity_Stage__c,
                            Customer_Challenge__c, Our_Value_Proposition__c,
                            Lessons_Or_Insights__c
                     FROM Opportunity_Summary__c
                     WHERE Sales_Motion__c = :cs.Sales_Motion__c
                       AND Opportunity__c != :opportunityId
                       AND Id NOT IN :found
-                      AND Sales_Process_Pattern__c != null
+                      AND Confidence_Score__c >= 4
                     ORDER BY CreatedDate DESC LIMIT 1
                 ]) {
                     found.add(s.Id);
@@ -103,14 +103,14 @@ public class OpportunitySimilaritySearchHelper {
                     SELECT Id, Opportunity__c, Opportunity__r.Name, Opportunity__r.Account.Name,
                            Opportunity__r.IsWon,
                            Deal_Type__c, Sales_Motion__c, Competitive_Situation__c,
-                           Sales_Process_Pattern__c,
+                           Sales_Process_Pattern__c, Confidence_Score__c, Opportunity_Stage__c,
                            Customer_Challenge__c, Our_Value_Proposition__c,
                            Lessons_Or_Insights__c
                     FROM Opportunity_Summary__c
                     WHERE Urgency_Driver__c = :cs.Urgency_Driver__c
                       AND Opportunity__c != :opportunityId
                       AND Id NOT IN :found
-                      AND Sales_Process_Pattern__c != null
+                      AND Confidence_Score__c >= 4
                     ORDER BY CreatedDate DESC LIMIT 1
                 ]) {
                     found.add(s.Id);
@@ -137,6 +137,8 @@ public class OpportunitySimilaritySearchHelper {
         e.put('challenge', s.Customer_Challenge__c);
         e.put('value', s.Our_Value_Proposition__c);
         e.put('lessons', s.Lessons_Or_Insights__c);
+        e.put('confidenceScore', s.Confidence_Score__c);
+        e.put('stage', s.Opportunity_Stage__c);
         return e;
     }
 }

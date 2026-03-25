@@ -15,6 +15,11 @@ public with sharing class BatchLauncherController {
                     result.jobId = jobId;
                     result.message = 'BOMサプライヤー名寄せバッチを起動しました。';
                 }
+                when 'OpportunitySummary' {
+                    Id jobId = Database.executeBatch(new OpportunitySummaryBatch(), 1);
+                    result.jobId = jobId;
+                    result.message = '商談サマリカード生成バッチを起動しました。';
+                }
                 when else {
                     result.errorMessage = '不明なバッチ名: ' + batchName;
                 }
@@ -42,6 +47,13 @@ public with sharing class BatchLauncherController {
         b2.description = 'Data CloudのBOMデータからサプライヤー名をAccountマスタとLLMで名寄せします。';
         b2.iconName = 'standard:product';
         batches.add(b2);
+
+        BatchInfo b3 = new BatchInfo();
+        b3.name = 'OpportunitySummary';
+        b3.label = '商談 → サマリカード生成';
+        b3.description = '全商談のデータ（商品・活動・Description等）をLLMで分析し、商談サマリカード（中間表現）を自動生成します。信頼度スコアも計算されます。';
+        b3.iconName = 'standard:opportunity';
+        batches.add(b3);
 
         return batches;
     }

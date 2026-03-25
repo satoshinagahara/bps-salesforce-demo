@@ -38,6 +38,10 @@ export default class OpportunitySimilarityPanel extends LightningElement {
         if (c < 3) return `⚠️${c}件`;
         return `✅${c}件`;
     }
+    get meetingLabel() {
+        const c = this.inputStatus?.meetingCount || 0;
+        return c > 0 ? `✅${c}件` : '❌0件';
+    }
 
     get summaryBadgeClass() {
         return 'status-badge ' + (this.inputStatus?.hasSummaryCard ? 'status-ok' : 'status-ng');
@@ -54,6 +58,10 @@ export default class OpportunitySimilarityPanel extends LightningElement {
         if (c === 0) return 'status-badge status-ng';
         if (c < 3) return 'status-badge status-warn';
         return 'status-badge status-ok';
+    }
+    get meetingBadgeClass() {
+        const c = this.inputStatus?.meetingCount || 0;
+        return 'status-badge ' + (c > 0 ? 'status-ok' : 'status-ng');
     }
 
     get confidenceScore() { return this.inputStatus?.confidenceScore || 1; }
@@ -83,10 +91,8 @@ export default class OpportunitySimilarityPanel extends LightningElement {
         this.userQuery = event.target.value;
     }
 
-    handleKeyUp(event) {
-        if (event.key === 'Enter' && this.userQuery.trim()) {
-            this.handleAnalyze();
-        }
+    handleKeyUp() {
+        // 入力中の変更検知のみ（Enterでの即実行は行わない）
     }
 
     get isAnalyzeDisabled() {

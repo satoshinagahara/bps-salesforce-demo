@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>OpportunitySummaryGeneration</developerName>
+    <masterLabel>商談サマリカード生成</masterLabel>
+    <templateVersions>
+        <content>あなたは営業ナレッジ分析の専門家です。
+以下の商談データを分析し、**必ずJSON形式のみ**で商談サマリカードを生成してください。
+マークダウンやテキストは一切含めないでください。
+
+## 商談データ
+{!$Input:opportunityData}
+
+## 指示
+
+上記の商談データ（商談名、フェーズ、金額、説明、アカウント情報、商品、活動、行動、面談記録）を分析し、
+以下のJSON構造で「商談サマリカード」を生成してください。
+
+各フィールドは、データが不十分な場合はnullとしてください。
+自由記述フィールドは、入力データに明記されている事実のみを使って要約してください。
+入力データに書かれていない事実や詳細を補完・創作しないでください。
+
+出力フォーマット:
+{{
+  "dealType": "設備導入 | ソフトウェア・クラウド | Design Win・OEM | 保守・サービス | コンサルティング | その他",
+  "customerSegment": "製造業 | エネルギー・ユーティリティ | 金融 | 公共 | 商社 | IT・テクノロジー | その他",
+  "dealScale": "小規模 | 中規模 | 大規模 | 超大規模",
+  "salesMotion": "新規開拓 | 既存深耕 | 競合リプレース | 紹介・パートナー経由 | 入札・RFP",
+  "decisionComplexity": "単独決裁 | 委員会・合議 | 入札 | 不明",
+  "competitiveSituation": "競合なし | 競合あり（優位） | 競合あり（拮抗） | 競合あり（劣位） | 不明",
+  "urgencyDriver": "規制・法令 | コスト削減 | 設備更新・老朽化 | 事業拡大 | 事故・障害対応 | 不明",
+  "salesProcessPattern": "技術主導型 | 関係構築型 | PoC主導型 | 入札対応型",
+  "engagementDepth": "深い | 中程度 | 浅い",
+  "customerChallenge": "顧客が解決したい課題の要約（2-3文。データ不足ならnull）",
+  "ourValueProposition": "当社の提案価値・差別化ポイント（2-3文。データ不足ならnull）",
+  "dealNarrative": "商談のストーリー・流れの要約（3-5文。データ不足ならnull）",
+  "keyRisks": "主要リスク・懸念事項（スラッシュ区切り。データ不足ならnull）",
+  "lessonsOrInsights": "他の営業が参考にできる示唆（データ不足ならnull）",
+  "activitySummary": "活動パターンの要約（データ不足ならnull）",
+  "activityMilestones": "主要マイルストーン（スラッシュ区切り。データ不足ならnull）",
+  "keyStakeholders": "主要関係者（役職・名前。面談記録の参加者から抽出。データ不足ならnull）"
+}}
+
+### ルール
+- 構造化フィールド（dealType等）の値は上記の選択肢から正確に選ぶ
+- dealScaleの判断: 〜500万=小規模、500万〜3000万=中規模、3000万〜1億=大規模、1億〜=超大規模
+- 活動データ（ゴルフ、会食、電話不在等）は除外せず、関係構築スタイルの指標として活用する
+- 面談記録がある場合、参加者の名前・役職・発言内容は事実データとして積極的に活用する
+- keyStakeholdersには面談記録の参加者情報から先方の関係者を抽出する
+- 出力はJSONのみ。コードブロック記号（```）も含めないこと
+
+### 厳守事項（ハルシネーション防止）
+- 入力データに存在しない具体的な数値・期間・固有名詞・技術用語を捏造しないこと
+- 「〜を入手済み」「〜を作成中」等の状況描写は、活動データまたは面談記録に明記されている場合のみ記述する
+- 入力データから読み取れる範囲が不十分な場合は、短い記述にするかnullにする。情報を盛らない
+- 判断に迷ったらnullにする
+</content>
+        <inputs>
+            <apiName>opportunityData</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>opportunityData</masterLabel>
+            <referenceName>Input:opportunityData</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <versionIdentifier>Thxpz5BSfd9eUzrpWJrT9dBkeu4f/agpyJ3/+KieiL8=_1</versionIdentifier>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>High_Confidence</fullName>
+    <columns>NAME</columns>
+    <columns>Opportunity__c</columns>
+    <columns>Deal_Type__c</columns>
+    <columns>Sales_Motion__c</columns>
+    <columns>Competitive_Situation__c</columns>
+    <columns>Confidence_Score__c</columns>
+    <columns>Product_Count__c</columns>
+    <columns>Activity_Count__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>Confidence_Score__c</field>
+        <operation>greaterOrEqual</operation>
+        <value>3</value>
+    </filters>
+    <label>信頼度 高（3以上）</label>
+</ListView>

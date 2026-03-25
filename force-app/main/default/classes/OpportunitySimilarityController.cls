@@ -43,6 +43,13 @@ public class OpportunitySimilarityController {
         Integer activityCount = taskCount + eventCount;
         status.put('activityCount', activityCount);
 
+        // 面談記録件数
+        Integer meetingCount = [
+            SELECT COUNT() FROM Meeting_Record__c
+            WHERE Opportunity__c = :opportunityId
+        ];
+        status.put('meetingCount', meetingCount);
+
         // 信頼度スコア（1-5）
         Integer score = 1;
         if (hasDescription) score = 2;
