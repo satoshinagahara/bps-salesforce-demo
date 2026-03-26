@@ -19,3 +19,5 @@ server.crt
 
 # Temporary files
 AccountSummaryAgent_Preview_*.json
+*accessKeys*
+*API*Key*
