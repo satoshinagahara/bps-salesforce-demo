@@ -156,4 +156,22 @@ public with sharing class ProposalUploaderController {
         }
         return records[0];
     }
+
+    /**
+     * Proposal_Context__c レコードを削除する
+     * @param proposalContextId 削除対象のレコードID
+     */
+    @AuraEnabled
+    public static void deleteProposalContext(String proposalContextId) {
+        try {
+            Proposal_Context__c pc = [
+                SELECT Id FROM Proposal_Context__c WHERE Id = :proposalContextId LIMIT 1
+            ];
+            delete pc;
+        } catch (QueryException e) {
+            throw new AuraHandledException('指定されたレコードが見つかりません: ' + proposalContextId);
+        } catch (Exception e) {
+            throw new AuraHandledException('削除に失敗しました: ' + e.getMessage());
+        }
+    }
 }

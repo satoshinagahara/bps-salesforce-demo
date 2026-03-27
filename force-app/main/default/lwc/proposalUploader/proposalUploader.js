@@ -1,11 +1,12 @@
 import { LightningElement, api, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { refreshApex } from 'lightning/uiRecordApi';
+import { refreshApex } from '@salesforce/apex';
 import getPresignedUrl from '@salesforce/apex/ProposalUploaderController.getPresignedUrl';
 import createProposalContext from '@salesforce/apex/ProposalUploaderController.createProposalContext';
 import startExtraction from '@salesforce/apex/ProposalUploaderController.startExtraction';
 import getProposalContexts from '@salesforce/apex/ProposalUploaderController.getProposalContexts';
 import getExtractionStatus from '@salesforce/apex/ProposalUploaderController.getExtractionStatus';
+import deleteProposalContext from '@salesforce/apex/ProposalUploaderController.deleteProposalContext';
 
 const ALLOWED_EXTENSIONS = ['.pptx', '.pdf'];
 const MAX_POLL_COUNT = 60;
@@ -34,6 +35,14 @@ const COLUMNS = [
             timeZone: 'Asia/Tokyo'
         },
         sortable: true
+    },
+    {
+        type: 'action',
+        typeAttributes: {
+            rowActions: [
+                { label: '削除', name: 'delete', iconName: 'utility:delete' }
+            ]
+        }
     }
 ];
 
@@ -328,6 +337,37 @@ export default class ProposalUploader extends LightningElement {
                 variant: 'error'
             })
         );
+    }
+
+    // --- 行アクション ---
+    handleRowAction(event) {
+        const action = event.detail.action;
+        const row = event.detail.row;
+        if (action.name === 'delete') {
+            this._deleteRecord(row.Id);
+        }
+    }
+
+    async _deleteRecord(recordId) {
+        try {
+            await deleteProposalContext({ proposalContextId: recordId });
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: '削除完了',
+                    message: '提案書コンテキストを削除しました。',
+                    variant: 'success'
+                })
+            );
+            refreshApex(this._wiredResult);
+        } catch (error) {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'エラー',
+                    message: error?.body?.message || '削除に失敗しました。',
+                    variant: 'error'
+                })
+            );
+        }
     }
 
     // --- ユーティリティ ---

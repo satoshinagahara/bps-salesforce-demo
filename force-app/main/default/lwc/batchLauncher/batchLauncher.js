@@ -3,9 +3,13 @@ import getAvailableBatches from '@salesforce/apex/BatchLauncherController.getAva
 import launchBatch from '@salesforce/apex/BatchLauncherController.launchBatch';
 import getJobStatus from '@salesforce/apex/BatchLauncherController.getJobStatus';
 
+const POLL_INTERVAL = 15000;
+const MAX_RETRIES = 3;
+
 export default class BatchLauncher extends LightningElement {
     batches = [];
     _pollingIntervals = {};
+    _retryCount = {};
 
     @wire(getAvailableBatches)
     wiredBatches({ data, error }) {
@@ -53,9 +57,11 @@ export default class BatchLauncher extends LightningElement {
     }
 
     pollJobStatus(batchName, jobId) {
+        this._retryCount[batchName] = 0;
         const intervalId = setInterval(async () => {
             try {
                 const status = await getJobStatus({ jobId });
+                this._retryCount[batchName] = 0;
                 if (status.isComplete) {
                     clearInterval(intervalId);
                     const msg = status.status === 'Completed'
@@ -77,10 +83,13 @@ export default class BatchLauncher extends LightningElement {
                     });
                 }
             } catch (e) {
-                clearInterval(intervalId);
-                this.updateBatch(batchName, { isRunning: false, statusMessage: 'ステータス確認エラー', statusClass: '' });
+                this._retryCount[batchName]++;
+                if (this._retryCount[batchName] >= MAX_RETRIES) {
+                    clearInterval(intervalId);
+                    this.updateBatch(batchName, { isRunning: false, statusMessage: 'ステータス確認エラー（バッチは実行中の可能性があります）', statusClass: '' });
+                }
             }
-        }, 5000);
+        }, POLL_INTERVAL);
         this._pollingIntervals[batchName] = intervalId;
     }
 

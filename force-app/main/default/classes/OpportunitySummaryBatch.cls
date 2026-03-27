@@ -11,7 +11,6 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
                    (SELECT Subject, StartDateTime, Description FROM Events ORDER BY StartDateTime LIMIT 10)
             FROM Opportunity
             WHERE Id NOT IN (SELECT Opportunity__c FROM Opportunity_Summary__c WHERE Opportunity__c != null)
-              AND StageName NOT IN ('Closed Lost')
               AND StageName != null
             ORDER BY LastModifiedDate DESC
         ]);
@@ -228,7 +227,7 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
 
             return result.generations[0].text;
         } catch (Exception e) {
-            System.debug(LoggingLevel.ERROR, 'Prompt Template呼び出しエラー: ' + e.getMessage());
+            System.debug(LoggingLevel.ERROR, 'Prompt Template呼び出しエラー: ' + e.getMessage() + ' | ' + e.getStackTraceString());
             return null;
         }
     }

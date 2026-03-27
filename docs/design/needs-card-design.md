@@ -345,7 +345,7 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 
 | 項目 | 内容 |
 |---|---|
-| トリガー | 面談記録ページの「ニーズ抽出」ボタン（Screen Flow） |
+| トリガー | 面談記録ページの「ニーズ抽出」ボタン（Screen Flow）/ バッチ処理ランチャー（NeedsCardBatch） |
 | 入力 | 面談サマリー + 文字起こし + 顧客情報 + 既存ニーズカード一覧 |
 | モデル | GPT-4o（高精度が必要なため） |
 | 処理 | 面談内容から各ニーズを識別し、既存カードとの意味的重複判定を含めて一括判断 |
@@ -474,6 +474,9 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 | クラス名 | 種別 | 用途 |
 |---|---|---|
 | NeedsCardExtractionAction | @InvocableMethod | 面談 → ニーズカード抽出（ConnectApi経由Prompt Template呼出し） |
+| NeedsCardBatch | Batchable + AllowsCallouts | 未抽出面談記録の一括ニーズ抽出。完了後にEventSurveyNeedsBatchをチェーン起動 |
+| EventSurveyNeedsAction | @InvocableMethod | イベントアンケート（Data Cloud DMO）→ 取引先別ニーズカード自動生成 |
+| EventSurveyNeedsBatch | Batchable + Schedulable + AllowsCallouts | キャンペーン単位のアンケートニーズ自動生成（差分検出付き） |
 | NeedsAnalysisController | AuraEnabled | ダッシュボードLWCバックエンド（集計・フィルタ・AI分析・施策起案・施策作成） |
 | InitiativeNeedsMatcherController | AuraEnabled | ニーズ候補LWCバックエンド（多層検索・AI関連度分析・紐付け） |
 | OpportunityRoadmapController | AuraEnabled | ロードマップLWCバックエンド（Product Family経由の施策/DP検索） |
@@ -491,9 +494,10 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 | テンプレート名 | モデル | 入力パラメータ | 温度 |
 |---|---|---|---|
 | NeedsCardExtraction | GPT-4o | meetingContext (String) | 0.2 |
-| NeedsAnalysisInsight | GPT-4o mini | needsData (String) | 0.2 |
+| EventSurveyAccountNeeds | GPT-4o | accountSurveyData (String) | 0.2 |
+| NeedsAnalysisInsight | Claude 4.5 Sonnet | needsData (String) | 0.2 |
 | InitiativeSuggestion | GPT-4o mini | analysisData (String) | 0.2 |
-| InitiativeNeedsRelevance | GPT-4o mini | analysisData (String) | 0.2 |
+| InitiativeNeedsRelevance | Claude 4.5 Sonnet | analysisData (String) | 0.2 |
 
 ### その他メタデータ
 

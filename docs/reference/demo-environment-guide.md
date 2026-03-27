@@ -287,10 +287,14 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 
 ### AI連携
 - **ニーズ抽出**: `NeedsCardExtractionAction` — 面談記録からニーズカードを自動生成（重複判定付き）
+- **アンケートニーズ抽出**: `EventSurveyNeedsAction` — Data Cloudのイベントアンケートから取引先別にニーズカード自動生成
 - **分析インサイト**: `NeedsAnalysisInsight` Prompt Template — セグメント別の定性分析
 
+### バッチ処理
+- **`NeedsCardBatch`** — バッチランチャーの「面談＋アンケート → ニーズカード生成」ボタンで起動。未抽出の面談記録を一括処理し、完了後に`EventSurveyNeedsBatch`をチェーン起動してアンケートからのニーズ生成も実行
+
 ### デモデータ
-- 面談14件、ニーズカード66件、ソースレコード75件
+- 面談14件、ニーズカード（バッチ実行で動的生成）
 - 顧客5社（丸菱商事/ノヴァテック/東亜電子/関東広域エネルギー公社/東日本FG）
 
 ---
@@ -333,7 +337,7 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 | `salesforceQuizBattle` | Salesforce知識クイズ（AI生成問題、温度0.7） |
 | `universalTableEditor` | 汎用テーブルエディタ |
 | `launcherPanel` | ランチャーパネル |
-| `batchLauncher` | バッチ処理ランチャー（ホームページ配置。Apex Batchを即時起動・ステータス監視。`BatchLauncherController.getAvailableBatches()` にバッチを追加するだけで拡張可能） |
+| `batchLauncher` | バッチ処理ランチャー（ホームページ配置。Apex Batchを即時起動・ステータス監視。3バッチ: 面談＋アンケート→ニーズカード生成 / BOM→サプライヤー名寄せ / 商談→サマリカード生成） |
 | `opportunityRoadmap` | 商談ロードマップ |
 
 ---
