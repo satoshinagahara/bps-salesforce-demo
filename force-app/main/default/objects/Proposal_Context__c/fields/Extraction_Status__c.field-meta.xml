@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Extraction_Status__c</fullName>
+    <label>抽出ステータス</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>処理中</fullName>
+                <default>true</default>
+                <label>処理中</label>
+            </value>
+            <value>
+                <fullName>完了</fullName>
+                <default>false</default>
+                <label>完了</label>
+            </value>
+            <value>
+                <fullName>エラー</fullName>
+                <default>false</default>
+                <label>エラー</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

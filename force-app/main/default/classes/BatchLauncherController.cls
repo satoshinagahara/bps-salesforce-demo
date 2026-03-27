@@ -5,10 +5,10 @@ public with sharing class BatchLauncherController {
         LaunchResult result = new LaunchResult();
         try {
             switch on batchName {
-                when 'EventSurveyNeeds' {
-                    Id jobId = Database.executeBatch(new EventSurveyNeedsBatch(), 1);
+                when 'NeedsCardGeneration' {
+                    Id jobId = Database.executeBatch(new NeedsCardBatch(), 1);
                     result.jobId = jobId;
-                    result.message = 'イベントアンケートニーズカード自動生成バッチを起動しました。';
+                    result.message = '面談記録→ニーズカード抽出バッチを起動しました。完了後にアンケートバッチが自動チェーン起動します。';
                 }
                 when 'BOMSupplierMatching' {
                     Id jobId = Database.executeBatch(new BOMSupplierMatchingBatch(), 1);
@@ -34,12 +34,12 @@ public with sharing class BatchLauncherController {
     public static List<BatchInfo> getAvailableBatches() {
         List<BatchInfo> batches = new List<BatchInfo>();
 
-        BatchInfo b1 = new BatchInfo();
-        b1.name = 'EventSurveyNeeds';
-        b1.label = 'アンケート → ニーズカード自動生成';
-        b1.description = 'Data Cloudのイベントアンケートデータを取引先別に分析し、ニーズカードを自動生成します。新しいCSVが取り込まれた場合のみ処理されます。';
-        b1.iconName = 'standard:survey';
-        batches.add(b1);
+        BatchInfo b0 = new BatchInfo();
+        b0.name = 'NeedsCardGeneration';
+        b0.label = '面談＋アンケート → ニーズカード生成';
+        b0.description = '未抽出の面談記録からニーズカードを抽出し、完了後にイベントアンケートからのニーズカード自動生成もチェーン実行します。';
+        b0.iconName = 'standard:customer';
+        batches.add(b0);
 
         BatchInfo b2 = new BatchInfo();
         b2.name = 'BOMSupplierMatching';

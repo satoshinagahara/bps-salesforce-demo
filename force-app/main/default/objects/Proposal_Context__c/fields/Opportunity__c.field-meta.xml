@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Opportunity__c</fullName>
+    <label>商談</label>
+    <type>MasterDetail</type>
+    <referenceTo>Opportunity</referenceTo>
+    <relationshipLabel>提案書コンテキスト</relationshipLabel>
+    <relationshipName>Proposal_Contexts</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+</CustomField>

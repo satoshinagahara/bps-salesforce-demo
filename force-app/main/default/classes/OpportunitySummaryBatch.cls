@@ -18,11 +18,12 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
     }
 
     public void execute(Database.BatchableContext bc, List<Opportunity> opps) {
-        // 面談記録を一括取得（カスタムLookupのためサブクエリ不可）
         Set<Id> oppIds = new Set<Id>();
         for (Opportunity opp : opps) {
             oppIds.add(opp.Id);
         }
+
+        // 面談記録を一括取得（カスタムLookupのためサブクエリ不可）
         Map<Id, List<Meeting_Record__c>> meetingsByOpp = new Map<Id, List<Meeting_Record__c>>();
         for (Meeting_Record__c mr : [
             SELECT Opportunity__c, Meeting_Date__c, Meeting_Type__c, Participants__c, Summary__c
@@ -37,23 +38,40 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
             meetingsByOpp.get(mr.Opportunity__c).add(mr);
         }
 
+        // 提案書コンテキストを一括取得（完了ステータスのもののみ）
+        Map<Id, List<Proposal_Context__c>> proposalsByOpp = new Map<Id, List<Proposal_Context__c>>();
+        for (Proposal_Context__c pc : [
+            SELECT Opportunity__c, File_Name__c, Extracted_Text__c, Slide_Count__c
+            FROM Proposal_Context__c
+            WHERE Opportunity__c IN :oppIds
+              AND Extraction_Status__c = '完了'
+            ORDER BY Extracted_At__c DESC
+        ]) {
+            if (!proposalsByOpp.containsKey(pc.Opportunity__c)) {
+                proposalsByOpp.put(pc.Opportunity__c, new List<Proposal_Context__c>());
+            }
+            proposalsByOpp.get(pc.Opportunity__c).add(pc);
+        }
+
         for (Opportunity opp : opps) {
             try {
                 List<Meeting_Record__c> meetings = meetingsByOpp.get(opp.Id);
+                List<Proposal_Context__c> proposals = proposalsByOpp.get(opp.Id);
                 Integer meetingCount = meetings != null ? meetings.size() : 0;
                 Integer taskCount = opp.Tasks != null ? opp.Tasks.size() : 0;
                 Integer eventCount = opp.Events != null ? opp.Events.size() : 0;
                 Integer totalActivity = taskCount + eventCount + meetingCount;
+                Boolean hasProposal = proposals != null && !proposals.isEmpty();
 
-                // 信頼度3未満相当（Description無し or 活動+面談が2件未満）はスキップ
-                if (String.isBlank(opp.Description) || totalActivity < 2) {
+                // スキップ条件: 提案書がある場合はDescription+活動が薄くてもOK
+                if (!hasProposal && (String.isBlank(opp.Description) || totalActivity < 2)) {
                     System.debug('スキップ（データ不足）: ' + opp.Name +
                         ' [Desc:' + (String.isNotBlank(opp.Description) ? 'Y' : 'N') +
-                        ' Activity:' + totalActivity + ']');
+                        ' Activity:' + totalActivity + ' Proposal:N]');
                     continue;
                 }
 
-                generateSummaryCard(opp, meetings);
+                generateSummaryCard(opp, meetings, proposals);
             } catch (Exception e) {
                 System.debug(LoggingLevel.ERROR, 'サマリカード生成エラー [' + opp.Name + ']: ' + e.getMessage());
             }
@@ -64,23 +82,27 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
         System.debug('OpportunitySummaryBatch 完了');
     }
 
-    private void generateSummaryCard(Opportunity opp, List<Meeting_Record__c> meetings) {
+    private void generateSummaryCard(Opportunity opp, List<Meeting_Record__c> meetings, List<Proposal_Context__c> proposals) {
         // 1. 信頼度関連データの計算
         Integer productCount = opp.OpportunityLineItems != null ? opp.OpportunityLineItems.size() : 0;
         Integer taskCount = opp.Tasks != null ? opp.Tasks.size() : 0;
         Integer eventCount = opp.Events != null ? opp.Events.size() : 0;
         Integer activityCount = taskCount + eventCount;
         Boolean hasDescription = String.isNotBlank(opp.Description);
+        Boolean hasProposal = proposals != null && !proposals.isEmpty();
 
         // 信頼度スコア計算（0-9）= データ充実度(0-3) × フェーズ係数(1-3)
         Integer meetingCount = meetings != null ? meetings.size() : 0;
         Integer totalActivity = activityCount + meetingCount;
 
         // データ充実度: 0=Descなし / 1=Descのみ / 2=Desc+(商品or活動) / 3=Desc+商品+活動
+        // 提案書がある場合: 最低でも2（提案書は活動データ以上のコンテキストを持つため）
         Integer dataRichness = 0;
         if (hasDescription) dataRichness = 1;
         if (hasDescription && (productCount > 0 || totalActivity > 0)) dataRichness = 2;
         if (hasDescription && productCount > 0 && totalActivity > 0) dataRichness = 3;
+        if (hasProposal && dataRichness < 2) dataRichness = 2;
+        if (hasProposal && productCount > 0) dataRichness = 3;
 
         // フェーズ係数: 1=初期 / 2=提案中 / 3=交渉・完了
         Integer phaseCoeff = getPhaseCoefficient(opp.StageName);
@@ -88,7 +110,7 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
         Integer score = dataRichness * phaseCoeff;
 
         // 2. LLM用の入力テキストを構築
-        String inputText = buildInputText(opp, productCount, activityCount, meetings);
+        String inputText = buildInputText(opp, productCount, activityCount, meetings, proposals);
 
         // 3. Prompt TemplateでサマリカードJSON生成
         String summaryJson = callSummaryPromptTemplate(inputText);
@@ -108,7 +130,8 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
         return 1;
     }
 
-    private String buildInputText(Opportunity opp, Integer productCount, Integer activityCount, List<Meeting_Record__c> meetings) {
+    private String buildInputText(Opportunity opp, Integer productCount, Integer activityCount,
+                                    List<Meeting_Record__c> meetings, List<Proposal_Context__c> proposals) {
         String text = '';
         text += '商談名: ' + opp.Name + '\n';
         text += 'フェーズ: ' + opp.StageName + '\n';
@@ -117,6 +140,21 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
         text += '説明: ' + (opp.Description != null ? opp.Description : '') + '\n';
         text += 'アカウント: ' + opp.Account.Name + '\n';
         text += '業種: ' + (opp.Account.Industry != null ? opp.Account.Industry : '未設定') + '\n';
+
+        // 提案書コンテキスト（最もリッチな情報源として先頭に配置）
+        if (proposals != null && !proposals.isEmpty()) {
+            text += '\n【提案書コンテキスト】\n';
+            for (Proposal_Context__c pc : proposals) {
+                if (String.isBlank(pc.Extracted_Text__c)) continue;
+                text += '--- ' + pc.File_Name__c + ' (' + (pc.Slide_Count__c != null ? pc.Slide_Count__c.intValue() : 0) + 'スライド) ---\n';
+                // トークン制限を考慮し、提案書テキストは8000文字まで
+                String proposalText = pc.Extracted_Text__c;
+                if (proposalText.length() > 8000) {
+                    proposalText = proposalText.left(8000) + '\n...(以下省略)';
+                }
+                text += proposalText + '\n\n';
+            }
+        }
 
         // 商品
         if (opp.OpportunityLineItems != null && !opp.OpportunityLineItems.isEmpty()) {

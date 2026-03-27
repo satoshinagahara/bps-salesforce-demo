@@ -1,2 +1,4 @@
 anthropic
 boto3
+PyJWT[crypto]
+requests

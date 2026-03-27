@@ -2,6 +2,12 @@ public with sharing class EventSurveyNeedsBatch implements Database.Batchable<SO
 
     private Datetime lastDataStreamUpdate;
 
+    public EventSurveyNeedsBatch() {}
+
+    public EventSurveyNeedsBatch(Datetime lastDataStreamUpdate) {
+        this.lastDataStreamUpdate = lastDataStreamUpdate;
+    }
+
     // Schedulable: 定期実行エントリポイント
     public void execute(SchedulableContext sc) {
         // データストリームの最終更新日を確認してからBatch起動
@@ -11,9 +17,7 @@ public with sharing class EventSurveyNeedsBatch implements Database.Batchable<SO
             return;
         }
 
-        EventSurveyNeedsBatch batch = new EventSurveyNeedsBatch();
-        batch.lastDataStreamUpdate = streamLastUpdate;
-        Database.executeBatch(batch, 1);
+        Database.executeBatch(new EventSurveyNeedsBatch(streamLastUpdate), 1);
     }
 
     // Batchable: データストリーム更新後に未処理 or 再処理が必要なキャンペーンを取得
@@ -52,7 +56,7 @@ public with sharing class EventSurveyNeedsBatch implements Database.Batchable<SO
     }
 
     // データストリームの最終更新日を取得（エンゲージメントDLO側）
-    private static Datetime getDataStreamLastUpdate() {
+    public static Datetime getDataStreamLastUpdate() {
         try {
             HttpRequest req = new HttpRequest();
             req.setEndpoint(Url.getOrgDomainUrl().toExternalForm()
