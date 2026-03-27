@@ -60,7 +60,7 @@ public with sharing class ProposalUploaderController {
     }
 
     /**
-     * テキスト抽出処理を非同期でキックし、Proposal_Context__c レコードを作成する
+     * Proposal_Context__c レコードを作成する（DMLのみ、calloutなし）
      * @param opportunityId 商談ID
      * @param bucket S3バケット名
      * @param s3Key S3オブジェクトキー
@@ -68,9 +68,8 @@ public with sharing class ProposalUploaderController {
      * @return 作成された Proposal_Context__c レコードID
      */
     @AuraEnabled
-    public static String startExtraction(String opportunityId, String bucket, String s3Key, String fileName) {
+    public static String createProposalContext(String opportunityId, String bucket, String s3Key, String fileName) {
         try {
-            // Proposal_Context__c レコードを作成（ステータス: 処理中）
             Proposal_Context__c pc = new Proposal_Context__c(
                 Opportunity__c = opportunityId,
                 File_Name__c = fileName,
@@ -78,8 +77,22 @@ public with sharing class ProposalUploaderController {
                 Extraction_Status__c = '処理中'
             );
             insert pc;
+            return pc.Id;
+        } catch (Exception e) {
+            throw new AuraHandledException('レコード作成に失敗しました: ' + e.getMessage());
+        }
+    }
 
-            // API Gateway を呼び出して Lambda 抽出処理をキック
+    /**
+     * テキスト抽出処理を非同期でキックする（calloutのみ、DMLなし）
+     * @param proposalContextId Proposal_Context__c レコードID
+     * @param bucket S3バケット名
+     * @param s3Key S3オブジェクトキー
+     * @param opportunityId 商談ID
+     */
+    @AuraEnabled
+    public static void startExtraction(String proposalContextId, String bucket, String s3Key, String opportunityId) {
+        try {
             HttpRequest req = new HttpRequest();
             req.setEndpoint(EXTRACT_ENDPOINT);
             req.setMethod('POST');
@@ -89,7 +102,7 @@ public with sharing class ProposalUploaderController {
             Map<String, String> requestBody = new Map<String, String>{
                 'bucket' => bucket,
                 'key' => s3Key,
-                'proposal_context_id' => pc.Id,
+                'proposal_context_id' => proposalContextId,
                 'opportunity_id' => opportunityId
             };
             req.setBody(JSON.serialize(requestBody));
@@ -98,15 +111,10 @@ public with sharing class ProposalUploaderController {
             HttpResponse res = http.send(req);
 
             if (res.getStatusCode() != 200 && res.getStatusCode() != 202) {
-                // Lambda呼び出し失敗時はレコードをエラー状態に更新
-                pc.Extraction_Status__c = 'エラー';
-                update pc;
                 throw new AuraHandledException(
                     '抽出処理の開始に失敗しました (HTTP ' + res.getStatusCode() + '): ' + res.getBody()
                 );
             }
-
-            return pc.Id;
         } catch (AuraHandledException e) {
             throw e;
         } catch (Exception e) {

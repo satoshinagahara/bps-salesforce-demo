@@ -2,6 +2,7 @@ import { LightningElement, api, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from 'lightning/uiRecordApi';
 import getPresignedUrl from '@salesforce/apex/ProposalUploaderController.getPresignedUrl';
+import createProposalContext from '@salesforce/apex/ProposalUploaderController.createProposalContext';
 import startExtraction from '@salesforce/apex/ProposalUploaderController.startExtraction';
 import getProposalContexts from '@salesforce/apex/ProposalUploaderController.getProposalContexts';
 import getExtractionStatus from '@salesforce/apex/ProposalUploaderController.getExtractionStatus';
@@ -187,14 +188,25 @@ export default class ProposalUploader extends LightningElement {
             await this._uploadToS3(presignedUrl, this.selectedFile);
             this.uploadProgress = 100;
 
-            // 3. 抽出処理を開始
+            // 3. Proposal_Context__c レコード作成（DMLトランザクション）
             this.showProgressBar = false;
             this.statusMessage = 'テキスト抽出を開始しています...';
-            const proposalContextId = await startExtraction({
+            const proposalContextId = await createProposalContext({
                 opportunityId: this.recordId,
                 bucket: bucket,
                 s3Key: s3Key,
                 fileName: this.selectedFile.name
+            });
+
+            // 一覧を即座に更新（「処理中」レコードを表示）
+            refreshApex(this._wiredResult);
+
+            // 4. 抽出処理をキック（calloutトランザクション — DMLと分離）
+            await startExtraction({
+                proposalContextId: proposalContextId,
+                bucket: bucket,
+                s3Key: s3Key,
+                opportunityId: this.recordId
             });
 
             // 4. ポーリング開始
