@@ -1,0 +1,46 @@
+/* ドラッグ&ドロップエリア */
+.drop-zone {
+    border: 2px dashed #d8dde6;
+    border-radius: 0.5rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    background-color: #fafaf9;
+    cursor: pointer;
+}
+
+.drop-zone:hover {
+    border-color: #0070d2;
+    background-color: #f3f3f3;
+}
+
+.drop-zone-active {
+    border: 2px dashed #0070d2;
+    border-radius: 0.5rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    background-color: #eef4ff;
+    cursor: pointer;
+}
+
+/* スピナーをインラインに配置 */
+.spinner-inline {
+    position: relative;
+    display: inline-flex;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* エラーアラート */
+.slds-alert_error {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    background-color: #fef1ee;
+    border: 1px solid #ea001e;
+    color: #ea001e;
+}
+
+/* データテーブル調整 */
+lightning-datatable {
+    --slds-c-datatable-header-color-background: #fafaf9;
+}
