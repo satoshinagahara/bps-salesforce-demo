@@ -47,7 +47,7 @@ Design Win採用活動 → Revenue_Forecast → Sales_Agreement → 月別Schedu
 面談記録からAIが顧客ニーズを構造化抽出。5タブの多軸分析ダッシュボード、AIインラインインサイト、鮮度管理機能。
 
 ### 9. 商談サマリカード＋類似度分析
-商談のコンテキスト（deal_type, customer_segment, sales_motion等）をLLMが構造化抽出しOpportunity_Summary__cに保存。構造化フィールドベースで類似商談をSOQL検索し、Agentforce Topic経由で分析レポートを生成。LWCパネル（`opportunitySimilarityPanel`）で商談ページに類似商談バッジ表示。
+商談のコンテキスト（deal_type, customer_segment, sales_motion等）をLLMが構造化抽出しOpportunity_Summary__cに保存。Tier 1（構造化フィールド完全一致）+ Tier 2（Data Cloud Search Index + Retrieverによるベクトル検索）のハイブリッド方式で類似商談を検索。Agentforce Topic経由で分析レポートを生成。LWCパネル（`opportunitySimilarityPanel`）で商談ページに類似商談バッジ表示。
 
 ### 10. BOM標準化×LLM名寄せ
 BOM_Part__cとSupplier_Part__cのLLMマッチング。Prompt Templateで部品名・スペックの類似判定を行い、サプライヤー部品カタログとの紐付けを自動化。バッチ処理対応。

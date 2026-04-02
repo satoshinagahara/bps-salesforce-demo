@@ -20,9 +20,30 @@ Topic: 商談類似分析
        入力: opportunityId（現在の商談ID）
        内部処理:
          1. 商談のサマリカード取得（SOQL）
-         2. 構造化フィールドで類似商談をSOQL検索（最大4件）
-         3. ConnectApi経由でPrompt Template呼び出し（レポート生成）
+         2. Tier 1: 構造化フィールドで類似商談をSOQL検索（最大4件）
+            - Deal_Type一致（最大2件）→ Sales_Motion一致（1件）→ Urgency_Driver一致（1件）
+         3. Tier 2: Data Cloud Retrieverによるベクトル検索（Tier 1で枠が残った場合）
+            - Customer_Challenge + Our_Value_Proposition + Deal_Narrative を結合してクエリ
+            - Prompt Template「OpportunitySimilarityVectorSearch」経由で検索
+            - Tier 1と重複する商談IDは除外、Confidence_Score >= 4 でフィルタ
+         4. ConnectApi経由でPrompt Template呼び出し（レポート生成）
        出力: 分析レポートテキスト（そのままユーザーに表示）
+       合計上限: 最大6件（Tier 1 + Tier 2）
+```
+
+### Data Cloud構成（ベクトル検索）
+
+```
+[CRM] Opportunity_Summary__c
+  ↓ CRM Connector (Data Stream)
+[Data Cloud] DLO → DMO: Opportunity_Summary_c_Home__dlm
+  ↓ Search Index: Hybrid / Multilingual E5 Large
+  ↓ Retriever: Opportunity_Summary_c_Home_1Cx_dKvf1fef79d
+  ↓
+[Apex] OpportunitySimilaritySearchHelper.searchByRetriever()
+  → Prompt Template「OpportunitySimilarityVectorSearch」経由で呼び出し
+  → LLMがRetriever結果をJSON配列に整形して返却
+  → Apex側でパースしTier 1結果とマージ
 ```
 
 > **2アクション分離パターン（Apex → Prompt Template）は採用しなかった。**

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>OpportunitySimilarityVectorSearch</developerName>
+    <masterLabel>類似商談ベクトル検索</masterLabel>
+    <templateVersions>
+        <content>あなたはデータ変換アシスタントです。
+以下の検索結果データをJSON配列に変換してください。**JSON以外の出力は禁止です。**
+
+## 検索クエリ
+{!$Input:searchQuery}
+
+## Data Cloudからの検索結果
+{!$EinsteinSearch:Opportunity_Summary_c_Home_1Cx_dKvf1fef79d.results}
+
+## 指示
+上記の検索結果から、各レコードの以下のフィールドを抽出し、JSON配列として出力してください。
+
+出力形式（JSON配列のみ。前後のテキストやマークダウン記号は不要）:
+[
+  {{
+    "opportunityId": "Opportunity_c__cの値",
+    "dealType": "Deal_Type_c__cの値",
+    "salesMotion": "Sales_Motion_c__cの値",
+    "competitive": "Competitive_Situation_c__cの値",
+    "processPattern": "Sales_Process_Pattern_c__cの値",
+    "challenge": "Customer_Challenge_c__cの値",
+    "value": "Our_Value_Proposition_c__cの値",
+    "lessons": "Lessons_Or_Insights_c__cの値",
+    "confidenceScore": Confidence_Score_c__cの数値,
+    "stage": "Opportunity_Stage_c__cの値"
+  }}
+]
+
+## ルール
+- 検索結果が空の場合は空配列 [] を返す
+- フィールドが存在しない場合はnullを設定
+- confidenceScoreは数値型で返す
+- JSON配列のみ出力。マークダウンのコードブロック記号も不要</content>
+        <inputs>
+            <apiName>searchQuery</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>searchQuery</masterLabel>
+            <referenceName>Input:searchQuery</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
+        <status>Published</status>
+        <templateDataProviders>
+            <definition>invocable://getEinsteinRetrieverResults/Opportunity_Summary_c_Home_1Cx_dKvf1fef79d</definition>
+            <description>OpportunitySummary Retriever</description>
+            <label>OpportunitySummary Retriever</label>
+            <parameters>
+                <definition>primitive://String</definition>
+                <isRequired>true</isRequired>
+                <parameterName>searchText</parameterName>
+                <valueExpression>{!$Input:searchQuery}</valueExpression>
+            </parameters>
+            <referenceName>EinsteinSearch:Opportunity_Summary_c_Home_1Cx_dKvf1fef79d</referenceName>
+        </templateDataProviders>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>
