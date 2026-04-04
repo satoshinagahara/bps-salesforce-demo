@@ -301,22 +301,29 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 
 ## 9. Agentforce（従業員エージェント）
 
-**`Agentforce_Employee_Agent`** — InternalCopilot型の従業員エージェント
+**製品・調達・品質マネジメントエージェント（BOM_Analysis_Agent）** — InternalCopilot型の従業員エージェント。1 Agent集約方式を採用し、全Topicをこのエージェントに集約する方針。
+
+### Agent構成
+
+| Agent | ステータス | 用途 |
+|---|---|---|
+| 製品・調達・品質マネジメントエージェント（BOM_Analysis_Agent） | Active | BOM分析・サプライヤーリスク・取引先分析等 |
+| Agentforce Employee Agent | Inactive | 旧エージェント（Topicは BOM_Analysis_Agent に移植予定） |
 
 ### トピック
 
-| トピック | アクション | 機能 |
-|---|---|---|
-| 取引先分析 | AccountInsightFullAnalysis | 取引先の商談・ケース・活動等を総合分析し、アクション示唆を生成 |
-| 水平展開分析 | HorizontalDeploymentAnalysis | 是正処置から類似リスクを検索し、影響レポートを生成 |
-| ナレッジ作成 | KnowledgeCreationAction | 是正処置の調査結果からKnowledge記事ドラフトを自動生成 |
-| BOM分析 | BOMAnalysisGetProductBOM | 製品のBOM構成を分析 |
-| サプライヤー影響分析 | BOMAnalysisGetSupplierImpact | サプライヤーに関連するBOM・製品への影響を分析 |
+| トピック | Apex Action | Prompt Template | 機能 |
+|---|---|---|---|
+| 取引先分析 | AccountInsightFullAnalysis → JSON | AccountInsightSuggestions → 示唆 | 取引先の商談・ケース・活動等を総合分析し、アクション示唆を生成 |
+| サプライヤーインパクト | BOMAnalysisGetSupplierImpact → JSON | BOMSupplierImpactAnalysis → レポート | サプライヤーに関連するBOM・製品への影響を分析 |
+| 製品BOM分析 | BOMAnalysisGetProductBOM → JSON | BOMSupplierImpactAnalysis → レポート | 製品のBOM構成を分析 |
 
 ### アーキテクチャ
+- **確立パターン**: Topic → Apex Action（データ収集・JSON返却）→ Prompt Template（分析・示唆生成）の2アクション分離
 - Agent LLM = トピック選択＋アクション推論（ルーティングのみ）
 - Prompt Template = 実際のテキスト生成（要約・分析・示唆）
-- Apex内で `ConnectApi.EinsteinLLM.generateMessagesForPromptTemplate()` を呼び出す1アクション統合パターン
+- **大データ時**: Apex内で `ConnectApi.EinsteinLLM.generateMessagesForPromptTemplate()` を呼び出す1アクション統合パターン
+- **詳細**: `docs/reference/agentforce-architecture-guide.md` を参照
 
 ---
 
@@ -467,5 +474,5 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 - **API Version**: 66.0
 - **通貨**: マルチカーパンシー（JPY主、USD併用）。ダッシュボード系LWCは `convertCurrency()` でJPY統一表示
 - **権限セット**: `BOM_Full_Access` に全カスタムオブジェクト・Apexクラスのアクセスを集約
-- **Agentforce**: InternalCopilot (AgentforceEmployeeAgent) 型。UIでのみ作成可能（CLIでは作成不可）
+- **Agentforce**: InternalCopilot型。BOM_Analysis_Agentに全Topic集約（1 Agent集約方式）。UIでのみ作成可能（CLIでは作成不可）
 - **Prompt Template**: デプロイ後にPrompt Builder UIで手動Activateが必要

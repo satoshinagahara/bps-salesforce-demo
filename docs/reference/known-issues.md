@@ -31,6 +31,7 @@
 > **注**: Agentforceの一般的な技術制約（メタデータ構造、CLI制限、アーキテクチャ指針等）は `salesforce-admin` スキルの `metadata-agentforce.md` に集約済み。以下は**このorg固有の問題・運用メモ**のみ記載。
 
 ### このorg固有の問題
-- **Agentforce（デフォルト）を使用中**: 従業員エージェントへの移行が推奨されているが未実施
+- **1 Agent集約方式**: 製品・調達・品質マネジメントエージェント（BOM_Analysis_Agent）に全Topicを集約。Agentforce Employee Agentは Inactive（詳細は `agentforce-architecture-guide.md` 参照）
 - **Agentforce入力のID解決**: Agent LLMはCA名（CA-0000）を渡すことがある。Name検索→ID変換のフォールバックをApex側で実装済み
+- **同一セッション内のAction再実行問題**: Agent LLMが過去の出力を使い回す場合がある。Instructionsに「毎回必ず実行」と明示して対策（詳細は `agentforce-architecture-guide.md` セクション4参照）
 - **分析系プロンプトは「事実のみ」スタイル**: 「提案は含めない」を明示する運用にしている

@@ -8,9 +8,11 @@ public class OpportunitySimilarityController {
 
         // 商談基本情報
         Opportunity opp = [
-            SELECT Id, Name, Description, StageName, Amount, Account.Name
+            SELECT Id, Name, Description, StageName, Amount, Account.Name,
+                   RecordType.DeveloperName
             FROM Opportunity WHERE Id = :opportunityId LIMIT 1
         ];
+        Boolean isDesignWin = opp.RecordType != null && opp.RecordType.DeveloperName == 'Design_Win';
         status.put('name', opp.Name);
         status.put('stage', opp.StageName);
         status.put('accountName', opp.Account.Name);
@@ -26,12 +28,21 @@ public class OpportunitySimilarityController {
         ];
         status.put('hasSummaryCard', summaryCount > 0);
 
-        // 商品件数
-        Integer productCount = [
-            SELECT COUNT() FROM OpportunityLineItem
-            WHERE OpportunityId = :opportunityId
-        ];
+        // 商品件数（Design Winの場合はRevenue_Forecast__cで代替）
+        Integer productCount;
+        if (isDesignWin) {
+            productCount = [
+                SELECT COUNT() FROM Revenue_Forecast__c
+                WHERE Opportunity__c = :opportunityId
+            ];
+        } else {
+            productCount = [
+                SELECT COUNT() FROM OpportunityLineItem
+                WHERE OpportunityId = :opportunityId
+            ];
+        }
         status.put('productCount', productCount);
+        status.put('isDesignWin', isDesignWin);
 
         // 活動件数（Task + Event）
         Integer taskCount = [

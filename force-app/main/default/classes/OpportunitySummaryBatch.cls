@@ -5,8 +5,12 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
         return Database.getQueryLocator([
             SELECT Id, Name, StageName, Amount, CurrencyIsoCode, CloseDate, Type,
                    Description, LeadSource, IsClosed, IsWon,
+                   RecordType.DeveloperName,
                    Account.Name, Account.Industry, Account.BillingState, Account.NumberOfEmployees,
                    (SELECT Product2.Name, Product2.Family, Quantity FROM OpportunityLineItems),
+                   (SELECT Product__r.Name, Fiscal_Year__c, Fiscal_Quarter__c,
+                           Forecast_Quantity__c, Unit_Price__c, Forecast_Amount__c, Status__c
+                    FROM Revenue_Forecasts__r ORDER BY Fiscal_Year__c, Fiscal_Quarter__c),
                    (SELECT Subject, Status, ActivityDate, Description FROM Tasks ORDER BY ActivityDate LIMIT 20),
                    (SELECT Subject, StartDateTime, Description FROM Events ORDER BY StartDateTime LIMIT 10)
             FROM Opportunity
@@ -83,7 +87,12 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
 
     private void generateSummaryCard(Opportunity opp, List<Meeting_Record__c> meetings, List<Proposal_Context__c> proposals) {
         // 1. 信頼度関連データの計算
-        Integer productCount = opp.OpportunityLineItems != null ? opp.OpportunityLineItems.size() : 0;
+        // Design Win商談はOpportunityLineItemを使わず、Revenue_Forecast__cで売上予測を管理する設計のため
+        // 商品数の代わりにRevenue Forecast件数をデータ充実度の評価に使用
+        Boolean isDesignWin = opp.RecordType != null && opp.RecordType.DeveloperName == 'Design_Win';
+        Integer forecastCount = opp.Revenue_Forecasts__r != null ? opp.Revenue_Forecasts__r.size() : 0;
+        Integer lineItemCount = opp.OpportunityLineItems != null ? opp.OpportunityLineItems.size() : 0;
+        Integer productCount = isDesignWin ? forecastCount : lineItemCount;
         Integer taskCount = opp.Tasks != null ? opp.Tasks.size() : 0;
         Integer eventCount = opp.Events != null ? opp.Events.size() : 0;
         Integer activityCount = taskCount + eventCount;
@@ -155,8 +164,20 @@ public with sharing class OpportunitySummaryBatch implements Database.Batchable<
             }
         }
 
-        // 商品
-        if (opp.OpportunityLineItems != null && !opp.OpportunityLineItems.isEmpty()) {
+        // 商品 / 受注予測（Design Winの場合はRevenue_Forecast__cを使用）
+        Boolean isDesignWin = opp.RecordType != null && opp.RecordType.DeveloperName == 'Design_Win';
+        if (isDesignWin && opp.Revenue_Forecasts__r != null && !opp.Revenue_Forecasts__r.isEmpty()) {
+            text += '受注予測（Revenue Forecast）:\n';
+            for (Revenue_Forecast__c rf : opp.Revenue_Forecasts__r) {
+                text += '  - ';
+                if (rf.Product__r != null) text += rf.Product__r.Name + ' ';
+                text += rf.Fiscal_Year__c;
+                if (rf.Fiscal_Quarter__c != null) text += ' ' + rf.Fiscal_Quarter__c;
+                text += ' 数量:' + (rf.Forecast_Quantity__c != null ? String.valueOf(rf.Forecast_Quantity__c.intValue()) : '0');
+                text += ' 金額:' + (rf.Forecast_Amount__c != null ? String.valueOf(rf.Forecast_Amount__c) : '0');
+                text += ' [' + (rf.Status__c != null ? rf.Status__c : '-') + ']\n';
+            }
+        } else if (!isDesignWin && opp.OpportunityLineItems != null && !opp.OpportunityLineItems.isEmpty()) {
             text += '商品:\n';
             for (OpportunityLineItem oli : opp.OpportunityLineItems) {
                 text += '  - ' + oli.Product2.Name;
