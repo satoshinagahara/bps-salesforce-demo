@@ -1,0 +1,14 @@
+{
+  "required" : [ "correctiveActionId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "correctiveActionId" : {
+      "title" : "是正措置ID",
+      "description" : "分析対象の是正措置のSalesforce IDを確認してください。ユーザーがCA-XXXXのような名で指定した場合は、そのレコードのIDを特定してください。",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

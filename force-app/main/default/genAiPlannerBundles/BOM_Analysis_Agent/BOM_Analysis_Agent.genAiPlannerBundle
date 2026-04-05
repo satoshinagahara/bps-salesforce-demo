@@ -8,8 +8,71 @@
         <genAiPluginName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</genAiPluginName>
     </localTopicLinks>
     <localTopicLinks>
+        <genAiPluginName>aaf5deab_6e7f_ee2e_b059_ad4ead50cf0a_16jIe0000008Ox3</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>dc73abdf_516d_f137_a615_f6b1b3e7172c_16jIe0000008Ox3</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
         <genAiPluginName>e758d601_ae07_2d09_0bfa_6f63c4899179_16jIe0000008Ox3</genAiPluginName>
     </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>knowledge_16jIe0000008Ox3</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>dc73abdf_516d_f137_a615_f6b1b3e7172c_16jIe0000008Ox3</fullName>
+        <aiPluginUtterances>
+            <developerName>utterance_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Utterance 1</masterLabel>
+            <utterance>この商談と似た案件はありますか？
+過去に同じような状況で成功した事例を教えて
+競合に勝った商談の事例は？
+この商談の参考になる過去の商談は？
+同じ業界で似たアプローチの商談はある？
+設備選定委員会で決まった案件の事例は？</utterance>
+        </aiPluginUtterances>
+        <canEscalate>false</canEscalate>
+        <description>ユーザーが商談の類似案件、過去の参考事例、競合に勝った事例を知りたい時</description>
+        <developerName>dc73abdf_516d_f137_a615_f6b1b3e7172c_16jIe0000008Ox3</developerName>
+        <genAiPluginInstructions>
+            <description>1. ユーザーが商談に関する質問をするたびに、必ず「類似商談分析」アクションを実行する
+過去の会話で既に結果を取得していても、質問が異なればアクションを再実行すること
+opportunityIdには現在表示中の商談のIDを渡す
+userQueryにはユーザーの質問内容をそのまま渡す（質問によって分析の焦点が変わるため）</description>
+            <developerName>instruction_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 1</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>2. アクションの出力（分析レポート）をそのままユーザーに返す</description>
+            <developerName>instruction_2</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 2</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>Xfad3b39f_eaac_e7a4_44e4_389927230ce9_179Ie000000wnfT</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>Xfad3b39f_eaac_e7a4_44e4_389927230ce9_179Ie000000wnfT</fullName>
+            <description>指定された商談の類似商談を検索し、比較分析とインサイトを含む構造化結果を返します</description>
+            <developerName>Xfad3b39f_eaac_e7a4_44e4_389927230ce9_179Ie000000wnfT</developerName>
+            <invocationTarget>OpportunitySimilaritySearch</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>Xfad3b39f_eaac_e7a4_44e4_389927230ce9</localDeveloperName>
+            <masterLabel>類似商談分析</masterLabel>
+            <progressIndicatorMessage>エージェントフォース処理中</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>dc73abdf_516d_f137_a615_f6b1b3e7172c</localDeveloperName>
+        <masterLabel>商談類似分析</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>指定された商談の類似商談を構造化データに基づいて検索し、インサイトを提供</scope>
+    </localTopics>
     <localTopics>
         <fullName>e758d601_ae07_2d09_0bfa_6f63c4899179_16jIe0000008Ox3</fullName>
         <aiPluginUtterances>
@@ -24,72 +87,44 @@
   - 供給リスクのある商談を教えて</utterance>
         </aiPluginUtterances>
         <canEscalate>false</canEscalate>
-        <description>ユーザーがサプライヤーのリスク分析、供給停止時の影響、依存度を知りたい時。「このサプライヤーが停止したら？」「サプライヤーリスクを分析して」「供給停止の影響は？」など。</description>
+        <description>指定サプライヤーが供給する全部品、影響を受ける商品、関連する商談パイプラインへの影響を分析します。ユーザーがサプライヤーのレコードページにいる場合は、現在のレコードIDをそのままsupplierIdとして渡してください。</description>
         <developerName>e758d601_ae07_2d09_0bfa_6f63c4899179_16jIe0000008Ox3</developerName>
         <genAiPluginInstructions>
-            <description>1. ユーザーの質問から対象のサプライヤー（Account、レコードタイプ: Supplier）を特定する
-     - サプライヤー名が含まれている場合はそれを使う
-     - 不明な場合はユーザーに確認する</description>
+            <description>1. ユーザーがサプライヤーのレコードページにいる場合は、現在のレコードIDをそのまま使用する。IDやサプライヤー名を聞く必要はない</description>
             <developerName>instruction_1</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 1</masterLabel>
             <sortOrder>0</sortOrder>
         </genAiPluginInstructions>
         <genAiPluginInstructions>
-            <description>2. 「サプライヤーインパクト分析」アクション（BOMAnalysisGetSupplierImpact）を実行する
-     - 入力: 特定したサプライヤーのレコードID（supplierId）
-     - このアクションはサプライヤーの供給部品、影響商品、商談パイプラインへの影響をJSON形式で返す</description>
+            <description>2. レコードページ以外の場合は、ユーザーの質問からサプライヤー名を特定し、不明な場合のみ確認する</description>
             <developerName>instruction_2</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 2</masterLabel>
             <sortOrder>1</sortOrder>
         </genAiPluginInstructions>
         <genAiPluginInstructions>
-            <description>3. 手順2の出力（analysisData）を「サプライヤーインパクト分析レポート」アクション（BOMSupplierImpactAnalysis）の入力に渡す
-     - 入力: analysisDataに手順2で取得したJSON文字列をそのまま渡す</description>
+            <description>3. 「サプライヤーインパクト分析」アクションを実行し、出力をそのままユーザーに返す</description>
             <developerName>instruction_3</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 3</masterLabel>
             <sortOrder>2</sortOrder>
         </genAiPluginInstructions>
-        <genAiPluginInstructions>
-            <description>4. 手順3の出力（分析レポート）をそのままユーザーに返す
-     - レポートにはサプライヤー概要、供給部品一覧、影響商品、商談パイプライン影響、リスク評価、推奨アクションが含まれる</description>
-            <developerName>instruction_4</developerName>
-            <language xsi:nil="true"/>
-            <masterLabel>Instruction 4</masterLabel>
-            <sortOrder>3</sortOrder>
-        </genAiPluginInstructions>
         <language>en_US</language>
         <localActionLinks>
-            <functionName>X92712a97_4a78_370f_ebdb_22cbb3361970_179Ie000000wnI5</functionName>
-        </localActionLinks>
-        <localActionLinks>
-            <functionName>Xa0887360_2b69_42f0_841c_08799e01f15f_179Ie000000wnI5</functionName>
+            <functionName>Xa4f23a82_e17a_d841_1af1_cea59d6cd4dd_179Ie000000wnI5</functionName>
         </localActionLinks>
         <localActions>
-            <fullName>X92712a97_4a78_370f_ebdb_22cbb3361970_179Ie000000wnI5</fullName>
-            <description>ユーザーが指定したサプライヤーの供給部品、影響商品、商談パイプラインへの影響データを取得します。サプライヤーのレコードIDが必要です。</description>
-            <developerName>X92712a97_4a78_370f_ebdb_22cbb3361970_179Ie000000wnI5</developerName>
+            <fullName>Xa4f23a82_e17a_d841_1af1_cea59d6cd4dd_179Ie000000wnI5</fullName>
+            <description>指定されたサプライヤーの供給部品、影響商品、商談パイプラインへの影響データを取得し、リスク評価と推奨アクションを含む分析レポートを生成します。</description>
+            <developerName>Xa4f23a82_e17a_d841_1af1_cea59d6cd4dd_179Ie000000wnI5</developerName>
             <invocationTarget>BOMAnalysisGetSupplierImpact</invocationTarget>
             <invocationTargetType>apex</invocationTargetType>
             <isConfirmationRequired>false</isConfirmationRequired>
             <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
-            <localDeveloperName>X92712a97_4a78_370f_ebdb_22cbb3361970</localDeveloperName>
+            <localDeveloperName>Xa4f23a82_e17a_d841_1af1_cea59d6cd4dd</localDeveloperName>
             <masterLabel>サプライヤーインパクト分析</masterLabel>
-            <progressIndicatorMessage>確認中</progressIndicatorMessage>
-        </localActions>
-        <localActions>
-            <fullName>Xa0887360_2b69_42f0_841c_08799e01f15f_179Ie000000wnI5</fullName>
-            <description>サプライヤーインパクト分析アクション（BOMAnalysisGetSupplierImpact）で取得したJSON形式の分析データをもとに、サプライヤーインパクト分析レポートを生成します。必ず先にBOMAnalysisGetSupplierImpactを実行してからこのアクションを呼び出してください。</description>
-            <developerName>Xa0887360_2b69_42f0_841c_08799e01f15f_179Ie000000wnI5</developerName>
-            <invocationTarget>BOMSupplierImpactAnalysis</invocationTarget>
-            <invocationTargetType>generatePromptResponse</invocationTargetType>
-            <isConfirmationRequired>false</isConfirmationRequired>
-            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
-            <localDeveloperName>Xa0887360_2b69_42f0_841c_08799e01f15f</localDeveloperName>
-            <masterLabel>サプライヤーインパクト分析レポート</masterLabel>
-            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+            <progressIndicatorMessage>Agentforce処理中です</progressIndicatorMessage>
         </localActions>
         <localDeveloperName>e758d601_ae07_2d09_0bfa_6f63c4899179</localDeveloperName>
         <masterLabel>サプライヤーインパクト分析</masterLabel>
@@ -97,57 +132,51 @@
         <scope>指定サプライヤーが供給する全部品、影響を受ける商品、商談パイプラインへの影響を分析し、リスク評価と推奨アクションを提示します。</scope>
     </localTopics>
     <localTopics>
-        <fullName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</fullName>
+        <fullName>aaf5deab_6e7f_ee2e_b059_ad4ead50cf0a_16jIe0000008Ox3</fullName>
         <aiPluginUtterances>
             <developerName>utterance_1</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Utterance 1</masterLabel>
-            <utterance>- Battery, High Capacityの BOM構成を分析して                                                                                      
-  - B-1000のBOMコスト内訳を教えて                           
-  - この製品のサプライヤー依存度はどうなっていますか？                                                                              
-  - 製品のBOM階層を見せて                                   
-  - BOMのコスト削減余地はありますか？
-  - この製品に関連する商談パイプラインへの影響は？</utterance>
+            <utterance>CA-0000の水平展開を分析して
+  この是正措置の影響範囲を調べて
+  バッテリー膨張の件、他の製品にも影響ある？
+  CA-0001の横展開先を教えて
+  この不具合の波及先を分析してほしい
+  是正措置a2zIe000000LCMkIAOの水平展開をお願い</utterance>
         </aiPluginUtterances>
         <canEscalate>false</canEscalate>
-        <description>ユーザーが製品のBOM構成、コスト分析、サプライヤー依存度、商談パイプラインへの影響を知りたい時。「この製品のBOを分析して」「BOM構成を教えて」「製品のコスト内訳は？」など。</description>
-        <developerName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</developerName>
+        <description>ユーザーが「水平展開」「横展開」「影響範囲」「波及」「CA-」「是正措置」というキーワードを含む依頼をした場合、必ずこのトピックを使用します。是正措置（Corrective Action）の不具合原因が他の製品・部品・設計プロジェクトにも影響する可能性を横断的に分析します。</description>
+        <developerName>aaf5deab_6e7f_ee2e_b059_ad4ead50cf0a_16jIe0000008Ox3</developerName>
         <genAiPluginInstructions>
-            <description>1. ユーザーの質問から対象の製品（Product2）を特定する                                                                             
-     - 製品名やProductCodeが含まれている場合はそれを使う    
-     - 不明な場合はユーザーに確認する</description>
+            <description>1. ユーザーから是正措置のIDまたは名前（CA-XXXX形式）を受け取る</description>
             <developerName>instruction_1</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 1</masterLabel>
             <sortOrder>0</sortOrder>
         </genAiPluginInstructions>
         <genAiPluginInstructions>
-            <description>2. 「製品BOM構成取得」アクション（BOMAnalysisGetProductBOM）を実行する
-     - 入力: 特定した製品のレコードID（productId）
-     - このアクションはBOM全階層データ、サプライヤー情報、商談パイプラインをJSON形式で返す</description>
+            <description>2. 水平展開分析アクションを実行し、是正措置IDを渡す</description>
             <developerName>instruction_2</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 2</masterLabel>
             <sortOrder>1</sortOrder>
         </genAiPluginInstructions>
         <genAiPluginInstructions>
-            <description>3. 手順2の出力（analysisData）を「製品BOM分析レポート」アクション（BOMProductAnalysis）の入力に渡す
-     - 入力: analysisDataに手順2で取得したJSON文字列をそのまま渡す</description>
+            <description>3. 分析結果をそのままユーザーに返す</description>
             <developerName>instruction_3</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 3</masterLabel>
             <sortOrder>2</sortOrder>
         </genAiPluginInstructions>
         <genAiPluginInstructions>
-            <description>4. 手順3の出力（分析レポート）をそのままユーザーに返す
-     - レポートには製品概要、BOM階層構成、コスト分析、サプライヤー依存度、商談パイプライン影響、リスクと推奨事項が含まれる</description>
+            <description>4. ユーザーが追加の質問（「特にリスクが高い製品は？」「設計プロジェクトへの影響を詳しく」等）をした場合は、分析結果を元に回答する</description>
             <developerName>instruction_4</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 4</masterLabel>
             <sortOrder>3</sortOrder>
         </genAiPluginInstructions>
         <genAiPluginInstructions>
-            <description>Ask clarifying questions to gather necessary details for accurate analysis.</description>
+            <description>5. 分析結果は是正措置レコードの水平展開フィールドにも自動保存されることをユーザーに伝える</description>
             <developerName>instruction_5</developerName>
             <language xsi:nil="true"/>
             <masterLabel>Instruction 5</masterLabel>
@@ -155,39 +184,166 @@
         </genAiPluginInstructions>
         <language>en_US</language>
         <localActionLinks>
-            <functionName>X7d896b01_c3fe_d1a7_db95_ce3940da791b_179Ie000000wnI0</functionName>
-        </localActionLinks>
-        <localActionLinks>
-            <functionName>X8257d0da_3001_747a_a831_ba5febf724a0_179Ie000000wnI0</functionName>
+            <functionName>Xac4de488_ccd9_9e32_395b_9131a476f62e_179Ie000000wnIA</functionName>
         </localActionLinks>
         <localActions>
-            <fullName>X8257d0da_3001_747a_a831_ba5febf724a0_179Ie000000wnI0</fullName>
-            <description>製品BOM構成取得アクション（BOMAnalysisGetProductBOM）で取得したJSON形式の分析データをもとに、BOM分析レポートを生成します。必ず先に  BOMAnalysisGetProductBOMを実行してからこのアクションを呼び出してください。</description>
-            <developerName>X8257d0da_3001_747a_a831_ba5febf724a0_179Ie000000wnI0</developerName>
-            <invocationTarget>BOMSupplierImpactAnalysis</invocationTarget>
-            <invocationTargetType>generatePromptResponse</invocationTargetType>
-            <isConfirmationRequired>false</isConfirmationRequired>
-            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
-            <localDeveloperName>X8257d0da_3001_747a_a831_ba5febf724a0</localDeveloperName>
-            <masterLabel>サプライヤーインパクト分析レポート</masterLabel>
-            <progressIndicatorMessage>確認中</progressIndicatorMessage>
-        </localActions>
-        <localActions>
-            <fullName>X7d896b01_c3fe_d1a7_db95_ce3940da791b_179Ie000000wnI0</fullName>
-            <description>指定サプライヤーが供給する全部品、影響を受ける商品、関連する商談パイプラインへの影響を取得します</description>
-            <developerName>X7d896b01_c3fe_d1a7_db95_ce3940da791b_179Ie000000wnI0</developerName>
-            <invocationTarget>BOMAnalysisGetSupplierImpact</invocationTarget>
+            <fullName>Xac4de488_ccd9_9e32_395b_9131a476f62e_179Ie000000wnIA</fullName>
+            <description>是正措置を起点に、同一サプライヤー・同一部品・同一カテゴリの影響範囲を横断分析し、水平展開先を特定します</description>
+            <developerName>Xac4de488_ccd9_9e32_395b_9131a476f62e_179Ie000000wnIA</developerName>
+            <invocationTarget>HorizontalDeploymentAction</invocationTarget>
             <invocationTargetType>apex</invocationTargetType>
             <isConfirmationRequired>false</isConfirmationRequired>
             <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
-            <localDeveloperName>X7d896b01_c3fe_d1a7_db95_ce3940da791b</localDeveloperName>
-            <masterLabel>サプライヤーインパクト分析</masterLabel>
-            <progressIndicatorMessage>確認中</progressIndicatorMessage>
+            <localDeveloperName>Xac4de488_ccd9_9e32_395b_9131a476f62e</localDeveloperName>
+            <masterLabel>水平展開分析</masterLabel>
+            <progressIndicatorMessage>Agentforce処理中です</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>aaf5deab_6e7f_ee2e_b059_ad4ead50cf0a</localDeveloperName>
+        <masterLabel>水平展開分析</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>範囲:
+ このトピックは以下を対象とします：
+ - 是正措置を起点とした水平展開の影響分析
+ - 同一サプライヤーが納入する他部品・他製品へのリスク評価
+ - 進行中の設計プロジェクトへの波及分析
+ - 同一カテゴリ（材料起因・部品不良・設計起因等）の過去是正措置との傾向分析
+ - 影響を受ける商談・顧客へのビジネスインパクト評価
+ - 推奨アクションの提示
+
+ このトピックは以下を対象外とします：
+ - 是正措置の新規作成や進捗更新
+ - 個別のサプライヤー調査の実施
+ - 取引先の一般的な分析（取引先分析トピックを使用）</scope>
+    </localTopics>
+    <localTopics>
+        <fullName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</fullName>
+        <aiPluginUtterances>
+            <developerName>utterance_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Utterance 1</masterLabel>
+            <utterance>- Battery, High CapacityのBOM構成を分析して
+  - B-1000のBOMコスト内訳を教えて
+  - この製品のサプライヤー依存度はどうなっていますか？
+  - 製品のBOM階層を見せて
+  - BOMのコスト削減余地はありますか？
+  - この製品に関連する商談パイプラインへの影響は？
+  - この製品の部品はどのサプライヤーから調達している？</utterance>
+        </aiPluginUtterances>
+        <canEscalate>false</canEscalate>
+        <description>ユーザーが特定の製品について、BOM構成、コスト分析、サプライヤー依存度、商談パイプラインへの影響を知りたい時。「この製品のBOMを分析して」「BOM構成を教えて」「製品のコスト内訳は？」「この製品のサプライヤー依存度は？」など。起点が製品の場合はこのトピックを使用する。</description>
+        <developerName>Product_Analysis_and_BOM_Insights_16jIe0000008Ox3</developerName>
+        <genAiPluginInstructions>
+            <description>1. ユーザーの質問から対象の製品（Product2）を特定する
+     - 製品名やProductCodeが含まれている場合はそれを使う
+     - 不明な場合はユーザーに確認する</description>
+            <developerName>instruction_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 1</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>2. 「製品BOM構成分析」アクション（BOMAnalysisGetProductBOM）を実行する
+     - 入力: 特定した製品のレコードID（productId）</description>
+            <developerName>instruction_2</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 2</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>3. アクションの出力（分析レポート）をそのままユーザーに返す</description>
+            <developerName>instruction_3</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 3</masterLabel>
+            <sortOrder>2</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>BOM_179Ie000000wnI0</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>BOM_179Ie000000wnI0</fullName>
+            <description>指定された製品のBOM全階層データを取得し、コスト分析・サプライヤー依存度・商談パイプライン影響を含む分析レポートを生成します。</description>
+            <developerName>BOM_179Ie000000wnI0</developerName>
+            <invocationTarget>BOMAnalysisGetProductBOM</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>BOM</localDeveloperName>
+            <masterLabel>製品BOM構成分析</masterLabel>
+            <progressIndicatorMessage>Agentforce処理中です</progressIndicatorMessage>
         </localActions>
         <localDeveloperName>Product_Analysis_and_BOM_Insights</localDeveloperName>
         <masterLabel>製品BOM分析</masterLabel>
         <pluginType>Topic</pluginType>
-        <scope>この製品に関連するBOM全階層（Header→Line→SubComponent→Part）の構成、コスト分析、サプライヤー依存度、関連商談への影響を分析します。</scope>
+        <scope>この製品に関連するBOM全階層（Header→Line→SubComponent→Part）の構成、コスト分析、サプライヤー依存度、関連商談への影響を分析します。
+
+このトピックは以下を対象外とします：
+- 是正措置の水平展開・影響範囲分析（水平展開分析トピックを使用）</scope>
+    </localTopics>
+    <localTopics>
+        <fullName>knowledge_16jIe0000008Ox3</fullName>
+        <aiPluginUtterances>
+            <developerName>utterance_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Utterance 1</masterLabel>
+            <utterance>このCAのナレッジを作成して                                                                                                         
+CA-0001のナレッジ化をお願い                                                                                                        
+この是正措置の知見をナレッジにまとめて                                                                                             
+この不具合対策をナレッジ記事にして                                                                                                 
+CA-0003の教訓をナレッジとして登録して</utterance>
+        </aiPluginUtterances>
+        <canEscalate>false</canEscalate>
+        <description>ユーザーが是正措置（CA）からナレッジ記事を作成・統合したい場合に使用する。「ナレッジ化して」「知見をまとめて」「ナレッジを作成して」等のリクエストが対象。</description>
+        <developerName>knowledge_16jIe0000008Ox3</developerName>
+        <genAiPluginInstructions>
+            <description>1. ユーザーがCAのレコードページにいる場合は、現在のレコードIDをそのまま使用する。IDを聞き返さないこと。</description>
+            <developerName>instruction_1</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 1</masterLabel>
+            <sortOrder>0</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>2. ユーザーがCA番号（CA-0000等）を指定した場合は、その値をそのままcaIdとして渡す。</description>
+            <developerName>instruction_2</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 2</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>3. ナレッジ作成アクションを実行し、結果のレポートをそのままユーザーに表示する。</description>
+            <developerName>instruction_3</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 3</masterLabel>
+            <sortOrder>2</sortOrder>
+        </genAiPluginInstructions>
+        <genAiPluginInstructions>
+            <description>4. 「ナレッジ化済み」と返された場合は、その旨をユーザーに伝え、再実行するかどうか確認する。</description>
+            <developerName>instruction_4</developerName>
+            <language xsi:nil="true"/>
+            <masterLabel>Instruction 4</masterLabel>
+            <sortOrder>3</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>X3425b9e9_cda2_13e0_679c_9e9ec18dd134_179Ie000000wnIo</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>X3425b9e9_cda2_13e0_679c_9e9ec18dd134_179Ie000000wnIo</fullName>
+            <description>是正措置（CA）の知見をナレッジ記事として作成または既存ナレッジに統合する。CAのレコードページにいる場合は現在のレコードIDをそのまま渡す。</description>
+            <developerName>X3425b9e9_cda2_13e0_679c_9e9ec18dd134_179Ie000000wnIo</developerName>
+            <invocationTarget>KnowledgeCreationAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>X3425b9e9_cda2_13e0_679c_9e9ec18dd134</localDeveloperName>
+            <masterLabel>ナレッジ作成</masterLabel>
+            <progressIndicatorMessage>エージェントフォース処理中</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>knowledge</localDeveloperName>
+        <masterLabel>ナレッジ作成</masterLabel>
+        <pluginType>Topic</pluginType>
+        <scope>このトピックの対象: 是正措置（CA）の8D知見からナレッジ記事（Knowledge）の作成・既存ナレッジへの統合
+このトピックの対象外: ナレッジの検索・閲覧（GeneralFAQトピックが担当）、取引先分析、BOM分析、水平展開分析</scope>
     </localTopics>
     <masterLabel>BOM Analysis Agent</masterLabel>
     <plannerActions>

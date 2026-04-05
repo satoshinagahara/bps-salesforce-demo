@@ -1,0 +1,14 @@
+{
+  "required" : [ "supplierId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "supplierId" : {
+      "title" : "サプライヤーID",
+      "description" : "ユーザーが指定したサプライヤー（Account、レコードタイプ:Supplier）のSalesforceレコードIDを渡してください。",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

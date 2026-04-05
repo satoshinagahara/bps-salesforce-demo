@@ -1,0 +1,14 @@
+{
+  "required" : [ "productId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "productId" : {
+      "title" : "商品ID",
+      "description" : "ユーザーが指定した製品のSalesforceレコードIDを渡してください。",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

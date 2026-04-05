@@ -125,22 +125,6 @@
             <sortOrder>4</sortOrder>
         </genAiPluginInstructions>
         <language>en_US</language>
-        <localActionLinks>
-            <functionName>AnswerQuestionsWithKnowledge_179Ie000000wnCf</functionName>
-        </localActionLinks>
-        <localActions>
-            <fullName>AnswerQuestionsWithKnowledge_179Ie000000wnCf</fullName>
-            <description>Answers questions about company policies and procedures, troubleshooting steps, or product information. For example: &quot;What is your return policy?&quot; &quot;How do I fix an issue?&quot; or &quot;What features does a product have?&quot;</description>
-            <developerName>AnswerQuestionsWithKnowledge_179Ie000000wnCf</developerName>
-            <invocationTarget>streamKnowledgeSearch</invocationTarget>
-            <invocationTargetType>standardInvocableAction</invocationTargetType>
-            <isConfirmationRequired>false</isConfirmationRequired>
-            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
-            <localDeveloperName>AnswerQuestionsWithKnowledge</localDeveloperName>
-            <masterLabel>Answer Questions with Knowledge</masterLabel>
-            <progressIndicatorMessage>Getting answers</progressIndicatorMessage>
-            <source>EmployeeCopilot__AnswerQuestionsWithKnowledge</source>
-        </localActions>
         <localDeveloperName>GeneralFAQ</localDeveloperName>
         <masterLabel>General FAQ</masterLabel>
         <pluginType>Topic</pluginType>

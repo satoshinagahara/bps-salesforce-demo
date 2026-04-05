@@ -1,0 +1,15 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "deploymentReport" : {
+      "title" : "水平展開分析レポート",
+      "description" : "分析結果をそのままユーザーに表示してください。結果は是正措置レコードの水平展開フィールドにも自動保存されています。",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true,
+      "copilotAction:useHydratedPrompt" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

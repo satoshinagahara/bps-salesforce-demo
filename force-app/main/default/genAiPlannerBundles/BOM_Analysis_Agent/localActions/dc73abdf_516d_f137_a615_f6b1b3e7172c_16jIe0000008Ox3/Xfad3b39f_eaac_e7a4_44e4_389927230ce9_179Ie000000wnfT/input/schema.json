@@ -1,0 +1,21 @@
+{
+  "required" : [ "opportunityId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "opportunityId" : {
+      "title" : "商談ID",
+      "description" : "類似商談を検索する対象の商談ID",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "userQuery" : {
+      "title" : "質問内容",
+      "description" : "ユーザーが知りたいこと（例：競合に勝つには？次に何をすべき？）",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

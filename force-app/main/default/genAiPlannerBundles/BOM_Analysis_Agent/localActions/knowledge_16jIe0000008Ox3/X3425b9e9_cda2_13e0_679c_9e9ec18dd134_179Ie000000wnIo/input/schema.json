@@ -1,0 +1,14 @@
+{
+  "required" : [ "caId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "caId" : {
+      "title" : "是正措置ID",
+      "description" : "ナレッジ化する是正措置のID。レコードページにいる場合は現在のレコードIDをそのまま渡す。",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
