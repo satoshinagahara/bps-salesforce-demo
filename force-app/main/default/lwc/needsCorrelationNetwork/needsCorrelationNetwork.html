@@ -1,0 +1,104 @@
+<template>
+    <lightning-card title="ニーズ相関ネットワーク" icon-name="custom:custom78">
+
+        <template if:true={isLoading}>
+            <div class="loading-container">
+                <lightning-spinner alternative-text="読み込み中" size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={error}>
+            <div class="slds-text-color_error slds-p-around_medium">{error}</div>
+        </template>
+
+        <template if:false={isLoading}>
+            <div class="controls-bar">
+                <div class="control-group">
+                    <lightning-combobox
+                        label="最小類似度"
+                        value={minSimilarity}
+                        options={similarityOptions}
+                        onchange={handleSimilarityChange}
+                        class="control-field">
+                    </lightning-combobox>
+                    <lightning-combobox
+                        label="最大ノード数"
+                        value={maxNodes}
+                        options={nodeCountOptions}
+                        onchange={handleNodeCountChange}
+                        class="control-field">
+                    </lightning-combobox>
+                </div>
+                <div class="stats-label">{statsLabel}</div>
+            </div>
+
+            <div class="legend-bar">
+                <span class="legend-title">業界（クリックで絞り込み）:</span>
+                <template for:each={legendItems} for:item="item">
+                    <span key={item.industry}
+                          class={item.cssClass}
+                          data-industry={item.industry}
+                          onclick={handleLegendClick}>
+                        <span class="legend-dot" style={item.dotStyle}></span>{item.label}
+                        <span class="legend-count">({item.count})</span>
+                    </span>
+                </template>
+            </div>
+
+            <div class="canvas-container">
+                <canvas></canvas>
+                <template if:true={tooltipVisible}>
+                    <div class="tooltip" style={tooltipStyle}>
+                        <div class="tooltip-title">{tooltipData.label}</div>
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">取引先</span>
+                            <span>{tooltipData.accountName}</span>
+                        </div>
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">業界</span>
+                            <span>{tooltipData.meta.label}</span>
+                        </div>
+                        <template if:true={tooltipData.needType}>
+                            <div class="tooltip-row">
+                                <span class="tooltip-label">種別</span>
+                                <span>{tooltipData.needType}</span>
+                            </div>
+                        </template>
+                        <template if:true={tooltipData.priority}>
+                            <div class="tooltip-row">
+                                <span class="tooltip-label">優先度</span>
+                                <span>{tooltipData.priority}</span>
+                            </div>
+                        </template>
+                        <template if:true={tooltipData.productFamily}>
+                            <div class="tooltip-row">
+                                <span class="tooltip-label">製品</span>
+                                <span>{tooltipData.productFamily}</span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <div class="canvas-hint">
+                    ドラッグで移動 / クリックでレコード表示 / ホバーで詳細
+                </div>
+            </div>
+
+            <template if:true={hasInsights}>
+                <div class="insights-panel">
+                    <h3 class="insights-title">🔍 異業種共通ニーズ</h3>
+                    <div class="insights-list">
+                        <template for:each={crossIndustryInsights} for:item="insight">
+                            <div key={insight.pair} class="insight-item">
+                                <span class="insight-pair">{insight.pair}</span>
+                                <span class="insight-count">{insight.count}件の類似ニーズ</span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="insights-hint">
+                        → 異業種横断でソリューションを展開できる可能性があります
+                    </div>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>
