@@ -381,7 +381,21 @@ POST /
 
 ---
 
-## 6. リスク・注意点・得られた知見
+## 6. デモ簡略化と本番構成の差異
+
+本デモでは以下の点を意図的に簡略化している。本番構成との対比は [gcp_demo_design_concept.md §8](../concepts/gcp_demo_design_concept.md) に詳述。
+
+| デモでの簡略化 | 本番で必要な構成 |
+|---|---|
+| 仕様書/図面を環境変数で1ファイル固定 | RAG（Vertex AI Embeddings + Vector Search）で製品に応じた資料を動的検索 |
+| GCSに手動アップロード（2ファイル） | PLMからの定期同期パイプライン（Dataflow / Cloud Composer） |
+| Gemini 1回呼出 | 複数資料のバッチ処理 + 品質評価（Vertex AI Evaluation） |
+| 提案結果はSFにのみ保存 | BigQueryにも蓄積しLookerでダッシュボード化 |
+| IoTは未実装 | Pub/Sub → Dataflow → Bigtable → Vertex AI予兆保全モデル |
+
+---
+
+## 7. リスク・注意点・得られた知見
 
 - **Gemini応答の揺れ**: `response_mime_type: application/json` 指定で JSON 確定。フォールバック正規表現パーサもmain.pyに組込済
 - **max_output_tokens**: 2048では不足（途中で切れてJSON壊れる）。**4096必須**（反映済）

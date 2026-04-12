@@ -50,6 +50,11 @@ export default class DesignSuggestionGcp extends LightningElement {
         return this.preview?.linkedNeeds?.length || 0;
     }
 
+    get specTitle() {
+        const product = this.preview?.productName || '';
+        return product ? `${product} 製品仕様書` : '製品仕様書';
+    }
+
     get hasReferenceUrls() {
         return this.result && (this.result.specUrl || this.result.diagramUrl);
     }

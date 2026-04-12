@@ -451,3 +451,294 @@ SF_USERNAME=demo@bps.example.com
 VERTEX_AI_LOCATION=us-central1
 VERTEX_AI_MODEL=gemini-1.5-flash-001
 ```
+
+---
+
+## 8. デモ簡略化と本番構成の対比
+
+### 前提
+
+本デモはデータパイプラインの**考え方**を実証するものであり、すべての処理を本番品質で実装しているわけではない。
+以下に「デモで簡略化している箇所」と「本番ではどう構成するか」を整理する。
+
+### 8.1 施策1（市場ニーズ → 製品改善提案）
+
+| 処理 | デモ構成 | 本番構成 | 本番で追加されるGCPサービス |
+|---|---|---|---|
+| **設計資産の特定** | 仕様書PDF・図面PNGを環境変数で1ファイル固定指定 | 製品マスタとGCSフォルダ構造の紐付け + Vertex AI Embeddingsでセマンティック検索（RAG） | **Vertex AI Embeddings**, **Vector Search** (or AlloyDB), BigQuery |
+| **設計資産の格納** | GCSバケットに手動アップロード（2ファイル） | PLMシステムからの定期同期パイプライン。数千〜数万ファイル。バージョン管理付き | **Cloud Storage**（大容量）, **Dataflow** or Cloud Composer（ETL）, **Dataform**（変換） |
+| **マルチモーダル処理** | Gemini 1回呼出（PDF 1件 + PNG 1件） | 検索で特定した複数の仕様書・図面を順次またはバッチでGemini処理。結果の品質評価・フィルタリング | **Vertex AI Gemini**（大量呼出）, **Vertex AI Evaluation** |
+| **提案結果の蓄積・分析** | DesignSuggestion__cに都度保存のみ | BigQueryにも蓄積し、提案の採用率・効果をダッシュボード化。提案品質の継続改善 | **BigQuery**, **Looker** |
+| **ナレッジベース構築** | なし | 過去の設計変更履歴・是正処置をEmbedding化し、提案生成時にコンテキストとして注入 | **Vertex AI Search**, **AlloyDB**（pgvector） |
+
+### 8.2 施策2（IoT → 予兆保全・商談機会）— デモではスライド説明
+
+| 処理 | デモ構成 | 本番構成 | 本番で追加されるGCPサービス |
+|---|---|---|---|
+| **IoTデータ収集** | HTTPトリガーでダミーJSON送信 | 設備センサーからMQTT/HTTP → Pub/Sub | **Pub/Sub**（大量イベント）, **IoT Core**後継 or パートナー |
+| **ストリーム処理** | Cloud Functions内で閾値判定 | Dataflowでリアルタイムストリーム処理（ウィンドウ集計・異常スコア計算） | **Dataflow**（Apache Beam） |
+| **時系列データ蓄積** | なし | Bigtable（高頻度書き込み）→ BigQuery（分析用） | **Bigtable**, **BigQuery** |
+| **異常検知モデル** | 閾値ベースの簡易ロジック | Vertex AIで予兆保全モデルをトレーニング・サービング | **Vertex AI Training**, **Vertex AI Endpoints** |
+| **ダッシュボード** | なし | 設備稼働状況・異常トレンドの可視化 | **Looker**, **BigQuery BI Engine** |
+| **ネットワーク** | パブリックインターネット | 工場拠点との専用線接続 | **Cloud Interconnect**, **Cloud VPN** |
+
+### 8.3 共通基盤（両施策横断）
+
+| 処理 | デモ構成 | 本番構成 | 本番で追加されるGCPサービス |
+|---|---|---|---|
+| **認証・セキュリティ** | JWT Bearer Flow（既存鍵流用） | Workload Identity Federation + Secret Manager + VPC Service Controls | **Secret Manager**, **VPC SC**, **Cloud Armor** |
+| **API管理** | Cloud Functions直接公開 | Apigeeまたは Cloud Endpoints でAPI管理・レート制限・監査ログ | **Apigee** or **Cloud Endpoints** |
+| **CI/CD** | 手動 gcloud deploy | Cloud Build + Artifact Registry + Cloud Deploy | **Cloud Build**, **Cloud Deploy**, **Artifact Registry** |
+| **監視・運用** | Cloud Logging のみ | Cloud Monitoring + Error Reporting + SLO設定 + アラート | **Cloud Monitoring**, **Cloud Trace**, **Error Reporting** |
+| **コスト管理** | 無料枠内 | 予算アラート + ラベルベースのコスト配分 + FinOps | **Billing API**, **BigQuery billing export** |
+
+### 8.4 本番構成で期待されるGCPの月額利用規模感（概算）
+
+| カテゴリ | 主要サービス | 概算月額（中規模製造業想定） |
+|---|---|---|
+| AI/ML | Vertex AI (Gemini, Embeddings, Training, Endpoints) | ¥500K〜¥2M |
+| データ基盤 | BigQuery, Bigtable, Cloud Storage | ¥200K〜¥500K |
+| ストリーム処理 | Dataflow, Pub/Sub | ¥100K〜¥300K |
+| API/セキュリティ | Apigee, Cloud Armor, VPC SC | ¥100K〜¥300K |
+| 監視/運用 | Cloud Monitoring, Logging, Trace | ¥50K〜¥100K |
+| ネットワーク | Cloud Interconnect | ¥200K〜¥500K |
+| **合計** | | **¥1.2M〜¥3.7M/月** |
+
+> **注意**: 上記はデモの文脈で「この構成を本番展開するとGCPのどのサービスがどう使われるか」を示すための概算であり、正確な見積もりではない。実際の費用は利用量・リージョン・契約条件に依存する。
+
+### 8.5 デモから本番への拡張パス
+
+```
+Phase 1 (PoC): デモ構成そのまま
+  → Cloud Functions + Gemini + GCS
+  → 月額: ほぼ無料枠〜数千円
+  → 目的: ビジネス価値の検証
+
+Phase 2 (パイロット):
+  → RAG構成追加（Vertex AI Embeddings + Vector Search）
+  → 仕様書群の自動インジェスト（Cloud Composer or Dataflow）
+  → BigQueryへの提案結果蓄積
+  → 月額: ¥100K〜¥300K
+  → 目的: 複数製品ラインへ展開
+
+Phase 3 (本番展開):
+  → IoTパイプライン構築（Pub/Sub + Dataflow + Bigtable）
+  → 予兆保全モデル（Vertex AI Training + Endpoints）
+  → Apigee API管理 + VPC Service Controls
+  → Cloud Interconnect（工場専用線）
+  → 月額: ¥1M〜¥4M
+  → 目的: 全社展開・継続的改善
+```
+
+### 8.6 本番構成のコストドライバー分析
+
+#### 施策1（設計改善提案）単体の場合
+
+| コスト要因 | 性質 | 概算月額 | 備考 |
+|---|---|---|---|
+| Gemini API呼出 | 従量制 | ¥50〜200/回 | PDF+画像のマルチモーダル入力はトークン量が大きい |
+| Vector Search（RAG化後） | **常時稼働** | ¥30K〜60K/月 | 最小構成でもインデックスノードが常時起動 |
+| Embeddings生成 | 初期＋差分 | 初期¥10K〜、月¥数千 | PDF追加時のみ |
+| Cloud Storage | 従量制 | ¥数百〜数千/月 | 仕様書群のサイズ次第だが安い |
+
+→ 施策1単体では月¥50K〜¥100K程度。最大コストは**Vector Search の常時稼働費用**。
+
+#### 施策2（IoT予兆保全）を加えた場合
+
+| コスト要因 | 性質 | 概算月額 | 備考 |
+|---|---|---|---|
+| **Bigtable** | **常時稼働** | **¥150K〜300K/月** | 最小3ノード構成。**最大のコストドライバー** |
+| Dataflow | 常時稼働 | ¥50K〜100K/月 | ストリーミングワーカー3〜5台が24/7稼働 |
+| Pub/Sub | 従量制 | ¥数千/月 | メッセージ量比例、安い |
+| Vertex AI Training | 不定期 | ¥50K〜/回 | モデル再学習時のみ |
+| Vertex AI Endpoints | 常時稼働 | ¥30K〜60K/月 | 推論エンドポイント |
+| Cloud Interconnect | 固定費 | ¥30K〜200K/月 | 接続タイプによる |
+
+→ IoTパイプラインの常時稼働インフラ（特にBigtable）が全体コストの支配的要因。
+
+#### Bigtableが最大コストとなる理由
+
+IoTセンサーデータは「高頻度書き込み × 長期保存 × 低レイテンシ読み取り」の3要件を同時に満たす必要がある。Bigtableはこの要件に最適だが、最小3ノード構成でも月¥150K程度が発生する。BigQueryでは書き込みレイテンシが要件を満たせない。
+
+#### コスト最適化の選択肢
+
+| 手法 | 効果 | トレードオフ |
+|---|---|---|
+| ホット/コールド階層化 | Bigtable（直近1ヶ月）+ BigQuery（それ以前）で¥50K〜100K削減可 | ETLパイプラインの運用が増える |
+| Dataflow バッチ化 | ストリーミング→定期バッチに切替で¥30K〜50K削減 | リアルタイム性が数分〜数十分に劣化 |
+| BigQuery ストリーミングインサートで代替 | Bigtable不要で¥150K〜300K削減 | 書き込みレイテンシ数秒、高頻度クエリに不向き |
+| Vertex AI Endpoints オートスケーリング | 推論エンドポイントをゼロスケール可能にして¥20K〜40K削減 | コールドスタートで初回推論が遅延 |
+
+> 上記はすべて中規模製造業（設備数千台、センサーデータ数万件/日）を想定した概算。実際の費用は利用量・リージョン・契約条件（CUD等）に依存する。
+
+### 8.7 設計資産（仕様書・図面）の発生源とGCPへの同期
+
+#### 発生源システム
+
+B2B製造業において仕様書・図面は以下のシステムから発生する。ほぼ確実にオンプレミスが絡む。
+
+| 発生源 | 生成されるファイル | 典型的な配置 | 代表製品 |
+|---|---|---|---|
+| **3D CAD** | 図面（DWG/DXF/PDF）、3Dモデル（STEP/IGES） | オンプレ（GPU依存） | SolidWorks, CATIA, Creo, NX |
+| **PLM** | 仕様書、設計変更履歴、BOM、承認済み図面PDF | オンプレ（一部クラウド移行中） | Siemens Teamcenter, PTC Windchill, Dassault 3DEXPERIENCE |
+| **PDM** | CADファイルのバージョン管理 | オンプレ（CADと密結合） | PLM付属のPDMモジュール |
+| **ERP** | 製品マスタ、原価情報、製造BOM | オンプレ or クラウド | SAP S/4HANA, Oracle EBS |
+| **文書管理** | 試験報告書、認証書、顧客仕様書 | オンプレ or クラウド | SharePoint, Box, OpenText |
+| **ファイルサーバ** | 旧版図面PDF、メンテナンスマニュアル | オンプレ（NAS/SAN） | 部門別フォルダ構造 |
+
+> **デモでの簡略化**: 本デモではCloud Storageに手動アップロードした2ファイル（仕様書PDF・図面PNG）を固定指定している。本番では上記システムからの同期パイプラインが必要。
+
+#### オンプレ → GCP 同期における課題
+
+1. **機密性**: 製品図面は企業の最重要知的財産。クラウドへの配置にはセキュリティ審査・データガバナンス対応が必要
+2. **ファイル形式の多様性**: CADネイティブ形式（.sldprt, .catpart 等）はGeminiが直接処理できない。PDF/PNG変換の中間処理が必要
+3. **バージョン管理**: PLM上の「Rev.A → Rev.B → Rev.C」の変遷を追跡し、常に最新版をGCP側で参照可能にする必要がある
+4. **データ量**: 大型設備メーカーでは数万〜数十万ファイル。全件同期か必要時取得かの設計判断が必要
+5. **ネットワーク**: オンプレ → GCP の帯域確保。初期同期で数TB、差分同期で日次数GB
+
+#### 同期アーキテクチャの選択肢
+
+##### パターンA: バッチ同期（最も一般的）
+
+```
+[PLM / ファイルサーバ（オンプレ）]
+  │ 日次/週次バッチ（PLM API or ファイル監視）
+  ▼
+[オンプレ同期エージェント]
+  │ gsutil rsync / Transfer Service for On Premises
+  │ Cloud VPN or Cloud Interconnect 経由
+  ▼
+[Cloud Storage]
+  ├─ products/{product_id}/specs/*.pdf
+  ├─ products/{product_id}/drawings/*.png
+  └─ products/{product_id}/metadata.json
+      ↓ GCS イベント通知 → Pub/Sub
+      ↓
+[Cloud Functions: インジェストパイプライン]
+  ├─ PDF → テキスト抽出（Document AI）
+  ├─ CADネイティブ → PNG変換（カスタムコンテナ or パートナーAPI）
+  ├─ Embedding生成（Vertex AI Embeddings）
+  └─ メタデータ → BigQuery
+```
+
+- **利点**: GCP上に最新データが常時存在。検索・Gemini呼出が高速
+- **課題**: 同期パイプラインの構築・運用コスト。機密データのクラウド常時配置に対するセキュリティ承認
+
+##### パターンB: オンデマンド取得
+
+```
+[Vertex AI Gemini 呼出時]
+  │ 対象ファイルをリアルタイムに取得
+  ▼
+[Cloud Run プロキシ]
+  │ PLM REST API or WebDAV 経由
+  │ Cloud VPN でオンプレ接続
+  ▼
+[PLM / ファイルサーバ（オンプレ）]
+```
+
+- **利点**: クラウドに機密データを常時配置しない。同期パイプラインの運用不要
+- **課題**: レイテンシ増加（数秒〜十数秒追加）。オンプレ側の可用性に依存
+
+##### パターンC: ハイブリッド（推奨）
+
+```
+メタデータ + Embedding → バッチ同期（パターンA）
+実ファイル本体 → オンデマンド取得 + GCSキャッシュ（パターンB）
+```
+
+- **利点**: 検索はGCP上で高速実行。実ファイルは必要時に取得し、頻繁にアクセスされるファイルはGCSにキャッシュ
+- **利点**: 機密データの常時クラウド配置を最小化しつつパフォーマンスを確保
+- **課題**: 両パターンのインフラが必要
+
+#### 同期に伴う追加GCPサービスとコスト
+
+| 同期方式 | 追加GCPサービス | 追加月額概算 |
+|---|---|---|
+| パターンA（バッチ） | Transfer Service, Document AI, Cloud Composer | ¥50K〜150K |
+| パターンB（オンデマンド） | Cloud VPN, Cloud Run プロキシ | ¥30K〜80K |
+| パターンC（ハイブリッド） | 上記両方 + GCSキャッシュポリシー | ¥60K〜150K |
+| 共通: ネットワーク | Cloud Interconnect or Cloud VPN | ¥30K〜200K |
+
+> パターンCのハイブリッド方式は、セキュリティ要件と性能要件のバランスが取りやすく、段階的な導入（最初はパターンBで始め、利用頻度の高い資産からパターンAに移行）が可能なため、多くのケースで推奨される。
+
+### 8.8 セキュリティ・データガバナンス
+
+製品図面・仕様書は企業の最重要知的財産であり、クラウドへの配置には厳格なセキュリティ対応が必要となる。
+
+#### 転送・保管時の暗号化
+
+| レイヤー | 対応 | GCPサービス |
+|---|---|---|
+| 転送中の暗号化 | TLS 1.3（GCPサービス間は自動適用） | デフォルト |
+| 保管時の暗号化 | Google管理鍵（デフォルト）or 顧客管理鍵（CMEK） | Cloud KMS |
+| 鍵の所在管理 | 顧客がGCP外で鍵を保持する場合 | Cloud External Key Manager（EKM） |
+
+CMEKを使用することで「暗号鍵を自社で管理し、鍵を無効化すればGCP上のデータが即座に読取不能になる」という統制が可能。
+
+#### データの境界制御
+
+| 対策 | 内容 | GCPサービス |
+|---|---|---|
+| プロジェクト境界 | GCSやVertex AIへのアクセスを特定プロジェクト・VPCに限定 | VPC Service Controls |
+| リージョン限定 | 設計資産を日本リージョン（asia-northeast1）に限定し、データが国外に出ないことを保証 | リソースロケーション制約（Organization Policy） |
+| IAM最小権限 | Cloud Functions のSAには storage.objectViewer + aiplatform.user のみ付与 | Cloud IAM |
+| 監査ログ | 誰がいつどのファイルにアクセスしたかを記録 | Cloud Audit Logs + BigQuery |
+
+#### Vertex AI Gemini へのデータ送信に関する懸念
+
+「Gemini API にPDF・図面を送信した場合、Googleがその内容をモデル学習に使用しないか」は顧客にとって重要な関心事項。
+
+- **Vertex AI API（GCP経由）** の場合: Googleの[Data Governance commitments](https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance)により、**顧客データはモデルのトレーニングに使用されない**ことが契約上保証されている
+- これは消費者向けGemini（gemini.google.com）とは異なる。Vertex AI APIは企業向けデータガバナンスが適用される
+- 追加の保証が必要な場合、Assured Workloads を利用してコンプライアンス要件（ISO 27001, SOC 2 等）に準拠した環境を構成可能
+
+#### 本デモにおけるセキュリティの簡略化
+
+| 項目 | デモ構成 | 本番で必要な構成 |
+|---|---|---|
+| 暗号化 | Google管理鍵（デフォルト） | CMEK（Cloud KMS） |
+| ネットワーク | パブリックインターネット | Cloud Interconnect + VPC SC |
+| Cloud Functions | allow-unauthenticated（公開） | IAM認証必須 + API Gateway |
+| SF→GCP認証 | Remote Site Setting + 直接HTTP | Apigee or Cloud Endpoints + mTLS |
+| 監査ログ | Cloud Logging のみ | Cloud Audit Logs + SIEM連携 |
+
+### 8.9 AI生成提案の品質管理
+
+Vertex AI Gemini が生成する製品改善提案は、あくまで「AIによる示唆」であり、そのまま設計変更に適用すべきものではない。
+
+#### ハルシネーション（事実と異なる出力）のリスク
+
+| リスク | 具体例 | 影響度 |
+|---|---|---|
+| 仕様書の誤読 | 存在しないセクション番号を引用する | 中（検証で発見可能） |
+| 図面の誤認識 | コンポーネントの位置関係を取り違える | 中〜高 |
+| 技術的に不正確な提案 | 物理的に実現不可能な改善案を提示する | 高 |
+| 過剰な確信度 | 不確実な提案を断定的に記述する | 中 |
+
+#### 本アーキテクチャにおける品質担保の設計
+
+現在のアーキテクチャでは、以下の3層で品質リスクを緩和している。
+
+**第1層: プロンプト設計による出力制御**
+- 構造化JSON出力を強制（自由記述を排除）
+- 仕様書のセクション番号・図面名の明示的引用を義務付け → 根拠のない提案を抑制
+- temperature=0.2 の低温設定 → 創造的だが不正確な出力を抑制
+
+**第2層: 参照資料の可視化による検証支援**
+- LWC上に仕様書PDF・図面PNGをインラインプレビュー → 「Geminiが引用した箇所」を人間がその場で確認可能
+- 「P.4 §3.2」と書いてあれば、その場でPDFの該当ページをスクロールして照合できる
+
+**第3層: Human-in-the-loop の設計**
+- AI提案は DesignSuggestion__c レコードとして保存されるが、**自動で設計変更を実行しない**
+- 設計チームがレコードを確認・評価した上で、Design_Project__c（設計開発プロジェクト）への採用を判断する
+- 「AIは示唆を出すだけ。採用するかどうかは人間が決める」という原則
+
+#### 本番で追加すべき品質管理施策
+
+| 施策 | 内容 | GCPサービス |
+|---|---|---|
+| 出力評価の自動化 | 提案が仕様書の内容と整合しているかを別のLLM呼出で検証（Self-consistency check） | Vertex AI Gemini（評価用呼出） |
+| 信頼度スコア付与 | 提案の根拠の強さ（引用箇所の明確さ、複数資料での裏付け）をスコア化 | Vertex AI Evaluation |
+| フィードバックループ | 設計チームが「採用/不採用/修正」を記録 → 提案品質の改善指標としてBigQueryに蓄積 | BigQuery + Looker |
+| Grounding（根拠づけ） | Vertex AI Search と連携し、提案内容が社内ナレッジベースに根拠を持つかを検証 | Vertex AI Search + Grounding API |

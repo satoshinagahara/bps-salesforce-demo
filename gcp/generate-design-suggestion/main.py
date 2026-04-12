@@ -29,8 +29,20 @@ GCP_PROJECT = os.environ.get("GCP_PROJECT", "ageless-lamp-251200")
 VERTEX_LOCATION = os.environ.get("VERTEX_LOCATION", "us-central1")
 VERTEX_MODEL = os.environ.get("VERTEX_MODEL", "gemini-2.5-flash")
 GCS_BUCKET = os.environ.get("GCS_BUCKET", "bps-design-assets")
-SPEC_OBJECT = os.environ.get("SPEC_OBJECT", "specs/bps_spec_wind_turbine_a1000.pdf")
-DIAGRAM_OBJECT = os.environ.get("DIAGRAM_OBJECT", "diagrams/blade_pitch_control_diagram.png")
+
+PRODUCT_ASSETS = {
+    "A-1000": {
+        "keywords": ["A-1000", "風力タービン", "タービン", "Wind Turbine"],
+        "spec": "specs/bps_spec_wind_turbine_a1000.pdf",
+        "diagram": "diagrams/blade_pitch_control_diagram.png",
+    },
+    "E-2000": {
+        "keywords": ["E-2000", "EnerCharge", "蓄電", "バッテリー", "Battery"],
+        "spec": "specs/bps_spec_battery_e2000.pdf",
+        "diagram": "diagrams/e2000_bms_architecture.png",
+    },
+}
+DEFAULT_PRODUCT_KEY = "A-1000"
 
 SF_LOGIN_URL = os.environ.get("SF_LOGIN_URL", "https://login.salesforce.com")
 SF_CONSUMER_KEY = os.environ.get("SF_CONSUMER_KEY", "")
@@ -143,7 +155,7 @@ def _parse_model_response(raw: str) -> dict:
 _SA_EMAIL = os.environ.get("SA_EMAIL", "bps-demo-sa@ageless-lamp-251200.iam.gserviceaccount.com")
 
 
-def _generate_signed_urls() -> dict:
+def _generate_signed_urls(req: dict) -> dict:
     """GCS オブジェクトの Signed URL を生成（1時間有効）。IAM signBlob API を使用。"""
     import google.auth
     from google.auth.transport import requests as auth_requests
@@ -153,10 +165,11 @@ def _generate_signed_urls() -> dict:
         if hasattr(credentials, "refresh"):
             credentials.refresh(auth_requests.Request())
 
+        spec_object, diagram_object = _resolve_product_assets(req)
         client = _get_storage_client()
         bucket = client.bucket(GCS_BUCKET)
         urls = {}
-        for key, obj_name in [("specUrl", SPEC_OBJECT), ("diagramUrl", DIAGRAM_OBJECT)]:
+        for key, obj_name in [("specUrl", spec_object), ("diagramUrl", diagram_object)]:
             blob = bucket.blob(obj_name)
             url = blob.generate_signed_url(
                 version="v4",
@@ -173,9 +186,23 @@ def _generate_signed_urls() -> dict:
         return {}
 
 
+def _resolve_product_assets(req: dict) -> tuple[str, str]:
+    """製品名からGCSオブジェクトパスを解決する。キーワードマッチング。"""
+    product_name = req.get("productName", "")
+    for key, assets in PRODUCT_ASSETS.items():
+        for keyword in assets["keywords"]:
+            if keyword in product_name:
+                log.info("product matched: '%s' contains '%s' → %s", product_name, keyword, key)
+                return assets["spec"], assets["diagram"]
+    log.info("no product match for '%s', using default %s", product_name, DEFAULT_PRODUCT_KEY)
+    default = PRODUCT_ASSETS[DEFAULT_PRODUCT_KEY]
+    return default["spec"], default["diagram"]
+
+
 def _call_gemini(req: dict) -> dict:
-    pdf_bytes = _fetch_gcs_bytes(GCS_BUCKET, SPEC_OBJECT)
-    png_bytes = _fetch_gcs_bytes(GCS_BUCKET, DIAGRAM_OBJECT)
+    spec_object, diagram_object = _resolve_product_assets(req)
+    pdf_bytes = _fetch_gcs_bytes(GCS_BUCKET, spec_object)
+    png_bytes = _fetch_gcs_bytes(GCS_BUCKET, diagram_object)
 
     pdf_part = Part.from_data(data=pdf_bytes, mime_type="application/pdf")
     png_part = Part.from_data(data=png_bytes, mime_type="image/png")
@@ -237,14 +264,14 @@ def generate_design_suggestion(request):
         "targetComponent": parsed.get("targetComponent", ""),
         "suggestionText": parsed.get("suggestionText", ""),
         "referenceSpec": parsed.get("referenceSpec", ""),
-        "referenceDiagram": parsed.get("referenceDiagram", DIAGRAM_OBJECT.split("/")[-1]),
+        "referenceDiagram": parsed.get("referenceDiagram", ""),
         "priority": parsed.get("priority", "中"),
         "processedBy": f"Vertex AI {VERTEX_MODEL}",
         "generatedAt": datetime.now(timezone.utc).astimezone().isoformat(),
         "gcpRequestId": request_id,
     }
 
-    signed_urls = _generate_signed_urls()
+    signed_urls = _generate_signed_urls(req)
     result["specUrl"] = signed_urls.get("specUrl", "")
     result["diagramUrl"] = signed_urls.get("diagramUrl", "")
 

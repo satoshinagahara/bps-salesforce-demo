@@ -156,7 +156,7 @@
                                 <div class="reference-card">
                                     <div class="reference-card-header">
                                         <lightning-icon icon-name="utility:image" size="xx-small"></lightning-icon>
-                                        <span>図面: ブレードピッチ制御機構 配置図</span>
+                                        <span>図面: {result.referenceDiagram}</span>
                                     </div>
                                     <div class="reference-image-container">
                                         <img src={result.diagramUrl} alt="ブレードピッチ制御機構 配置図" class="reference-image"/>
@@ -167,7 +167,7 @@
                                 <div class="reference-card">
                                     <div class="reference-card-header">
                                         <lightning-icon icon-name="utility:file" size="xx-small"></lightning-icon>
-                                        <span>仕様書: A-1000 大型風力タービン 製品仕様書</span>
+                                        <span>仕様書: {specTitle}</span>
                                     </div>
                                     <div class="reference-pdf-container">
                                         <iframe src={result.specUrl} class="reference-pdf" title="製品仕様書プレビュー"></iframe>
