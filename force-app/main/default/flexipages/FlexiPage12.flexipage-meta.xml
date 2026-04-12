@@ -417,7 +417,31 @@
                 <identifier>flexipage_tab2</identifier>
             </componentInstance>
         </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>gcpTabContent</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>製品改善提案 by GCP</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>gcpDesignSuggestionTab</identifier>
+            </componentInstance>
+        </itemInstances>
         <name>Facet-fe3b078e-add9-4fea-83b3-f3af6d199df9</name>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentName>c:designSuggestionGcp</componentName>
+                <identifier>c_designSuggestionGcp</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>gcpTabContent</name>
         <type>Facet</type>
     </flexiPageRegions>
     <flexiPageRegions>

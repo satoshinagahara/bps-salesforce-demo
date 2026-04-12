@@ -21,3 +21,7 @@ server.crt
 AccountSummaryAgent_Preview_*.json
 *accessKeys*
 *API*Key*
+
+# Private docs (not for public repo)
+docs/concepts/slide-prompts/
+docs/private/

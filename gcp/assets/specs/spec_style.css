@@ -1,0 +1,177 @@
+@page {
+  size: A4;
+  margin: 20mm 18mm 20mm 18mm;
+  @bottom-center {
+    content: "BPS Corporation — Confidential / " counter(page) " / " counter(pages);
+    font-size: 9pt;
+    color: #868e96;
+    font-family: "Hiragino Sans", sans-serif;
+  }
+}
+
+html {
+  font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: 10pt;
+  line-height: 1.65;
+  color: #212529;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 18pt;
+  color: #0b4f8a;
+  border-bottom: 3px solid #0b4f8a;
+  padding-bottom: 6px;
+  margin-top: 0;
+  margin-bottom: 14pt;
+}
+
+h2 {
+  font-size: 13pt;
+  color: #0b4f8a;
+  margin-top: 14pt;
+  margin-bottom: 6pt;
+  border-left: 4px solid #0b4f8a;
+  padding-left: 8px;
+}
+
+h3 {
+  font-size: 11pt;
+  color: #343a40;
+  margin-top: 10pt;
+  margin-bottom: 4pt;
+}
+
+p {
+  margin: 4pt 0;
+  text-align: left;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+ul, ol {
+  margin: 4pt 0;
+  padding-left: 22pt;
+}
+
+li {
+  margin: 2pt 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8pt 0;
+  font-size: 9pt;
+}
+
+th {
+  background: #0b4f8a;
+  color: white;
+  padding: 5pt 8pt;
+  text-align: left;
+  border: 1px solid #0b4f8a;
+}
+
+td {
+  padding: 4pt 8pt;
+  border: 1px solid #ced4da;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td {
+  background: #f8f9fa;
+}
+
+strong {
+  color: #0b4f8a;
+  font-weight: 600;
+}
+
+/* Cover page */
+.cover {
+  page-break-after: always;
+  text-align: center;
+  padding-top: 80pt;
+}
+
+.cover h1 {
+  font-size: 28pt;
+  border-bottom: none;
+  margin-top: 40pt;
+  margin-bottom: 12pt;
+}
+
+.cover h2 {
+  font-size: 18pt;
+  border-left: none;
+  padding-left: 0;
+  text-align: center;
+  color: #495057;
+  margin-top: 0;
+  margin-bottom: 60pt;
+}
+
+.cover p {
+  font-size: 10pt;
+  text-align: center;
+  margin: 3pt 0;
+}
+
+.cover em {
+  display: block;
+  margin-top: 60pt;
+  font-size: 9pt;
+  color: #868e96;
+  font-style: normal;
+  padding: 0 40pt;
+}
+
+/* Page break utility */
+.pagebreak {
+  page-break-after: always;
+}
+
+/* Note callout */
+.note {
+  background: #e7f5ff;
+  border-left: 4px solid #339af0;
+  padding: 8pt 12pt;
+  margin: 10pt 0;
+  font-size: 9.5pt;
+  border-radius: 2px;
+}
+
+/* Warning callout */
+.warn {
+  background: #fff9db;
+  border-left: 4px solid #f59f00;
+  padding: 8pt 12pt;
+  margin: 10pt 0;
+  font-size: 9.5pt;
+  border-radius: 2px;
+}
+
+/* Known issue callout — used on P.3 */
+.known-issue {
+  background: #ffe8e8;
+  border: 1px dashed #fa5252;
+  padding: 10pt 14pt;
+  margin: 12pt 0;
+  font-size: 9.5pt;
+  border-radius: 3px;
+}
+
+.known-issue strong {
+  color: #c92a2a;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #dee2e6;
+  margin: 16pt 0;
+}

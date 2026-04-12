@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://asia-northeast1-ageless-lamp-251200.cloudfunctions.net</url>
+    <description>GCP Cloud Functions - 製品改善提案（Vertex AI マルチモーダル設計示唆生成）</description>
+</RemoteSiteSetting>

@@ -1,0 +1,189 @@
+<template>
+    <div class="container">
+
+        <!-- エラー表示 -->
+        <template lwc:if={hasError}>
+            <div class="error-box">
+                <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                <span class="error-text">{error}</span>
+            </div>
+        </template>
+
+        <!-- 入力プレビュー：施策情報 + 紐付くニーズ -->
+        <template lwc:if={hasPreview}>
+            <div class="preview-section">
+                <div class="section-header">
+                    <lightning-icon icon-name="utility:send" size="x-small"></lightning-icon>
+                    <span class="section-title">GCPに送信される情報</span>
+                </div>
+
+                <!-- 施策情報 -->
+                <div class="preview-subsection">
+                    <span class="subsection-label">製品施策（ビジネス意思決定）</span>
+                    <div class="preview-item">
+                        <span class="preview-label">施策タイトル</span>
+                        <span class="preview-value preview-value-primary">{preview.title}</span>
+                    </div>
+                    <template lwc:if={preview.whyRationale}>
+                        <div class="preview-item">
+                            <span class="preview-label">Why（なぜやるか）</span>
+                            <span class="preview-value">{preview.whyRationale}</span>
+                        </div>
+                    </template>
+                    <template lwc:if={preview.whatDescription}>
+                        <div class="preview-item">
+                            <span class="preview-label">What（何をするか）</span>
+                            <span class="preview-value">{preview.whatDescription}</span>
+                        </div>
+                    </template>
+                    <div class="preview-row">
+                        <div class="preview-item preview-item-half">
+                            <span class="preview-label">対象製品</span>
+                            <span class="preview-value">{preview.productName}</span>
+                        </div>
+                        <div class="preview-item preview-item-half">
+                            <span class="preview-label">ターゲット顧客像</span>
+                            <span class="preview-value">{preview.targetCustomer}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 紐付くニーズカード -->
+                <template lwc:if={hasLinkedNeeds}>
+                    <div class="preview-subsection needs-subsection">
+                        <span class="subsection-label">紐付くニーズカード（{needsCount}件）</span>
+                        <template for:each={preview.linkedNeeds} for:item="need">
+                            <div key={need.needsCardId} class="need-chip">
+                                <span class="need-title">{need.title}</span>
+                                <template lwc:if={need.accountName}>
+                                    <span class="need-account">{need.accountName}</span>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <div class="gcp-info">
+                    <span class="gcp-badge">GCP</span>
+                    <span class="gcp-text">施策の意図 × 顧客ニーズ × 仕様書PDF × 図面 → Vertex AI Gemini でマルチモーダル照合</span>
+                </div>
+            </div>
+
+            <!-- 生成ボタン -->
+            <div class="button-container">
+                <lightning-button
+                    variant="brand"
+                    label={buttonLabel}
+                    disabled={buttonDisabled}
+                    onclick={handleGenerate}
+                    class="generate-button"
+                ></lightning-button>
+            </div>
+        </template>
+
+        <!-- 4ステップ進捗表示 -->
+        <template lwc:if={isGenerating}>
+            <div class="progress-section">
+                <template for:each={stepsWithStatus} for:item="step">
+                    <div key={step.key} class={step.stepClass}>
+                        <div class="step-icon">
+                            <template lwc:if={step.isDone}>
+                                <lightning-icon icon-name="utility:check" size="x-small" variant="success"></lightning-icon>
+                            </template>
+                            <template lwc:if={step.isCurrent}>
+                                <span class="css-spinner"></span>
+                            </template>
+                            <template lwc:if={step.isPending}>
+                                <span class="step-circle"></span>
+                            </template>
+                        </div>
+                        <div class="step-content">
+                            <span class="step-number">Step {step.key}</span>
+                            <span class="step-label">{step.label}</span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- 結果カード（スライドイン） -->
+        <template lwc:if={hasResult}>
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-title-row">
+                        <lightning-icon icon-name="utility:sparkles" size="small"></lightning-icon>
+                        <h3 class="result-title">製品改善提案</h3>
+                        <span class="vertex-badge">Vertex AI Gemini</span>
+                    </div>
+                    <span class={priorityClass}>{result.priority}</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-meta-row">
+                        <div class="result-meta">
+                            <span class="meta-label">対象製品</span>
+                            <span class="meta-value">{result.targetProduct}</span>
+                        </div>
+                        <div class="result-meta">
+                            <span class="meta-label">対象コンポーネント</span>
+                            <span class="meta-value">{result.targetComponent}</span>
+                        </div>
+                    </div>
+                    <div class="result-suggestion">
+                        <span class="meta-label">提案内容</span>
+                        <p class="suggestion-text">{result.suggestionText}</p>
+                    </div>
+                    <div class="result-references">
+                        <div class="ref-item">
+                            <lightning-icon icon-name="utility:file" size="xx-small"></lightning-icon>
+                            <span class="ref-text">{result.referenceSpec}</span>
+                        </div>
+                        <div class="ref-item">
+                            <lightning-icon icon-name="utility:image" size="xx-small"></lightning-icon>
+                            <span class="ref-text">{result.referenceDiagram}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 参照資料プレビュー -->
+                <template lwc:if={hasReferenceUrls}>
+                    <div class="reference-section">
+                        <div class="reference-header">
+                            <lightning-icon icon-name="utility:preview" size="x-small"></lightning-icon>
+                            <span class="reference-title">Gemini が参照した資料（Cloud Storage）</span>
+                        </div>
+                        <div class="reference-grid">
+                            <template lwc:if={result.diagramUrl}>
+                                <div class="reference-card">
+                                    <div class="reference-card-header">
+                                        <lightning-icon icon-name="utility:image" size="xx-small"></lightning-icon>
+                                        <span>図面: ブレードピッチ制御機構 配置図</span>
+                                    </div>
+                                    <div class="reference-image-container">
+                                        <img src={result.diagramUrl} alt="ブレードピッチ制御機構 配置図" class="reference-image"/>
+                                    </div>
+                                </div>
+                            </template>
+                            <template lwc:if={result.specUrl}>
+                                <div class="reference-card">
+                                    <div class="reference-card-header">
+                                        <lightning-icon icon-name="utility:file" size="xx-small"></lightning-icon>
+                                        <span>仕様書: A-1000 大型風力タービン 製品仕様書</span>
+                                    </div>
+                                    <div class="reference-pdf-container">
+                                        <iframe src={result.specUrl} class="reference-pdf" title="製品仕様書プレビュー"></iframe>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="result-footer">
+                    <span class="footer-text">{result.processedBy}</span>
+                    <span class="footer-text">{result.generatedAt}</span>
+                </div>
+            </div>
+        </template>
+
+    </div>
+</template>
