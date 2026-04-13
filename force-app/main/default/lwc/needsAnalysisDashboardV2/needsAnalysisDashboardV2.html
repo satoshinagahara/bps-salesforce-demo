@@ -40,34 +40,27 @@
                     <div class="kpi-value">{totalCount}</div>
                     <div class="kpi-label">ニーズカード</div>
                 </div>
-                <div class="kpi-card kpi-card--danger">
-                    <div class="kpi-value kpi-value--danger">{highPriorityCount}</div>
-                    <div class="kpi-label">優先度:高</div>
-                </div>
                 <div class="kpi-card">
-                    <div class="kpi-value kpi-value--info">{totalImpactFormatted}</div>
+                    <div class="kpi-value">{totalImpactFormatted}</div>
                     <div class="kpi-label">ビジネスインパクト</div>
                 </div>
-                <div class="kpi-card kpi-card--freshness">
-                    <div class="freshness-counts">
-                        <span class="freshness-num freshness-num--fresh">{freshCount}</span>
-                        <span class="freshness-sep">/</span>
-                        <span class="freshness-num freshness-num--aging">{agingCount}</span>
-                        <span class="freshness-sep">/</span>
-                        <span class="freshness-num freshness-num--stale">{staleCount}</span>
+                <div class="kpi-card">
+                    <div class="freshness-counts-v2">
+                        <span class="freshness-num-v2">{freshCount}</span>
+                        <span class="freshness-sep-v2">/</span>
+                        <span class="freshness-num-v2">{agingCount}</span>
+                        <span class="freshness-sep-v2">/</span>
+                        <span class="freshness-num-v2">{staleCount}</span>
                     </div>
-                    <div class="freshness-bar-kpi" style={freshnessBarStyle}></div>
-                    <div class="kpi-label">鮮度 (3M/6M/古)</div>
+                    <div class="kpi-label">鮮度（3M以内 / 3-6M / 6M超）</div>
                 </div>
             </div>
 
             <!-- Tab navigation -->
             <div class="tab-bar">
-                <button class={productFamilyTabClass} data-tab="productFamily" onclick={handleTabClick}>製品Family</button>
-                <button class={productNeedTypeTabClass} data-tab="productNeedType" onclick={handleTabClick}>製品×種別</button>
-                <button class={productIndustryTabClass} data-tab="productIndustry" onclick={handleTabClick}>製品×業種</button>
-                <button class={industryNeedTypeTabClass} data-tab="industryNeedType" onclick={handleTabClick}>業種×種別</button>
-                <button class={accountTabClass} data-tab="account" onclick={handleTabClick}>顧客Top</button>
+                <button class={productIndustryTabClass} data-tab="productIndustry" onclick={handleTabClick}>製品 × 業種</button>
+                <button class={productNeedTypeTabClass} data-tab="productNeedType" onclick={handleTabClick}>製品 × 種別</button>
+                <button class={industryNeedTypeTabClass} data-tab="industryNeedType" onclick={handleTabClick}>業種 × 種別</button>
             </div>
 
             <!-- Chart area -->
@@ -76,11 +69,6 @@
                     <span class="chart-hint">
                         <template if:true={isMatrixTab}>セルをクリックするとAIが分析します</template>
                         <template if:false={isMatrixTab}>バーをクリックするとAIが分析します</template>
-                    </span>
-                    <span class="freshness-legend">
-                        <span class="legend-dot legend-dot--fresh"></span>3M以内
-                        <span class="legend-dot legend-dot--aging"></span>3-6M
-                        <span class="legend-dot legend-dot--stale"></span>6M超
                     </span>
                 </div>
 
@@ -233,13 +221,22 @@
                     <div class="insight-header">
                         <h3 class="insight-title">{insightTitle}</h3>
                     </div>
-                    <div class="loading-insight">
-                        <lightning-spinner alternative-text="分析中" size="small"></lightning-spinner>
-                        <p class="loading-text">AIが分析しています...</p>
-                        <div class="loading-dots">
-                            <span class="dot"></span>
-                            <span class="dot dot2"></span>
-                            <span class="dot dot3"></span>
+                    <div class="analysis-waiting">
+                        <template if:true={analysisSummary}>
+                            <div class="waiting-summary">
+                                <div class="waiting-summary-row">
+                                    <span class="waiting-label">分析対象</span>
+                                    <span class="waiting-value waiting-value-primary">{analysisSummary.target}</span>
+                                </div>
+                                <div class="waiting-summary-row">
+                                    <span class="waiting-label">ニーズカード</span>
+                                    <span class="waiting-value">{analysisSummary.cardCount}件を送信</span>
+                                </div>
+                            </div>
+                        </template>
+                        <div class="waiting-indicator">
+                            <span class="css-spinner-sm"></span>
+                            <span class="waiting-text">Vertex AI Gemini が分析しています（約10〜15秒）</span>
                         </div>
                     </div>
                 </div>
@@ -250,7 +247,6 @@
                     <div class="insight-header">
                         <h3 class="insight-title">{insightTitle}</h3>
                         <div class="insight-actions">
-                            <button class="initiative-btn" onclick={handleCreateInitiative}>施策を起案</button>
                             <button class="close-btn" onclick={handleCloseInsight}>✕</button>
                         </div>
                     </div>
@@ -259,6 +255,28 @@
                             <p key={line.key} class={line.className}>{line.text}</p>
                         </template>
                     </div>
+                    <!-- 施策ドラフト自動生成の進捗 -->
+                    <template if:true={isPhaseSuggesting}>
+                        <div class="initiative-progress">
+                            <span class="css-spinner-sm"></span>
+                            <span class="waiting-text">Vertex AI Gemini が施策ドラフトを作成しています...</span>
+                        </div>
+                    </template>
+                    <template if:true={initiativeReady}>
+                        <div class="initiative-draft">
+                            <div class="draft-header">
+                                <span class="draft-badge">AI Draft</span>
+                                <span class="draft-title-text">施策ドラフトが完成しました</span>
+                                <button class="initiative-btn" onclick={handleCreateInitiative}>施策を確認・作成</button>
+                            </div>
+                            <div class="draft-preview">
+                                <div class="draft-field">
+                                    <span class="draft-label">タイトル</span>
+                                    <span class="draft-value">{initTitle}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </template>
 

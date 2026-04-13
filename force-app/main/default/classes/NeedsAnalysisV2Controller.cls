@@ -6,7 +6,7 @@ public with sharing class NeedsAnalysisV2Controller {
     private static final String SELECT_FIELDS =
         'Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name, ' +
         'Account_Industry__c, Business_Unit__c, Business_Impact__c, ' +
-        'Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate';
+        'Description__c, Customer_Voice__c, Product__r.Name, CreatedDate';
 
     @AuraEnabled(cacheable=true)
     public static Map<String, Object> getAnalysisData(Integer monthsBack, String segment) {
@@ -16,7 +16,7 @@ public with sharing class NeedsAnalysisV2Controller {
             SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Status__c,
                    Account__c, Account__r.Name, Account_Record_Type__c,
                    Account_Type__c, Account_Industry__c, Business_Unit__c,
-                   Business_Impact__c, Product__c, Product__r.Name, Product__r.Family,
+                   Business_Impact__c, Product__c, Product__r.Name,
                    Description__c, Customer_Voice__c, CreatedDate
             FROM Needs_Card__c
             WHERE Status__c != '却下'
@@ -69,9 +69,9 @@ public with sharing class NeedsAnalysisV2Controller {
 
         // --- 集計変数 ---
         // 単軸: 製品Family
-        Map<String, Integer> byProductFamily = new Map<String, Integer>();
-        Map<String, Decimal> impactByProductFamily = new Map<String, Decimal>();
-        Map<String, Map<String, Integer>> productFamilyFreshness = new Map<String, Map<String, Integer>>();
+        Map<String, Integer> byProduct = new Map<String, Integer>();
+        Map<String, Decimal> impactByProduct = new Map<String, Decimal>();
+        Map<String, Map<String, Integer>> productFreshness = new Map<String, Map<String, Integer>>();
 
         // クロス: 製品Family × ニーズ種別
         Map<String, Integer> byProductNeedType = new Map<String, Integer>();
@@ -118,17 +118,17 @@ public with sharing class NeedsAnalysisV2Controller {
             Decimal impact = card.Business_Impact__c != null ? card.Business_Impact__c : 0;
             totalImpact += impact;
 
-            String family = (card.Product__r != null && card.Product__r.Family != null)
-                ? card.Product__r.Family : '未分類';
+            String family = (card.Product__r != null && card.Product__r.Name != null)
+                ? card.Product__r.Name : '未分類';
             String needType = card.Need_Type__c != null ? card.Need_Type__c : '未分類';
             String industry = card.Account_Industry__c != null ? card.Account_Industry__c : '未分類';
             String accountName = (card.Account__r != null && card.Account__r.Name != null)
                 ? card.Account__r.Name : '不明';
 
             // 製品Family (単軸)
-            incrementMap(byProductFamily, family);
-            addDecimalMap(impactByProductFamily, family, impact);
-            addFreshness(productFamilyFreshness, family, freshness);
+            incrementMap(byProduct, family);
+            addDecimalMap(impactByProduct, family, impact);
+            addFreshness(productFreshness, family, freshness);
 
             // 製品Family × ニーズ種別
             String pnKey = family + '|' + needType;
@@ -158,9 +158,9 @@ public with sharing class NeedsAnalysisV2Controller {
         result.put('agingCount', agingCount);
         result.put('staleCount', staleCount);
 
-        result.put('byProductFamily', byProductFamily);
-        result.put('impactByProductFamily', impactByProductFamily);
-        result.put('productFamilyFreshness', flattenFreshness(productFamilyFreshness));
+        result.put('byProduct', byProduct);
+        result.put('impactByProduct', impactByProduct);
+        result.put('productFreshness', flattenFreshness(productFreshness));
 
         result.put('byProductNeedType', byProductNeedType);
         result.put('impactByProductNeedType', impactByProductNeedType);
@@ -193,14 +193,14 @@ public with sharing class NeedsAnalysisV2Controller {
             String[] parts = filterValue.split('\\|');
             String family = parts[0];
             String needType = parts.size() > 1 ? parts[1] : '';
-            cards = queryByCross('Product__r.Family', family, 'Need_Type__c', needType);
+            cards = queryByCross('Product__r.Name', family, 'Need_Type__c', needType);
             filterLabel = '製品「' + family + '」× 種別「' + needType + '」';
 
         } else if (filterType == 'productIndustry') {
             String[] parts = filterValue.split('\\|');
             String family = parts[0];
             String industry = parts.size() > 1 ? parts[1] : '';
-            cards = queryByCross('Product__r.Family', family, 'Account_Industry__c', industry);
+            cards = queryByCross('Product__r.Name', family, 'Account_Industry__c', industry);
             filterLabel = '製品「' + family + '」× 業種「' + industry + '」';
 
         } else if (filterType == 'industryNeedType') {
@@ -213,7 +213,7 @@ public with sharing class NeedsAnalysisV2Controller {
         } else if (filterType == 'account') {
             cards = [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                             Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                            Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family,
+                            Description__c, Customer_Voice__c, Product__r.Name,
                             CreatedDate
                      FROM Needs_Card__c
                      WHERE Account__r.Name = :filterValue AND Status__c != '却下'
@@ -237,16 +237,16 @@ public with sharing class NeedsAnalysisV2Controller {
         if (family == '未分類') {
             return [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                            Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                           Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate
+                           Description__c, Customer_Voice__c, Product__r.Name, CreatedDate
                     FROM Needs_Card__c
-                    WHERE (Product__c = null OR Product__r.Family = null) AND Status__c != '却下'
+                    WHERE (Product__c = null OR Product__r.Name = null) AND Status__c != '却下'
                     ORDER BY Priority__c, CreatedDate DESC];
         }
         return [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                        Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                       Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate
+                       Description__c, Customer_Voice__c, Product__r.Name, CreatedDate
                 FROM Needs_Card__c
-                WHERE Product__r.Family = :family AND Status__c != '却下'
+                WHERE Product__r.Name = :family AND Status__c != '却下'
                 ORDER BY Priority__c, CreatedDate DESC];
     }
 
@@ -254,13 +254,13 @@ public with sharing class NeedsAnalysisV2Controller {
         // 動的SOQLで2軸フィルタ
         String soql = 'SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name, ' +
             'Account_Industry__c, Business_Unit__c, Business_Impact__c, ' +
-            'Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate ' +
+            'Description__c, Customer_Voice__c, Product__r.Name, CreatedDate ' +
             'FROM Needs_Card__c WHERE Status__c != \'却下\'';
 
         // field1
         if (val1 == '未分類') {
-            if (field1 == 'Product__r.Family') {
-                soql += ' AND (Product__c = null OR Product__r.Family = null)';
+            if (field1 == 'Product__r.Name') {
+                soql += ' AND (Product__c = null OR Product__r.Name = null)';
             } else {
                 soql += ' AND ' + field1 + ' = null';
             }
@@ -269,8 +269,8 @@ public with sharing class NeedsAnalysisV2Controller {
         }
         // field2
         if (val2 == '未分類') {
-            if (field2 == 'Product__r.Family') {
-                soql += ' AND (Product__c = null OR Product__r.Family = null)';
+            if (field2 == 'Product__r.Name') {
+                soql += ' AND (Product__c = null OR Product__r.Name = null)';
             } else {
                 soql += ' AND ' + field2 + ' = null';
             }
@@ -387,8 +387,8 @@ public with sharing class NeedsAnalysisV2Controller {
             ctx += '- 鮮度: ' + freshnessLabel + '（最終言及: ' + String.valueOf(lastMentioned) + '）\n';
             if (card.Product__r != null && card.Product__r.Name != null) {
                 ctx += '- 製品: ' + card.Product__r.Name;
-                if (card.Product__r.Family != null) {
-                    ctx += '（' + card.Product__r.Family + '）';
+                if (card.Product__r.Name != null) {
+                    ctx += '（' + card.Product__r.Name + '）';
                 }
                 ctx += '\n';
             }
@@ -574,17 +574,17 @@ public with sharing class NeedsAnalysisV2Controller {
             return queryByProductFamily(filterValue);
         } else if (filterType == 'productNeedType') {
             String[] parts = filterValue.split('\\|');
-            return queryByCross('Product__r.Family', parts[0], 'Need_Type__c', parts.size() > 1 ? parts[1] : '');
+            return queryByCross('Product__r.Name', parts[0], 'Need_Type__c', parts.size() > 1 ? parts[1] : '');
         } else if (filterType == 'productIndustry') {
             String[] parts = filterValue.split('\\|');
-            return queryByCross('Product__r.Family', parts[0], 'Account_Industry__c', parts.size() > 1 ? parts[1] : '');
+            return queryByCross('Product__r.Name', parts[0], 'Account_Industry__c', parts.size() > 1 ? parts[1] : '');
         } else if (filterType == 'industryNeedType') {
             String[] parts = filterValue.split('\\|');
             return queryByCross('Account_Industry__c', parts[0], 'Need_Type__c', parts.size() > 1 ? parts[1] : '');
         } else if (filterType == 'account') {
             return [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                            Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                           Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate
+                           Description__c, Customer_Voice__c, Product__r.Name, CreatedDate
                     FROM Needs_Card__c
                     WHERE Account__r.Name = :filterValue AND Status__c != '却下'
                     ORDER BY Priority__c, CreatedDate DESC];

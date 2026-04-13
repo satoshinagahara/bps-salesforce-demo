@@ -15,8 +15,18 @@ const NEED_TYPE_COLORS = {
     '未分類': '#95a5a6'
 };
 
-const FAMILY_COLORS = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0891b2', '#be185d', '#4b5563'];
-const INDUSTRY_COLORS = ['#2e86de', '#e74c3c', '#27ae60', '#f39c12', '#8e44ad', '#1abc9c', '#e67e22', '#95a5a6'];
+const FAMILY_COLORS = ['#2563eb'];
+const INDUSTRY_COLORS = ['#2563eb'];
+
+const INDUSTRY_JP = {
+    'Utilities': '電力・ガス',
+    'Electronics': '電子機器',
+    'Trading': '商社',
+    'Government': '官公庁・自治体',
+    'Chemicals': '化学',
+    'Financial Services': '金融',
+    'Energy': 'エネルギー'
+};
 const FRESHNESS = { fresh: '#10b981', aging: '#f59e0b', stale: '#9ca3af' };
 
 export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningElement) {
@@ -62,7 +72,7 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     _lastFilterValue = '';
 
     // Controls
-    activeChart = 'productFamily';
+    activeChart = 'productIndustry';
     metric = 'count'; // 'count' or 'impact'
     monthsBack = 0;   // 0=all, 3, 6, 12
     segment = 'all';  // 初回は全体で取得→セグメント一覧確定後にデフォルト設定
@@ -70,12 +80,27 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     _defaultSet = false;
 
     get segmentOptions() {
-        const opts = this._segments.map(s => ({
-            label: s,
-            value: s,
-            cls: this.segment === s ? 'seg-btn seg-btn--active-dynamic' : 'seg-btn'
-        }));
-        // 2つ以上のセグメントがある場合のみ「全体」を表示
+        const ORDER = ['顧客', 'サプライヤー'];
+        const opts = [];
+        for (const s of ORDER) {
+            if (this._segments.includes(s)) {
+                opts.push({
+                    label: s,
+                    value: s,
+                    cls: this.segment === s ? 'seg-btn seg-btn--active-dynamic' : 'seg-btn'
+                });
+            }
+        }
+        // ORDER以外のセグメント（未分類等）は「その他」として集約
+        const others = this._segments.filter(s => !ORDER.includes(s));
+        if (others.length > 0) {
+            const otherValue = others[0]; // Apex側の値をそのまま使う
+            opts.push({
+                label: 'その他',
+                value: otherValue,
+                cls: this.segment === otherValue ? 'seg-btn seg-btn--active-dynamic' : 'seg-btn'
+            });
+        }
         if (this._segments.length > 1) {
             opts.push({
                 label: '全体',
@@ -119,10 +144,10 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         }
         // 初回ロード時: セグメントが複数あれば最初の非サプライヤー値をデフォルトに
         if (!this._defaultSet && this._segments.length > 1) {
-            const nonSupplier = this._segments.find(s => s !== 'サプライヤー');
-            if (nonSupplier && this.segment === 'all') {
+            const defaultSeg = this._segments.includes('顧客') ? '顧客' : this._segments[0];
+            if (defaultSeg && this.segment === 'all') {
                 this._defaultSet = true;
-                this.segment = nonSupplier; // reactive → wire再発火
+                this.segment = defaultSeg; // reactive → wire再発火
                 return; // 再発火されるのでここでは処理しない
             }
         }
@@ -138,9 +163,9 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         const useImpact = this.metric === 'impact';
 
         this.processProductFamily(
-            data.byProductFamily || {},
-            useImpact ? (data.impactByProductFamily || {}) : null,
-            data.productFamilyFreshness || {}
+            data.byProduct || {},
+            useImpact ? (data.impactByProduct || {}) : null,
+            data.productFreshness || {}
         );
         this.productNeedTypeMatrix = this.buildMatrix(
             data.byProductNeedType || {},
@@ -186,7 +211,7 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                     displayValue: useImpact ? this.formatCurrency(impact) : String(count),
                     pct: this.totalCount > 0 ? Math.round((count / this.totalCount) * 100) : 0,
                     barStyle: `width:${Math.max((displayVal / max) * 100, 4)}%`,
-                    color: FAMILY_COLORS[idx % FAMILY_COLORS.length],
+                    color: `rgba(37,99,235,${Math.max(0.3, 1 - idx * 0.08)})`,
                     freshStyle: `width:${fb.freshPct}%;background:${FRESHNESS.fresh}`,
                     agingStyle: `width:${fb.agingPct}%;background:${FRESHNESS.aging}`,
                     staleStyle: `width:${fb.stalePct}%;background:${FRESHNESS.stale}`,
@@ -227,11 +252,14 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
             if (v > maxVal) maxVal = v;
         }
 
-        const headers = colList.map(col => ({
-            key: col,
-            label: col.length > 8 ? col.substring(0, 8) + '…' : col,
-            fullLabel: col
-        }));
+        const headers = colList.map(col => {
+            const jp = INDUSTRY_JP[col] || col;
+            return {
+                key: col,
+                label: jp,
+                fullLabel: jp
+            };
+        });
 
         const rows = rowList.map((row, rowIdx) => {
             const cells = colList.map(col => {
@@ -242,8 +270,8 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 const displayText = count > 0
                     ? (useImpact ? this.formatCurrencyShort(impact) : String(count))
                     : '';
-                const intensity = val > 0 ? Math.min(0.25 + (val / maxVal) * 0.75, 1) : 0;
-                const baseColor = rowColors[rowIdx % rowColors.length];
+                const ratio = maxVal > 0 && val > 0 ? val / maxVal : 0;
+                const alpha = ratio > 0 ? Math.round(15 + ratio * 85) / 100 : 0;
                 return {
                     key,
                     count,
@@ -251,15 +279,16 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                     hasData: count > 0,
                     cellClass: count > 0 ? 'cross-cell cross-cell--active' : 'cross-cell',
                     cellStyle: count > 0
-                        ? `background-color:${baseColor};opacity:${intensity}`
+                        ? `background-color:rgba(37,99,235,${alpha}); color:${alpha > 0.55 ? '#fff' : '#1e293b'}`
                         : '',
                     filterType
                 };
             });
+            const rowJp = INDUSTRY_JP[row] || row;
             return {
                 key: row,
-                rowLabel: row.length > 12 ? row.substring(0, 12) + '…' : row,
-                fullRowLabel: row,
+                rowLabel: rowJp,
+                fullRowLabel: rowJp,
                 cells
             };
         });
@@ -292,7 +321,7 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 displayValue: useImpact ? this.formatCurrency(impact) : String(count),
                 pct: this.totalCount > 0 ? Math.round((count / this.totalCount) * 100) : 0,
                 barStyle: `width:${Math.max((displayVal / max) * 100, 4)}%`,
-                color: INDUSTRY_COLORS[idx % INDUSTRY_COLORS.length],
+                color: `rgba(37,99,235,${Math.max(0.3, 1 - idx * 0.08)})`,
                 freshStyle: `width:${fb.freshPct}%;background:${FRESHNESS.fresh}`,
                 agingStyle: `width:${fb.agingPct}%;background:${FRESHNESS.aging}`,
                 staleStyle: `width:${fb.stalePct}%;background:${FRESHNESS.stale}`,
@@ -363,31 +392,55 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     handleBarClick(event) {
         const filterType = event.currentTarget.dataset.type;
         const filterValue = event.currentTarget.dataset.value;
-        this.runAnalysis(filterType, filterValue);
+        const count = event.currentTarget.dataset.count || '';
+        this.runAnalysis(filterType, filterValue, count);
     }
 
     handleCellClick(event) {
         const key = event.currentTarget.dataset.key;
         const filterType = event.currentTarget.dataset.filtertype;
-        if (event.currentTarget.dataset.count === '0') return;
-        this.runAnalysis(filterType, key);
+        const count = event.currentTarget.dataset.count || '0';
+        if (count === '0') return;
+        this.runAnalysis(filterType, key, count);
     }
 
-    runAnalysis(filterType, filterValue) {
+    // 分析中サマリ
+    analysisSummary = null;
+
+    // 分析フェーズ管理
+    analysisPhase = 0; // 0=idle, 1=analyzing, 2=suggesting, 3=done
+
+    get isPhaseAnalyzing() { return this.analysisPhase === 1; }
+    get isPhaseSuggesting() { return this.analysisPhase === 2; }
+    get isPhaseComplete() { return this.analysisPhase === 3; }
+    get initiativeReady() { return this.isPhaseComplete && !!this.initTitle; }
+
+    runAnalysis(filterType, filterValue, cardCount) {
         this.isAnalyzing = true;
+        this.analysisPhase = 1;
         this.hasInsight = false;
         this.insightLines = [];
         this._lastFilterType = filterType;
         this._lastFilterValue = filterValue;
 
+        // 施策ドラフトをリセット
+        this.initTitle = '';
+        this.initWhat = '';
+        this.initWhy = '';
+
+        const displayValue = filterValue.includes('|') ? filterValue.replace('|', ' × ') : filterValue;
+        this.analysisSummary = {
+            target: displayValue,
+            cardCount: cardCount || '?'
+        };
+
         const typeLabels = {
-            productFamily: '製品ファミリー',
+            productFamily: '製品',
             productNeedType: '製品×種別',
             productIndustry: '製品×業種',
             industryNeedType: '業種×種別',
             account: '顧客'
         };
-        const displayValue = filterValue.includes('|') ? filterValue.replace('|', ' × ') : filterValue;
         this.insightTitle = (typeLabels[filterType] || '') + '「' + displayValue + '」の分析';
 
         analyzeSegment({ filterType, filterValue })
@@ -395,6 +448,10 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 this.parseInsight(result);
                 this.isAnalyzing = false;
                 this.hasInsight = true;
+
+                // ステップ2: 分析結果が出たら裏で施策起案を自動開始
+                this.analysisPhase = 2;
+                this._autoSuggestInitiative(filterType, filterValue);
             })
             .catch(err => {
                 this.insightLines = [{
@@ -404,6 +461,26 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 }];
                 this.isAnalyzing = false;
                 this.hasInsight = true;
+                this.analysisPhase = 0;
+            });
+    }
+
+    _autoSuggestInitiative(filterType, filterValue) {
+        suggestInitiative({ filterType, filterValue })
+            .then(result => {
+                this.initTitle = result.suggestedTitle || '';
+                this.initWhat = result.suggestedWhat || '';
+                this.initWhy = result.suggestedWhy || '';
+                this.initProductId = result.defaultProductId || '';
+                this.initCardIds = result.cardIds || [];
+                this.initCardCount = result.cardCount || 0;
+                this.initProductOptions = (result.products || []).map(p => ({
+                    label: p.label, value: p.value
+                }));
+                this.analysisPhase = 3;
+            })
+            .catch(() => {
+                this.analysisPhase = 3;
             });
     }
 
@@ -428,37 +505,10 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     // --- Initiative creation from dashboard ---
 
     handleCreateInitiative() {
-        this.isSuggesting = true;
+        // データは _autoSuggestInitiative で既に取得済み。モーダルを開くだけ
+        this.isSuggesting = false;
         this.showInitiativeModal = true;
-        this.initTitle = '';
-        this.initWhat = '';
-        this.initWhy = '';
         this.initPriority = '中';
-        this.initProductId = '';
-        this.initProductOptions = [];
-        this.initCardIds = [];
-
-        suggestInitiative({
-            filterType: this._lastFilterType,
-            filterValue: this._lastFilterValue
-        })
-            .then(result => {
-                this.initTitle = result.suggestedTitle || '';
-                this.initWhat = result.suggestedWhat || '';
-                this.initWhy = result.suggestedWhy || '';
-                this.initProductId = result.defaultProductId || '';
-                this.initCardIds = result.cardIds || [];
-                this.initCardCount = result.cardCount || 0;
-                this.initProductOptions = (result.products || []).map(p => ({
-                    label: p.label,
-                    value: p.value
-                }));
-                this.isSuggesting = false;
-            })
-            .catch(err => {
-                this.isSuggesting = false;
-                this.initTitle = this._lastFilterValue.replace('|', ' ');
-            });
     }
 
     handleInitTitleChange(e) { this.initTitle = e.target.value; }
