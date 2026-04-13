@@ -1,0 +1,335 @@
+<template>
+    <lightning-card title="ニーズ分析ダッシュボード" icon-name="standard:insights">
+
+        <template if:true={isLoading}>
+            <div class="loading-container">
+                <lightning-spinner alternative-text="読み込み中" size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={error}>
+            <div class="slds-text-color_error slds-p-around_medium">{error}</div>
+        </template>
+
+        <template if:false={isLoading}>
+            <!-- Segment toggle -->
+            <div class="segment-bar">
+                <template for:each={segmentOptions} for:item="seg">
+                    <button key={seg.value} class={seg.cls} data-value={seg.value} onclick={handleSegmentToggle}>{seg.label}</button>
+                </template>
+            </div>
+
+            <!-- Controls: Time filter + Metric toggle -->
+            <div class="controls-bar">
+                <div class="control-group">
+                    <span class="control-label">期間</span>
+                    <template for:each={timeFilterOptions} for:item="opt">
+                        <button key={opt.value} class={opt.cls} data-value={opt.value} onclick={handleTimeFilter}>{opt.label}</button>
+                    </template>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">指標</span>
+                    <button class={metricCountClass} data-metric="count" onclick={handleMetricToggle}>件数</button>
+                    <button class={metricImpactClass} data-metric="impact" onclick={handleMetricToggle}>金額</button>
+                </div>
+            </div>
+
+            <!-- KPI Summary -->
+            <div class="kpi-summary">
+                <div class="kpi-card">
+                    <div class="kpi-value">{totalCount}</div>
+                    <div class="kpi-label">ニーズカード</div>
+                </div>
+                <div class="kpi-card kpi-card--danger">
+                    <div class="kpi-value kpi-value--danger">{highPriorityCount}</div>
+                    <div class="kpi-label">優先度:高</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value kpi-value--info">{totalImpactFormatted}</div>
+                    <div class="kpi-label">ビジネスインパクト</div>
+                </div>
+                <div class="kpi-card kpi-card--freshness">
+                    <div class="freshness-counts">
+                        <span class="freshness-num freshness-num--fresh">{freshCount}</span>
+                        <span class="freshness-sep">/</span>
+                        <span class="freshness-num freshness-num--aging">{agingCount}</span>
+                        <span class="freshness-sep">/</span>
+                        <span class="freshness-num freshness-num--stale">{staleCount}</span>
+                    </div>
+                    <div class="freshness-bar-kpi" style={freshnessBarStyle}></div>
+                    <div class="kpi-label">鮮度 (3M/6M/古)</div>
+                </div>
+            </div>
+
+            <!-- Tab navigation -->
+            <div class="tab-bar">
+                <button class={productFamilyTabClass} data-tab="productFamily" onclick={handleTabClick}>製品Family</button>
+                <button class={productNeedTypeTabClass} data-tab="productNeedType" onclick={handleTabClick}>製品×種別</button>
+                <button class={productIndustryTabClass} data-tab="productIndustry" onclick={handleTabClick}>製品×業種</button>
+                <button class={industryNeedTypeTabClass} data-tab="industryNeedType" onclick={handleTabClick}>業種×種別</button>
+                <button class={accountTabClass} data-tab="account" onclick={handleTabClick}>顧客Top</button>
+            </div>
+
+            <!-- Chart area -->
+            <div class="chart-area">
+                <div class="chart-hints">
+                    <span class="chart-hint">
+                        <template if:true={isMatrixTab}>セルをクリックするとAIが分析します</template>
+                        <template if:false={isMatrixTab}>バーをクリックするとAIが分析します</template>
+                    </span>
+                    <span class="freshness-legend">
+                        <span class="legend-dot legend-dot--fresh"></span>3M以内
+                        <span class="legend-dot legend-dot--aging"></span>3-6M
+                        <span class="legend-dot legend-dot--stale"></span>6M超
+                    </span>
+                </div>
+
+                <!-- 1. 製品Family -->
+                <template if:true={isProductFamilyChart}>
+                    <div class="chart-container">
+                        <template for:each={productFamilyItems} for:item="item">
+                            <div key={item.key} class="bar-row" data-type="productFamily" data-value={item.fullLabel} onclick={handleBarClick}>
+                                <div class="bar-label" title={item.fullLabel}>{item.label}</div>
+                                <div class="bar-track" style={item.barStyle}>
+                                    <div class="bar-segment" style={item.freshStyle}></div>
+                                    <div class="bar-segment" style={item.agingStyle}></div>
+                                    <div class="bar-segment" style={item.staleStyle}></div>
+                                </div>
+                                <div class="bar-count" title={item.freshnessTitle}>
+                                    {item.displayValue}
+                                    <template if:true={item.showPct}><span class="bar-pct">({item.pct}%)</span></template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- 2. 製品×種別 (matrix) -->
+                <template if:true={isProductNeedTypeChart}>
+                    <div class="cross-container">
+                        <table class="cross-table">
+                            <thead>
+                                <tr>
+                                    <th class="cross-corner">製品 ＼ 種別</th>
+                                    <template for:each={productNeedTypeMatrix.headers} for:item="h">
+                                        <th key={h.key} class="cross-header" title={h.fullLabel}>{h.label}</th>
+                                    </template>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={productNeedTypeMatrix.rows} for:item="row">
+                                    <tr key={row.key}>
+                                        <td class="cross-row-label" title={row.fullRowLabel}>{row.rowLabel}</td>
+                                        <template for:each={row.cells} for:item="cell">
+                                            <td key={cell.key}
+                                                class={cell.cellClass}
+                                                style={cell.cellStyle}
+                                                data-key={cell.key}
+                                                data-count={cell.count}
+                                                data-filtertype={cell.filterType}
+                                                onclick={handleCellClick}>
+                                                <template if:true={cell.hasData}>{cell.displayText}</template>
+                                            </td>
+                                        </template>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+
+                <!-- 3. 製品×業種 (matrix) -->
+                <template if:true={isProductIndustryChart}>
+                    <div class="cross-container">
+                        <table class="cross-table">
+                            <thead>
+                                <tr>
+                                    <th class="cross-corner">製品 ＼ 業種</th>
+                                    <template for:each={productIndustryMatrix.headers} for:item="h">
+                                        <th key={h.key} class="cross-header" title={h.fullLabel}>{h.label}</th>
+                                    </template>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={productIndustryMatrix.rows} for:item="row">
+                                    <tr key={row.key}>
+                                        <td class="cross-row-label" title={row.fullRowLabel}>{row.rowLabel}</td>
+                                        <template for:each={row.cells} for:item="cell">
+                                            <td key={cell.key}
+                                                class={cell.cellClass}
+                                                style={cell.cellStyle}
+                                                data-key={cell.key}
+                                                data-count={cell.count}
+                                                data-filtertype={cell.filterType}
+                                                onclick={handleCellClick}>
+                                                <template if:true={cell.hasData}>{cell.displayText}</template>
+                                            </td>
+                                        </template>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+
+                <!-- 4. 業種×種別 (matrix) -->
+                <template if:true={isIndustryNeedTypeChart}>
+                    <div class="cross-container">
+                        <table class="cross-table">
+                            <thead>
+                                <tr>
+                                    <th class="cross-corner">業種 ＼ 種別</th>
+                                    <template for:each={industryNeedTypeMatrix.headers} for:item="h">
+                                        <th key={h.key} class="cross-header" title={h.fullLabel}>{h.label}</th>
+                                    </template>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={industryNeedTypeMatrix.rows} for:item="row">
+                                    <tr key={row.key}>
+                                        <td class="cross-row-label" title={row.fullRowLabel}>{row.rowLabel}</td>
+                                        <template for:each={row.cells} for:item="cell">
+                                            <td key={cell.key}
+                                                class={cell.cellClass}
+                                                style={cell.cellStyle}
+                                                data-key={cell.key}
+                                                data-count={cell.count}
+                                                data-filtertype={cell.filterType}
+                                                onclick={handleCellClick}>
+                                                <template if:true={cell.hasData}>{cell.displayText}</template>
+                                            </td>
+                                        </template>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+
+                <!-- 5. 顧客Top -->
+                <template if:true={isAccountChart}>
+                    <div class="chart-container">
+                        <template for:each={accountItems} for:item="item">
+                            <div key={item.key} class="bar-row" data-type="account" data-value={item.fullLabel} onclick={handleBarClick}>
+                                <div class="bar-label" title={item.fullLabel}>{item.label}</div>
+                                <div class="bar-track" style={item.barStyle}>
+                                    <div class="bar-segment" style={item.freshStyle}></div>
+                                    <div class="bar-segment" style={item.agingStyle}></div>
+                                    <div class="bar-segment" style={item.staleStyle}></div>
+                                </div>
+                                <div class="bar-count" title={item.freshnessTitle}>
+                                    {item.displayValue}
+                                    <template if:true={item.showPct}><span class="bar-pct">({item.pct}%)</span></template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <!-- AI Insight Panel -->
+            <template if:true={isAnalyzing}>
+                <div class="insight-panel">
+                    <div class="insight-header">
+                        <h3 class="insight-title">{insightTitle}</h3>
+                    </div>
+                    <div class="loading-insight">
+                        <lightning-spinner alternative-text="分析中" size="small"></lightning-spinner>
+                        <p class="loading-text">AIが分析しています...</p>
+                        <div class="loading-dots">
+                            <span class="dot"></span>
+                            <span class="dot dot2"></span>
+                            <span class="dot dot3"></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <template if:true={hasInsight}>
+                <div class="insight-panel">
+                    <div class="insight-header">
+                        <h3 class="insight-title">{insightTitle}</h3>
+                        <div class="insight-actions">
+                            <button class="initiative-btn" onclick={handleCreateInitiative}>施策を起案</button>
+                            <button class="close-btn" onclick={handleCloseInsight}>✕</button>
+                        </div>
+                    </div>
+                    <div class="insight-body">
+                        <template for:each={insightLines} for:item="line">
+                            <p key={line.key} class={line.className}>{line.text}</p>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Initiative Creation Modal -->
+            <template if:true={showInitiativeModal}>
+                <section class="slds-modal slds-fade-in-open modal-override">
+                    <div class="slds-modal__container">
+                        <div class="modal-header">
+                            <h2 class="modal-title">施策を起案</h2>
+                            <button class="close-btn" onclick={handleCloseModal}>✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <template if:true={isSuggesting}>
+                                <div class="modal-loading">
+                                    <lightning-spinner alternative-text="AI提案生成中" size="small"></lightning-spinner>
+                                    <p class="modal-loading-text">AIがニーズデータから施策を提案しています...</p>
+                                </div>
+                            </template>
+                            <template if:false={isSuggesting}>
+                                <div class="modal-info">{initCardLabel}</div>
+                                <div class="modal-form">
+                                    <lightning-input
+                                        label="施策タイトル"
+                                        value={initTitle}
+                                        onchange={handleInitTitleChange}
+                                        required>
+                                    </lightning-input>
+                                    <div class="modal-row">
+                                        <lightning-combobox
+                                            label="製品"
+                                            value={initProductId}
+                                            options={initProductOptions}
+                                            onchange={handleInitProductChange}
+                                            class="modal-half">
+                                        </lightning-combobox>
+                                        <lightning-combobox
+                                            label="優先度"
+                                            value={initPriority}
+                                            options={priorityOptions}
+                                            onchange={handleInitPriorityChange}
+                                            class="modal-half">
+                                        </lightning-combobox>
+                                    </div>
+                                    <lightning-textarea
+                                        label="概要（What）"
+                                        value={initWhat}
+                                        onchange={handleInitWhatChange}
+                                        max-length="10000">
+                                    </lightning-textarea>
+                                    <lightning-textarea
+                                        label="根拠（Why）"
+                                        value={initWhy}
+                                        onchange={handleInitWhyChange}
+                                        max-length="10000">
+                                    </lightning-textarea>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="slds-button slds-button_neutral" onclick={handleCloseModal}>キャンセル</button>
+                            <button class="slds-button slds-button_brand" onclick={handleSaveInitiative}
+                                    disabled={isCreating}>
+                                <template if:true={isCreating}>作成中...</template>
+                                <template if:false={isCreating}>作成</template>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            </template>
+
+        </template>
+    </lightning-card>
+</template>

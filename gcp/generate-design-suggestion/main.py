@@ -225,16 +225,64 @@ def _call_gemini(req: dict) -> dict:
         raise
 
 
+def _call_gemini_text(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
+    """テキストのみのGemini呼出（マルチモーダルなし）。汎用プロンプト用。"""
+    model = _get_model()
+    response = model.generate_content(
+        [system_prompt, user_prompt],
+        generation_config={
+            "temperature": temperature,
+            "max_output_tokens": 8192,
+        },
+    )
+    log.info("gemini text response length: %d chars", len(response.text))
+    return response.text
+
+
+def _handle_prompt(request):
+    """汎用プロンプトエンドポイント: systemPrompt + context → Gemini → テキスト応答"""
+    request_id = f"req_{uuid.uuid4().hex[:12]}"
+    try:
+        req = request.get_json(silent=True) or {}
+    except Exception:
+        return (json.dumps({"error": "invalid json"}), 400, _cors_headers())
+
+    system_prompt = req.get("systemPrompt", "")
+    context = req.get("context", "")
+    temperature = float(req.get("temperature", 0.2))
+
+    if not context:
+        return (json.dumps({"error": "context is required"}), 400, _cors_headers())
+
+    try:
+        result_text = _call_gemini_text(system_prompt, context, temperature)
+    except Exception as e:
+        log.exception("[%s] gemini prompt call failed", request_id)
+        return (json.dumps({"error": str(e), "requestId": request_id}), 500, _cors_headers())
+
+    return (
+        json.dumps({"text": result_text, "requestId": request_id}, ensure_ascii=False),
+        200,
+        _cors_headers(),
+    )
+
+
 @functions_framework.http
 def generate_design_suggestion(request):
     request_id = f"req_{uuid.uuid4().hex[:12]}"
-    log.info("[%s] received request", request_id)
 
     if request.method == "OPTIONS":
         return ("", 204, _cors_headers())
 
     if request.method != "POST":
         return (json.dumps({"error": "method not allowed"}), 405, _cors_headers())
+
+    # パスベースルーティング: /prompt → 汎用プロンプト処理
+    path = request.path.rstrip("/")
+    if path.endswith("/prompt"):
+        return _handle_prompt(request)
+
+    log.info("[%s] received design suggestion request", request_id)
 
     try:
         req = request.get_json(silent=True) or {}
