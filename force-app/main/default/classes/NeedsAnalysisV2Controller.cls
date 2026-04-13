@@ -6,7 +6,7 @@ public with sharing class NeedsAnalysisV2Controller {
     private static final String SELECT_FIELDS =
         'Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name, ' +
         'Account_Industry__c, Business_Unit__c, Business_Impact__c, ' +
-        'Description__c, Customer_Voice__c, Product__r.Name, CreatedDate';
+        'Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate';
 
     @AuraEnabled(cacheable=true)
     public static Map<String, Object> getAnalysisData(Integer monthsBack, String segment) {
@@ -16,7 +16,7 @@ public with sharing class NeedsAnalysisV2Controller {
             SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Status__c,
                    Account__c, Account__r.Name, Account_Record_Type__c,
                    Account_Type__c, Account_Industry__c, Business_Unit__c,
-                   Business_Impact__c, Product__c, Product__r.Name,
+                   Business_Impact__c, Product__c, Product__r.Name, Product__r.Family,
                    Description__c, Customer_Voice__c, CreatedDate
             FROM Needs_Card__c
             WHERE Status__c != '却下'
@@ -68,7 +68,10 @@ public with sharing class NeedsAnalysisV2Controller {
         result.put('totalCount', filtered.size());
 
         // --- 集計変数 ---
-        // 単軸: 製品Family
+        // 製品名→ファミリーのマッピング（LWCドリルダウン用）
+        Map<String, String> productToFamily = new Map<String, String>();
+
+        // 単軸: 製品
         Map<String, Integer> byProduct = new Map<String, Integer>();
         Map<String, Decimal> impactByProduct = new Map<String, Decimal>();
         Map<String, Map<String, Integer>> productFreshness = new Map<String, Map<String, Integer>>();
@@ -118,8 +121,12 @@ public with sharing class NeedsAnalysisV2Controller {
             Decimal impact = card.Business_Impact__c != null ? card.Business_Impact__c : 0;
             totalImpact += impact;
 
-            String family = (card.Product__r != null && card.Product__r.Name != null)
+            String productName = (card.Product__r != null && card.Product__r.Name != null)
                 ? card.Product__r.Name : '未分類';
+            String productFamily = (card.Product__r != null && card.Product__r.Family != null)
+                ? card.Product__r.Family : '未分類';
+            String family = productName; // マトリクスの行キーは製品名
+            productToFamily.put(productName, productFamily);
             String needType = card.Need_Type__c != null ? card.Need_Type__c : '未分類';
             String industry = card.Account_Industry__c != null ? card.Account_Industry__c : '未分類';
             String accountName = (card.Account__r != null && card.Account__r.Name != null)
@@ -158,6 +165,7 @@ public with sharing class NeedsAnalysisV2Controller {
         result.put('agingCount', agingCount);
         result.put('staleCount', staleCount);
 
+        result.put('productToFamily', productToFamily);
         result.put('byProduct', byProduct);
         result.put('impactByProduct', impactByProduct);
         result.put('productFreshness', flattenFreshness(productFreshness));
@@ -213,7 +221,7 @@ public with sharing class NeedsAnalysisV2Controller {
         } else if (filterType == 'account') {
             cards = [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                             Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                            Description__c, Customer_Voice__c, Product__r.Name,
+                            Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family,
                             CreatedDate
                      FROM Needs_Card__c
                      WHERE Account__r.Name = :filterValue AND Status__c != '却下'
@@ -237,14 +245,14 @@ public with sharing class NeedsAnalysisV2Controller {
         if (family == '未分類') {
             return [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                            Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                           Description__c, Customer_Voice__c, Product__r.Name, CreatedDate
+                           Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate
                     FROM Needs_Card__c
                     WHERE (Product__c = null OR Product__r.Name = null) AND Status__c != '却下'
                     ORDER BY Priority__c, CreatedDate DESC];
         }
         return [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                        Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                       Description__c, Customer_Voice__c, Product__r.Name, CreatedDate
+                       Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate
                 FROM Needs_Card__c
                 WHERE Product__r.Name = :family AND Status__c != '却下'
                 ORDER BY Priority__c, CreatedDate DESC];
@@ -254,7 +262,7 @@ public with sharing class NeedsAnalysisV2Controller {
         // 動的SOQLで2軸フィルタ
         String soql = 'SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name, ' +
             'Account_Industry__c, Business_Unit__c, Business_Impact__c, ' +
-            'Description__c, Customer_Voice__c, Product__r.Name, CreatedDate ' +
+            'Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate ' +
             'FROM Needs_Card__c WHERE Status__c != \'却下\'';
 
         // field1
@@ -584,7 +592,7 @@ public with sharing class NeedsAnalysisV2Controller {
         } else if (filterType == 'account') {
             return [SELECT Id, Name, Title__c, Need_Type__c, Priority__c, Account__r.Name,
                            Account_Industry__c, Business_Unit__c, Business_Impact__c,
-                           Description__c, Customer_Voice__c, Product__r.Name, CreatedDate
+                           Description__c, Customer_Voice__c, Product__r.Name, Product__r.Family, CreatedDate
                     FROM Needs_Card__c
                     WHERE Account__r.Name = :filterValue AND Status__c != '却下'
                     ORDER BY Priority__c, CreatedDate DESC];
@@ -687,7 +695,7 @@ public with sharing class NeedsAnalysisV2Controller {
     }
 
     private static String callSuggestionTemplate(String context) {
-        return callVertexAI(SUGGESTION_SYSTEM_PROMPT, context, 0.3);
+        return callVertexAI(SUGGESTION_SYSTEM_PROMPT, context, 0.2);
     }
 
     private static String callPromptTemplate(String context) {

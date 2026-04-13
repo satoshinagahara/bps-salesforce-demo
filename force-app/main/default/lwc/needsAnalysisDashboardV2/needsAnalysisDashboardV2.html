@@ -94,6 +94,12 @@
 
                 <!-- 2. 製品×種別 (matrix) -->
                 <template if:true={isProductNeedTypeChart}>
+                    <template if:true={isDrilled}>
+                        <div class="drill-breadcrumb">
+                            <button class="drill-back-btn" onclick={handleDrillBack}>← 製品ファミリー一覧</button>
+                            <span class="drill-current">{drillBreadcrumb}</span>
+                        </div>
+                    </template>
                     <div class="cross-container">
                         <table class="cross-table">
                             <thead>
@@ -107,7 +113,8 @@
                             <tbody>
                                 <template for:each={productNeedTypeMatrix.rows} for:item="row">
                                     <tr key={row.key}>
-                                        <td class="cross-row-label" title={row.fullRowLabel}>{row.rowLabel}</td>
+                                        <td class="cross-row-label cross-row-label--drillable" title={row.fullRowLabel}
+                                            data-family={row.key} onclick={handleRowLabelClick}>{row.rowLabel}</td>
                                         <template for:each={row.cells} for:item="cell">
                                             <td key={cell.key}
                                                 class={cell.cellClass}
@@ -128,6 +135,12 @@
 
                 <!-- 3. 製品×業種 (matrix) -->
                 <template if:true={isProductIndustryChart}>
+                    <template if:true={isDrilled}>
+                        <div class="drill-breadcrumb">
+                            <button class="drill-back-btn" onclick={handleDrillBack}>← 製品ファミリー一覧</button>
+                            <span class="drill-current">{drillBreadcrumb}</span>
+                        </div>
+                    </template>
                     <div class="cross-container">
                         <table class="cross-table">
                             <thead>
@@ -141,7 +154,8 @@
                             <tbody>
                                 <template for:each={productIndustryMatrix.rows} for:item="row">
                                     <tr key={row.key}>
-                                        <td class="cross-row-label" title={row.fullRowLabel}>{row.rowLabel}</td>
+                                        <td class="cross-row-label cross-row-label--drillable" title={row.fullRowLabel}
+                                            data-family={row.key} onclick={handleRowLabelClick}>{row.rowLabel}</td>
                                         <template for:each={row.cells} for:item="cell">
                                             <td key={cell.key}
                                                 class={cell.cellClass}

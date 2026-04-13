@@ -42,6 +42,13 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     productFamilyItems = [];
     productNeedTypeMatrix = { rows: [], headers: [] };
     productIndustryMatrix = { rows: [], headers: [] };
+
+    // Drill-down state
+    _productToFamily = {};   // { productName: familyName }
+    _drillFamily = null;     // null = family level, 'xxx' = drilled into that family
+
+    get isDrilled() { return this._drillFamily !== null; }
+    get drillBreadcrumb() { return this._drillFamily; }
     industryNeedTypeMatrix = { rows: [], headers: [] };
     accountItems = [];
 
@@ -160,6 +167,9 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         this.agingCount = data.agingCount || 0;
         this.staleCount = data.staleCount || 0;
 
+        // 製品名→ファミリーマッピング保存
+        this._productToFamily = data.productToFamily || {};
+
         const useImpact = this.metric === 'impact';
 
         this.processProductFamily(
@@ -167,12 +177,12 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
             useImpact ? (data.impactByProduct || {}) : null,
             data.productFreshness || {}
         );
-        this.productNeedTypeMatrix = this.buildMatrix(
+        this.productNeedTypeMatrix = this._buildProductMatrix(
             data.byProductNeedType || {},
             useImpact ? (data.impactByProductNeedType || {}) : null,
             'productNeedType', FAMILY_COLORS, Object.keys(NEED_TYPE_COLORS)
         );
-        this.productIndustryMatrix = this.buildMatrix(
+        this.productIndustryMatrix = this._buildProductMatrix(
             data.byProductIndustry || {},
             useImpact ? (data.impactByProductIndustry || {}) : null,
             'productIndustry', FAMILY_COLORS, null
@@ -219,6 +229,43 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                     showPct: !useImpact
                 };
             });
+    }
+
+    _buildProductMatrix(countMap, impactMap, filterType, rowColors, fixedCols) {
+        if (this._drillFamily) {
+            // ドリルダウンモード: 選択されたファミリー内の製品名だけでマトリクス構築
+            const filtered = {};
+            const filteredImpact = {};
+            for (const [key, val] of Object.entries(countMap)) {
+                const productName = key.split('|')[0];
+                const family = this._productToFamily[productName];
+                if (family === this._drillFamily) {
+                    filtered[key] = val;
+                    if (impactMap && impactMap[key]) filteredImpact[key] = impactMap[key];
+                }
+            }
+            return this.buildMatrix(filtered, impactMap ? filteredImpact : null, filterType, rowColors, fixedCols);
+        }
+        // ファミリーレベル: 製品名をファミリーに集約
+        const familyCount = {};
+        const familyImpact = {};
+        for (const [key, val] of Object.entries(countMap)) {
+            const [productName, ...rest] = key.split('|');
+            const family = this._productToFamily[productName] || productName;
+            const newKey = family + '|' + rest.join('|');
+            familyCount[newKey] = (familyCount[newKey] || 0) + val;
+            if (impactMap && impactMap[key]) {
+                familyImpact[newKey] = (familyImpact[newKey] || 0) + impactMap[key];
+            }
+        }
+        const result = this.buildMatrix(familyCount, impactMap ? familyImpact : null, filterType, rowColors, fixedCols);
+        // ファミリー行にドリルダウンマーカーを追加
+        result.rows = result.rows.map(row => ({
+            ...row,
+            isDrillable: true,
+            rowLabel: row.rowLabel + ' ▸'
+        }));
+        return result;
     }
 
     buildMatrix(countMap, impactMap, filterType, rowColors, fixedCols) {
@@ -366,6 +413,20 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     // --- Event handlers ---
     handleTabClick(event) {
         this.activeChart = event.currentTarget.dataset.tab;
+        this._drillFamily = null; // タブ切替時はドリルダウン解除
+        if (this._rawData) this.processData(this._rawData);
+    }
+
+    handleRowLabelClick(event) {
+        const rowKey = event.currentTarget.dataset.family;
+        if (!rowKey || this._drillFamily) return; // 既にドリルダウン中なら無視
+        this._drillFamily = rowKey;
+        if (this._rawData) this.processData(this._rawData);
+    }
+
+    handleDrillBack() {
+        this._drillFamily = null;
+        if (this._rawData) this.processData(this._rawData);
     }
 
     handleTimeFilter(event) {

@@ -226,17 +226,26 @@ def _call_gemini(req: dict) -> dict:
 
 
 def _call_gemini_text(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
-    """テキストのみのGemini呼出（マルチモーダルなし）。汎用プロンプト用。"""
+    """テキストのみのGemini呼出。429エラー時はリトライ。"""
     model = _get_model()
-    response = model.generate_content(
-        [system_prompt, user_prompt],
-        generation_config={
-            "temperature": temperature,
-            "max_output_tokens": 8192,
-        },
-    )
-    log.info("gemini text response length: %d chars", len(response.text))
-    return response.text
+    for attempt in range(3):
+        try:
+            response = model.generate_content(
+                [system_prompt, user_prompt],
+                generation_config={
+                    "temperature": temperature,
+                    "max_output_tokens": 8192,
+                },
+            )
+            log.info("gemini text response length: %d chars", len(response.text))
+            return response.text
+        except Exception as e:
+            if "429" in str(e) and attempt < 2:
+                wait = (attempt + 1) * 5
+                log.warning("429 rate limit, retrying in %ds (attempt %d/3)", wait, attempt + 1)
+                time.sleep(wait)
+            else:
+                raise
 
 
 def _handle_prompt(request):
