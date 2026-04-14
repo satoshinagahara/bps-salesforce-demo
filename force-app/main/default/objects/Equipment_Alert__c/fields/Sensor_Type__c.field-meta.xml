@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sensor_Type__c</fullName>
+    <label>センサー種別</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>セル温度</fullName>
+                <default>true</default>
+                <label>セル温度</label>
+            </value>
+            <value>
+                <fullName>振動</fullName>
+                <default>false</default>
+                <label>振動</label>
+            </value>
+            <value>
+                <fullName>充電サイクル</fullName>
+                <default>false</default>
+                <label>充電サイクル</label>
+            </value>
+            <value>
+                <fullName>その他</fullName>
+                <default>false</default>
+                <label>その他</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -276,6 +276,47 @@ def _handle_prompt(request):
     )
 
 
+def _handle_equipment_alert(request):
+    """シナリオ2: IoT 設備異常イベント → Product Engineering Agent → SF書き戻し"""
+    from product_engineering_agent import run_agent
+
+    request_id = f"req_{uuid.uuid4().hex[:12]}"
+    log.info("[%s] received equipment alert", request_id)
+
+    try:
+        payload = request.get_json(silent=True) or {}
+    except Exception:
+        return (json.dumps({"error": "invalid json"}), 400, _cors_headers())
+
+    if not payload.get("assetId"):
+        return (json.dumps({"error": "assetId required"}), 400, _cors_headers())
+
+    try:
+        sf_access_token, sf_instance_url = _get_sf_access_token()
+    except Exception as e:
+        log.exception("[%s] sf auth failed", request_id)
+        return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
+
+    try:
+        result = run_agent(payload, sf_access_token, sf_instance_url, request_id)
+    except Exception as e:
+        log.exception("[%s] agent failed", request_id)
+        return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
+
+    return (json.dumps({**result, "requestId": request_id}, ensure_ascii=False), 200, _cors_headers())
+
+
+def _handle_trigger_html(request):
+    """HTMLトリガーページ。シナリオ2のデモ用にIoTイベントを発火する画面"""
+    html = _build_trigger_html()
+    return (html, 200, {"Content-Type": "text/html; charset=utf-8"})
+
+
+def _build_trigger_html() -> str:
+    """シナリオ2用HTMLトリガーページのHTML文字列を返す"""
+    return TRIGGER_HTML
+
+
 @functions_framework.http
 def generate_design_suggestion(request):
     request_id = f"req_{uuid.uuid4().hex[:12]}"
@@ -283,13 +324,22 @@ def generate_design_suggestion(request):
     if request.method == "OPTIONS":
         return ("", 204, _cors_headers())
 
+    # GET /trigger → HTMLページを返す
+    if request.method == "GET":
+        path = request.path.rstrip("/")
+        if path.endswith("/trigger"):
+            return _handle_trigger_html(request)
+        return (json.dumps({"error": "method not allowed"}), 405, _cors_headers())
+
     if request.method != "POST":
         return (json.dumps({"error": "method not allowed"}), 405, _cors_headers())
 
-    # パスベースルーティング: /prompt → 汎用プロンプト処理
+    # パスベースルーティング
     path = request.path.rstrip("/")
     if path.endswith("/prompt"):
         return _handle_prompt(request)
+    if path.endswith("/equipment-alert"):
+        return _handle_equipment_alert(request)
 
     log.info("[%s] received design suggestion request", request_id)
 
@@ -427,3 +477,202 @@ def _cors_headers() -> dict:
         "Access-Control-Allow-Headers": "Content-Type, X-API-Key",
         "Content-Type": "application/json; charset=utf-8",
     }
+
+
+# ============================================================
+# シナリオ2: HTMLトリガーページ
+# ============================================================
+
+DEMO_ASSET_ID = os.environ.get("DEMO_ASSET_ID", "02iIe00000165UeIAI")
+DEMO_ASSET_LABEL = "EnerCharge Pro #001 (Bangkok Plant B)"
+DEMO_ACCOUNT_LABEL = "東亜電子工業"
+TRIGGER_HTML = """<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>BPS 設備監視シミュレーター</title>
+<style>
+  body {
+    font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .container {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 40px 48px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    letter-spacing: 0.05em;
+  }
+  .subtitle {
+    color: #9ca3af;
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  .panel {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .panel-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #1e293b;
+    font-size: 14px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row-label { color: #94a3b8; }
+  .row-value { color: #e2e8f0; font-weight: 600; }
+  .sensor-value {
+    font-size: 28px;
+    color: #f59e0b;
+    font-weight: 700;
+  }
+  .sensor-value.normal { color: #10b981; }
+  .threshold {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: normal;
+    margin-left: 8px;
+  }
+  .btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    background: #ea580c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: #c2410c; transform: translateY(-1px); }
+  .btn:disabled { background: #64748b; cursor: not-allowed; transform: none; }
+  .pipeline {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+  }
+  .pipeline strong { color: #60a5fa; }
+  .status {
+    margin-top: 20px;
+    padding: 16px;
+    background: #0f172a;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #e2e8f0;
+    min-height: 24px;
+    white-space: pre-wrap;
+    font-family: monospace;
+  }
+  .status.ok { border-left: 4px solid #10b981; }
+  .status.err { border-left: 4px solid #ef4444; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ BPS 設備監視シミュレーター</h1>
+  <div class="subtitle">IoT センサーイベント発火デモ</div>
+
+  <div class="panel">
+    <div class="panel-label">設備情報</div>
+    <div class="row"><span class="row-label">設備</span><span class="row-value">__ASSET_LABEL__</span></div>
+    <div class="row"><span class="row-label">顧客</span><span class="row-value">__ACCOUNT_LABEL__</span></div>
+    <div class="row"><span class="row-label">設置場所</span><span class="row-value">タイ・バンコク郊外 工場B棟</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">最新センサー値（セル温度）</div>
+    <div class="row" style="border-bottom: none; padding-top: 0;">
+      <span class="row-label">検知値</span>
+      <span><span class="sensor-value">47.5℃</span><span class="threshold">/ 閾値 45.0℃</span></span>
+    </div>
+  </div>
+
+  <button class="btn" id="trigger" onclick="fireEvent()">⚠ 異常イベントを発火</button>
+
+  <div class="pipeline">
+    Pub/Sub → Cloud Functions → <strong>Product Engineering Agent</strong>
+    <br>(Vertex AI Gemini Function Calling) → Salesforce
+  </div>
+
+  <div class="status" id="status">待機中。ボタンをクリックしてイベントを発火してください。</div>
+</div>
+
+<script>
+async function fireEvent() {
+  const btn = document.getElementById('trigger');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+  status.className = 'status';
+  status.textContent = '⟳ イベントをエージェントに送信中...';
+
+  const payload = {
+    assetId: '__DEMO_ASSET_ID__',
+    sensorType: 'セル温度',
+    value: 47.5,
+    threshold: 45.0,
+    location: 'タイ・バンコク郊外 工場B棟',
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    const t0 = Date.now();
+    const resp = await fetch('./equipment-alert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+
+    if (resp.ok && data.alertId) {
+      status.className = 'status ok';
+      status.textContent =
+        '✓ エージェント処理完了 (' + elapsed + '秒)\\n' +
+        'Agent iterations: ' + data.iterations + '\\n' +
+        'Salesforce Equipment_Alert__c 作成: ' + data.alertId + '\\n\\n' +
+        '→ Salesforce 画面で該当設備のアラートタブをご確認ください';
+    } else {
+      status.className = 'status err';
+      status.textContent = '✗ エラー: ' + JSON.stringify(data, null, 2);
+    }
+  } catch (e) {
+    status.className = 'status err';
+    status.textContent = '✗ 通信エラー: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚠ 異常イベントを発火';
+  }
+}
+</script>
+</body>
+</html>
+""".replace("__ASSET_LABEL__", DEMO_ASSET_LABEL).replace("__ACCOUNT_LABEL__", DEMO_ACCOUNT_LABEL).replace("__DEMO_ASSET_ID__", DEMO_ASSET_ID)

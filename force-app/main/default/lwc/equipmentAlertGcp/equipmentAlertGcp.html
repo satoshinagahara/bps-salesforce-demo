@@ -1,0 +1,138 @@
+<template>
+    <div class="container">
+
+        <template lwc:if={hasError}>
+            <div class="error-box">
+                <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                <span class="error-text">{error}</span>
+            </div>
+        </template>
+
+        <!-- 設備情報サマリ -->
+        <template lwc:if={context}>
+            <div class="asset-summary">
+                <div class="asset-row">
+                    <span class="asset-label">設備</span>
+                    <span class="asset-value">{context.assetName}</span>
+                </div>
+                <div class="asset-row-inline">
+                    <div class="asset-inline-item">
+                        <span class="asset-label">製品</span>
+                        <span class="asset-value">{context.productName}</span>
+                    </div>
+                    <div class="asset-inline-item">
+                        <span class="asset-label">顧客</span>
+                        <span class="asset-value">{context.accountName}</span>
+                    </div>
+                    <div class="asset-inline-item">
+                        <span class="asset-label">ステータス</span>
+                        <span class="asset-value">{context.status}</span>
+                    </div>
+                </div>
+                <div class="refresh-row">
+                    <button class="refresh-btn" onclick={handleRefresh}>
+                        <lightning-icon icon-name="utility:refresh" size="xx-small"></lightning-icon>
+                        更新
+                    </button>
+                </div>
+            </div>
+        </template>
+
+        <!-- アラートなし -->
+        <template lwc:if={context}>
+            <template lwc:if={hasAlerts}></template>
+            <template lwc:else>
+                <div class="empty-state">
+                    <lightning-icon icon-name="utility:check" size="large" variant="success"></lightning-icon>
+                    <p class="empty-text">この設備に関するアラートはまだ届いていません</p>
+                    <p class="empty-sub">GCP から異常検知イベントが届くと、ここに分析結果が表示されます</p>
+                </div>
+            </template>
+        </template>
+
+        <!-- 最新アラートカード（メイン表示） -->
+        <template lwc:if={latestAlert}>
+            <div class="alert-card">
+                <div class="alert-header">
+                    <div class="alert-title-row">
+                        <lightning-icon icon-name="utility:warning" size="small"></lightning-icon>
+                        <h3 class="alert-title">最新アラート ({latestAlert.alertNumber})</h3>
+                        <span class="vertex-badge">Product Engineering Agent</span>
+                    </div>
+                    <span class={latestAlert.severityClass}>{latestAlert.severity}</span>
+                </div>
+
+                <div class="alert-body">
+                    <!-- センサー値 -->
+                    <div class="sensor-row">
+                        <div class="sensor-item">
+                            <span class="meta-label">センサー</span>
+                            <span class="meta-value">{latestAlert.sensorType}</span>
+                        </div>
+                        <div class="sensor-item">
+                            <span class="meta-label">検知値</span>
+                            <span class="sensor-value-bold">{latestAlert.detectedValue}</span>
+                        </div>
+                        <div class="sensor-item">
+                            <span class="meta-label">閾値</span>
+                            <span class="meta-value">{latestAlert.threshold}</span>
+                        </div>
+                        <div class="sensor-item">
+                            <span class="meta-label">検知日時</span>
+                            <span class="meta-value">
+                                <lightning-formatted-date-time value={latestAlert.detectedAt}
+                                    year="numeric" month="2-digit" day="2-digit"
+                                    hour="2-digit" minute="2-digit"></lightning-formatted-date-time>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- AI診断 -->
+                    <div class="diagnosis-section">
+                        <span class="meta-label">AI診断（仕様書照合結果）</span>
+                        <p class="diagnosis-text">{latestAlert.anomalyDescription}</p>
+                    </div>
+
+                    <!-- 推奨アクション -->
+                    <div class="action-section">
+                        <span class="meta-label">推奨アクション</span>
+                        <p class="action-text">{latestAlert.recommendedAction}</p>
+                    </div>
+
+                    <!-- 商談機会 -->
+                    <template lwc:if={latestAlert.estimatedOpportunity}>
+                        <div class="opportunity-section">
+                            <lightning-icon icon-name="utility:moneybag" size="small"></lightning-icon>
+                            <span class="opp-label">想定商談機会</span>
+                            <span class="opp-value">{latestAlert.estimatedOpportunityFormatted}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="alert-footer">
+                    <span class="footer-text">{latestAlert.processedBy}</span>
+                    <span class="footer-text">Status: {latestAlert.status}</span>
+                </div>
+            </div>
+        </template>
+
+        <!-- 過去のアラート（折りたたみ簡易表示） -->
+        <template lwc:if={hasMoreAlerts}>
+            <div class="past-alerts-section">
+                <div class="past-alerts-header">過去のアラート ({pastAlerts.length}件)</div>
+                <template for:each={pastAlerts} for:item="a">
+                    <div key={a.alertId} class="past-alert-row">
+                        <span class="past-alert-num">{a.alertNumber}</span>
+                        <span class={a.severityClass}>{a.severity}</span>
+                        <span class="past-alert-sensor">{a.sensorType} {a.detectedValue} / {a.threshold}</span>
+                        <span class="past-alert-date">
+                            <lightning-formatted-date-time value={a.detectedAt}
+                                year="numeric" month="2-digit" day="2-digit"></lightning-formatted-date-time>
+                        </span>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+    </div>
+</template>
