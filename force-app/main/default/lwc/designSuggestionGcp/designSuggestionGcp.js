@@ -1,11 +1,12 @@
 import { LightningElement, api, wire } from 'lwc';
 import getPreviewData from '@salesforce/apex/DesignSuggestionGcpController.getPreviewData';
-import generateDesignSuggestion from '@salesforce/apex/DesignSuggestionGcpController.generateDesignSuggestion';
+import generateDesignSuggestionAgent from '@salesforce/apex/DesignSuggestionGcpController.generateDesignSuggestionAgent';
 
+// エージェントの実際のツール呼出順に対応した進捗ステップ
 const STEPS = [
-    { key: 1, label: 'Salesforce → GCP へ施策・ニーズ情報を送信' },
+    { key: 1, label: 'Salesforce から施策情報・紐付くニーズを取得' },
     { key: 2, label: 'Cloud Storage から仕様書PDF・図面を取得' },
-    { key: 3, label: 'Vertex AI Gemini マルチモーダル処理中' },
+    { key: 3, label: 'Vertex AI Gemini が仕様書・図面と照合して推論中' },
     { key: 4, label: '製品改善提案を Salesforce へ書き戻し' }
 ];
 
@@ -59,6 +60,22 @@ export default class DesignSuggestionGcp extends LightningElement {
         return this.result && (this.result.specUrl || this.result.diagramUrl);
     }
 
+    get hasToolHistory() {
+        return this.result && this.result.toolHistory && this.result.toolHistory.length > 0;
+    }
+
+    get toolHistoryDisplay() {
+        if (!this.hasToolHistory) return [];
+        return this.result.toolHistory.map((t, i) => ({
+            key: 't-' + i,
+            num: i + 1,
+            tool: t.tool,
+            args: t.args,
+            resultSummary: t.resultSummary,
+            elapsedSec: t.elapsedSec
+        }));
+    }
+
     get buttonDisabled() {
         return this.isGenerating || !this.hasPreview;
     }
@@ -99,7 +116,7 @@ export default class DesignSuggestionGcp extends LightningElement {
         }, 1500);
 
         try {
-            const result = await generateDesignSuggestion({ initiativeId: this.recordId });
+            const result = await generateDesignSuggestionAgent({ initiativeId: this.recordId });
             clearInterval(stepTimer);
             this.currentStep = 4;
 

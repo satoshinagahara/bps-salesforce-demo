@@ -178,6 +178,27 @@
                     </div>
                 </template>
 
+                <!-- Agent ツール呼出履歴 -->
+                <template lwc:if={hasToolHistory}>
+                    <div class="tool-history-section">
+                        <div class="tool-history-header">
+                            <lightning-icon icon-name="utility:apex" size="xx-small"></lightning-icon>
+                            <span class="tool-history-title">Agent ツール呼出履歴（実行ログ）</span>
+                        </div>
+                        <div class="tool-history-body">
+                            <template for:each={toolHistoryDisplay} for:item="t">
+                                <div key={t.key} class="tool-row">
+                                    <span class="tool-num">{t.num}.</span>
+                                    <span class="tool-name">{t.tool}</span>
+                                    <span class="tool-args">{t.args}</span>
+                                    <span class="tool-result">→ {t.resultSummary}</span>
+                                    <span class="tool-time">{t.elapsedSec}s</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
                 <div class="result-footer">
                     <span class="footer-text">{result.processedBy}</span>
                     <span class="footer-text">{result.generatedAt}</span>

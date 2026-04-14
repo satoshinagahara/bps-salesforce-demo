@@ -32,6 +32,15 @@ public with sharing class DesignSuggestionGcpController {
         @AuraEnabled public String gcpRequestId;
         @AuraEnabled public String specUrl;
         @AuraEnabled public String diagramUrl;
+        @AuraEnabled public Integer iterations;
+        @AuraEnabled public List<ToolHistoryEntry> toolHistory;
+    }
+
+    public class ToolHistoryEntry {
+        @AuraEnabled public String tool;
+        @AuraEnabled public String args;
+        @AuraEnabled public String resultSummary;
+        @AuraEnabled public Decimal elapsedSec;
     }
 
     @AuraEnabled(cacheable=true)
@@ -120,6 +129,71 @@ public with sharing class DesignSuggestionGcpController {
         result.gcpRequestId = (String) gcpResponse.get('gcpRequestId');
         result.specUrl = (String) gcpResponse.get('specUrl');
         result.diagramUrl = (String) gcpResponse.get('diagramUrl');
+        return result;
+    }
+
+    /**
+     * エージェント版: initiativeId のみをGCPに送信し、
+     * Product Engineering Agent が自律的にツール呼出してSF書き戻しまで完結させる。
+     */
+    @AuraEnabled
+    public static DesignSuggestionResult generateDesignSuggestionAgent(Id initiativeId) {
+        Map<String, Object> requestBody = new Map<String, Object>{
+            'initiativeId' => initiativeId
+        };
+
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(GCP_ENDPOINT + '/design-suggestion-agent');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/json');
+        req.setTimeout(120000);
+        req.setBody(JSON.serialize(requestBody));
+
+        Http http = new Http();
+        HttpResponse res = http.send(req);
+
+        if (res.getStatusCode() != 200) {
+            throw new AuraHandledException(
+                'Agentからの応答エラー (' + res.getStatusCode() + '): ' + res.getBody()
+            );
+        }
+
+        Map<String, Object> gcpResponse = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+
+        DesignSuggestionResult result = new DesignSuggestionResult();
+        result.designSuggestionId = (String) gcpResponse.get('designSuggestionId');
+        result.targetProduct = (String) gcpResponse.get('targetProduct');
+        result.targetComponent = (String) gcpResponse.get('targetComponent');
+        result.suggestionText = (String) gcpResponse.get('suggestionText');
+        result.referenceSpec = (String) gcpResponse.get('referenceSpec');
+        result.referenceDiagram = (String) gcpResponse.get('referenceDiagram');
+        result.priority = (String) gcpResponse.get('priority');
+        result.processedBy = (String) gcpResponse.get('processedBy');
+        result.generatedAt = (String) gcpResponse.get('generatedAt');
+        result.gcpRequestId = (String) gcpResponse.get('gcpRequestId');
+        result.specUrl = (String) gcpResponse.get('specUrl');
+        result.diagramUrl = (String) gcpResponse.get('diagramUrl');
+        result.iterations = gcpResponse.get('iterations') != null ? (Integer) gcpResponse.get('iterations') : null;
+
+        // toolHistory をパース
+        result.toolHistory = new List<ToolHistoryEntry>();
+        List<Object> histRaw = (List<Object>) gcpResponse.get('toolHistory');
+        if (histRaw != null) {
+            for (Object o : histRaw) {
+                Map<String, Object> h = (Map<String, Object>) o;
+                ToolHistoryEntry e = new ToolHistoryEntry();
+                e.tool = (String) h.get('tool');
+                e.args = (String) h.get('args');
+                e.resultSummary = (String) h.get('result_summary');
+                Object elapsed = h.get('elapsed_sec');
+                if (elapsed != null) {
+                    if (elapsed instanceof Decimal) e.elapsedSec = (Decimal) elapsed;
+                    else if (elapsed instanceof Double) e.elapsedSec = Decimal.valueOf((Double) elapsed);
+                    else if (elapsed instanceof Integer) e.elapsedSec = Decimal.valueOf((Integer) elapsed);
+                }
+                result.toolHistory.add(e);
+            }
+        }
         return result;
     }
 

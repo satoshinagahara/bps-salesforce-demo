@@ -298,7 +298,37 @@ def _handle_equipment_alert(request):
         return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
 
     try:
-        result = run_agent(payload, sf_access_token, sf_instance_url, request_id)
+        result = run_agent(payload, sf_access_token, sf_instance_url, request_id, mode="equipment_alert")
+    except Exception as e:
+        log.exception("[%s] agent failed", request_id)
+        return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
+
+    return (json.dumps({**result, "requestId": request_id}, ensure_ascii=False), 200, _cors_headers())
+
+
+def _handle_design_suggestion_agent(request):
+    """シナリオ1（エージェント版）: 製品施策ID → Product Engineering Agent → SF書き戻し"""
+    from product_engineering_agent import run_agent
+
+    request_id = f"req_{uuid.uuid4().hex[:12]}"
+    log.info("[%s] received design suggestion (agent)", request_id)
+
+    try:
+        payload = request.get_json(silent=True) or {}
+    except Exception:
+        return (json.dumps({"error": "invalid json"}), 400, _cors_headers())
+
+    if not payload.get("initiativeId"):
+        return (json.dumps({"error": "initiativeId required"}), 400, _cors_headers())
+
+    try:
+        sf_access_token, sf_instance_url = _get_sf_access_token()
+    except Exception as e:
+        log.exception("[%s] sf auth failed", request_id)
+        return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
+
+    try:
+        result = run_agent(payload, sf_access_token, sf_instance_url, request_id, mode="design_suggestion")
     except Exception as e:
         log.exception("[%s] agent failed", request_id)
         return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
@@ -340,6 +370,8 @@ def generate_design_suggestion(request):
         return _handle_prompt(request)
     if path.endswith("/equipment-alert"):
         return _handle_equipment_alert(request)
+    if path.endswith("/design-suggestion-agent"):
+        return _handle_design_suggestion_agent(request)
 
     log.info("[%s] received design suggestion request", request_id)
 
