@@ -773,6 +773,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Equipment_Alert__c.Opportunity_Rationale__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Equipment_Alert__c.GcpRequestId__c</field>
         <readable>true</readable>
     </fieldPermissions>

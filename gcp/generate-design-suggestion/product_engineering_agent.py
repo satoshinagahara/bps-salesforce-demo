@@ -63,7 +63,7 @@ def tool_get_asset_info(asset_id: str, sf_access_token: str, sf_instance_url: st
     """Salesforceから Asset レコードの情報を取得する。"""
     log.info("[tool] get_asset_info: %s", asset_id)
     soql = (
-        "SELECT Id, Name, SerialNumber, InstallDate, Status, "
+        "SELECT Id, Name, SerialNumber, InstallDate, Status, Price, "
         "Account.Name, Product2.Name, Description "
         "FROM Asset WHERE Id = '" + asset_id + "'"
     )
@@ -84,6 +84,7 @@ def tool_get_asset_info(asset_id: str, sf_access_token: str, sf_instance_url: st
         "serialNumber": a.get("SerialNumber"),
         "installDate": a.get("InstallDate"),
         "status": a.get("Status"),
+        "price": a.get("Price"),
         "accountName": (a.get("Account") or {}).get("Name"),
         "productName": (a.get("Product2") or {}).get("Name"),
         "description": a.get("Description"),
@@ -140,24 +141,31 @@ def tool_calculate_severity(value: float, threshold: float, sensor_type: str) ->
     return {"severity": sev, "reason": reason}
 
 
-def tool_estimate_opportunity(product_name: str, severity: str, sensor_type: str) -> dict:
-    """アセット情報と重要度から、想定商談機会金額を試算する。簡易ロジック。"""
-    log.info("[tool] estimate_opportunity: %s / %s", product_name, severity)
-    base_amounts = {
-        "EnerCharge": 150_000_000,  # 蓄電システム更新案件
-        "風力タービン": 350_000_000,  # 風力設備更新案件
-    }
-    base = 50_000_000
-    for keyword, amount in base_amounts.items():
-        if keyword in product_name:
-            base = amount
-            break
-    multiplier = {"高": 1.5, "中": 1.0, "低": 0.4}.get(severity, 1.0)
-    estimated = int(base * multiplier)
+def tool_estimate_opportunity(asset_price: float, severity: str, sensor_type: str) -> dict:
+    """設備の納入価格と重要度から、想定商談機会金額を試算する。
+
+    ロジック: 納入価格 × 重要度係数
+      - 高: 1.5（即時の設備更新 + 3年保守契約相当）
+      - 中: 0.6（部分修理 + 延長保守契約）
+      - 低: 0.15（点検サービスのみ）
+    """
+    log.info("[tool] estimate_opportunity: price=%s severity=%s", asset_price, severity)
+    if not asset_price or asset_price <= 0:
+        return {"error": "asset_price required (>0)"}
+    multiplier = {"高": 1.5, "中": 0.6, "低": 0.15}.get(severity, 0.6)
+    multiplier_label = {
+        "高": "設備更新＋3年保守契約相当",
+        "中": "部分修理＋延長保守契約",
+        "低": "点検サービス相当",
+    }.get(severity, "")
+    estimated = int(asset_price * multiplier)
     return {
         "estimatedOpportunity": estimated,
         "currency": "JPY",
-        "rationale": f"{product_name}の標準更新案件規模 ¥{base:,} × 重要度{severity}係数 {multiplier}",
+        "rationale": (
+            f"納入価格 ¥{int(asset_price):,} × {multiplier}（{multiplier_label}）"
+            f" = ¥{estimated:,}"
+        ),
     }
 
 
@@ -170,6 +178,7 @@ def tool_write_equipment_alert(
     anomaly_description: str,
     recommended_action: str,
     estimated_opportunity: int,
+    opportunity_rationale: str,
     sf_access_token: str,
     sf_instance_url: str,
     request_id: str,
@@ -186,6 +195,7 @@ def tool_write_equipment_alert(
         "Anomaly_Description__c": anomaly_description,
         "Recommended_Action__c": recommended_action,
         "Estimated_Opportunity__c": estimated_opportunity,
+        "Opportunity_Rationale__c": opportunity_rationale,
         "ProcessedBy__c": f"Vertex AI {VERTEX_MODEL} (Agent)",
         "GcpRequestId__c": request_id,
         "Status__c": "新規",
@@ -276,15 +286,18 @@ FUNCTION_DECLARATIONS = [
     ),
     FunctionDeclaration(
         name="estimate_opportunity",
-        description="製品名と重要度から想定商談機会金額（円）を試算する",
+        description=(
+            "設備の納入価格(asset_price)と重要度から想定商談機会金額（円）を試算する。"
+            "asset_price は get_asset_info で取得した price フィールド値を使うこと。"
+        ),
         parameters={
             "type": "object",
             "properties": {
-                "product_name": {"type": "string"},
+                "asset_price": {"type": "number", "description": "設備の納入価格（円）"},
                 "severity": {"type": "string", "enum": ["高", "中", "低"]},
                 "sensor_type": {"type": "string"},
             },
-            "required": ["product_name", "severity", "sensor_type"],
+            "required": ["asset_price", "severity", "sensor_type"],
         },
     ),
     FunctionDeclaration(
@@ -293,6 +306,7 @@ FUNCTION_DECLARATIONS = [
             "全ての分析が完了したら最後にこの関数を呼び、Salesforceの Equipment_Alert__c に診断結果を書き戻す。"
             "anomaly_description は仕様書のセクション番号を引用しながら3〜5文で記述。"
             "recommended_action は箇条書き（行頭'・'）で2〜4項目。"
+            "opportunity_rationale には estimate_opportunity ツールが返した rationale 文字列をそのまま渡す。"
         ),
         parameters={
             "type": "object",
@@ -305,10 +319,12 @@ FUNCTION_DECLARATIONS = [
                 "anomaly_description": {"type": "string"},
                 "recommended_action": {"type": "string"},
                 "estimated_opportunity": {"type": "integer"},
+                "opportunity_rationale": {"type": "string", "description": "商談機会金額の算出根拠（estimate_opportunity の rationale をそのまま）"},
             },
             "required": [
                 "asset_id", "sensor_type", "detected_value", "threshold",
-                "severity", "anomaly_description", "recommended_action", "estimated_opportunity",
+                "severity", "anomaly_description", "recommended_action",
+                "estimated_opportunity", "opportunity_rationale",
             ],
         },
     ),
@@ -348,7 +364,9 @@ IoTセンサーから設備の異常検知イベントが届きます。例：
 
 ## 重要な制約
 - 推測や憶測ではなく、仕様書に書かれていることを根拠にする
-- 仕様書に記載のない値については「仕様書に記載なし」と明記
+- 仕様書に該当センサーの記述がない場合は、関連する制御仕様・部品構成・メンテナンス仕様
+  から類推可能な業務的影響を述べ、その旨（「仕様書に直接の閾値記載はないが、
+  §x.x の○○仕様から類推すると」等）を明示する
 - 全てのツール呼び出しが完了したら必ず write_equipment_alert を呼ぶこと
 """
 
@@ -384,6 +402,7 @@ def run_agent(
     cached_pdf_part: Part | None = None
     cached_png_part: Part | None = None
     written_alert_id: str | None = None
+    tool_history: list[dict] = []  # 各ツール呼出の履歴（フロントエンド表示用）
     iteration = 0
     max_iterations = 15
 
@@ -406,6 +425,7 @@ def run_agent(
             fname = fc.name
             fargs = dict(fc.args) if fc.args else {}
             log.info("[%s] tool_call: %s args=%s", request_id, fname, fargs)
+            tool_start = time.time()
             try:
                 if fname == "get_asset_info":
                     result = tool_get_asset_info(fargs["asset_id"], sf_access_token, sf_instance_url)
@@ -425,7 +445,7 @@ def run_agent(
                     )
                 elif fname == "estimate_opportunity":
                     result = tool_estimate_opportunity(
-                        fargs["product_name"], fargs["severity"], fargs["sensor_type"]
+                        float(fargs["asset_price"]), fargs["severity"], fargs["sensor_type"]
                     )
                 elif fname == "write_equipment_alert":
                     result = tool_write_equipment_alert(
@@ -437,6 +457,7 @@ def run_agent(
                         anomaly_description=fargs["anomaly_description"],
                         recommended_action=fargs["recommended_action"],
                         estimated_opportunity=int(fargs["estimated_opportunity"]),
+                        opportunity_rationale=fargs.get("opportunity_rationale", ""),
                         sf_access_token=sf_access_token,
                         sf_instance_url=sf_instance_url,
                         request_id=request_id,
@@ -448,6 +469,13 @@ def run_agent(
                 log.exception("[%s] tool error: %s", request_id, fname)
                 result = {"error": str(e)}
 
+            elapsed = time.time() - tool_start
+            tool_history.append({
+                "tool": fname,
+                "args": _summarize_args(fname, fargs),
+                "result_summary": _summarize_result(fname, result),
+                "elapsed_sec": round(elapsed, 2),
+            })
             function_response_parts.append(
                 Part.from_function_response(name=fname, response=result)
             )
@@ -467,4 +495,40 @@ def run_agent(
         "alertId": written_alert_id,
         "iterations": iteration,
         "status": "completed" if written_alert_id else "incomplete",
+        "toolHistory": tool_history,
     }
+
+
+def _summarize_args(fname: str, fargs: dict) -> str:
+    """ツール呼出引数を1行で要約（フロント表示用）"""
+    if fname == "get_asset_info":
+        return f"assetId={fargs.get('asset_id', '')[:18]}..."
+    if fname in ("get_product_spec", "get_product_diagram"):
+        return f"product={fargs.get('product_name', '')[:30]}"
+    if fname == "calculate_severity":
+        return f"value={fargs.get('value')} threshold={fargs.get('threshold')}"
+    if fname == "estimate_opportunity":
+        price = fargs.get("asset_price", 0)
+        return f"price=¥{int(price):,} severity={fargs.get('severity')}"
+    if fname == "write_equipment_alert":
+        return f"severity={fargs.get('severity')} opportunity=¥{int(fargs.get('estimated_opportunity', 0)):,}"
+    return ""
+
+
+def _summarize_result(fname: str, result: dict) -> str:
+    """ツール実行結果を1行で要約（フロント表示用）"""
+    if isinstance(result, dict) and result.get("error"):
+        return f"ERROR: {result['error']}"
+    if fname == "get_asset_info":
+        return f"{result.get('productName', '')} / {result.get('accountName', '')}"
+    if fname == "get_product_spec":
+        return f"PDF取得 {result.get('sizeBytes', 0):,} bytes"
+    if fname == "get_product_diagram":
+        return f"PNG取得 {result.get('sizeBytes', 0):,} bytes"
+    if fname == "calculate_severity":
+        return f"重要度: {result.get('severity', '')} ({result.get('reason', '')})"
+    if fname == "estimate_opportunity":
+        return f"¥{int(result.get('estimatedOpportunity', 0)):,}"
+    if fname == "write_equipment_alert":
+        return f"SF Record: {result.get('alertId', '')}"
+    return ""

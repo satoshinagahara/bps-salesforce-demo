@@ -483,10 +483,9 @@ def _cors_headers() -> dict:
 # シナリオ2: HTMLトリガーページ
 # ============================================================
 
-DEMO_ASSET_ID = os.environ.get("DEMO_ASSET_ID", "02iIe00000165UeIAI")
-DEMO_ASSET_LABEL = "EnerCharge Pro #001 (Bangkok Plant B)"
-DEMO_ACCOUNT_LABEL = "東亜電子工業"
-TRIGGER_HTML = """<!DOCTYPE html>
+DEMO_ASSET_E2000_ID = os.environ.get("DEMO_ASSET_E2000_ID", "02iIe00000165UeIAI")
+DEMO_ASSET_A1000_ID = os.environ.get("DEMO_ASSET_A1000_ID", "02iIe00000165VhIAI")
+_TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -496,152 +495,372 @@ TRIGGER_HTML = """<!DOCTYPE html>
     font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     color: #fff;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 24px 0;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .container {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 12px;
-    padding: 40px 48px;
-    max-width: 600px;
+    padding: 36px 48px;
+    max-width: 720px;
     width: 90%;
+    margin: 0 auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
-  h1 {
-    margin: 0 0 8px;
-    font-size: 22px;
-    letter-spacing: 0.05em;
-  }
-  .subtitle {
-    color: #9ca3af;
-    font-size: 13px;
-    margin-bottom: 32px;
-  }
-  .panel {
+  h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: 0.05em; }
+  .subtitle { color: #9ca3af; font-size: 13px; margin-bottom: 28px; }
+  .scenario {
     background: #0f172a;
     border: 1px solid #334155;
     border-radius: 8px;
-    padding: 24px;
-    margin-bottom: 24px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
   }
-  .panel-label {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: #94a3b8;
-    text-transform: uppercase;
-    margin-bottom: 12px;
+  .scenario-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .scenario-title { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+  .scenario-tag {
+    font-size: 10px; letter-spacing: 0.1em;
+    background: rgba(96,165,250,0.15); color: #60a5fa;
+    padding: 3px 8px; border-radius: 3px;
   }
   .row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #1e293b;
-    font-size: 14px;
+    display: flex; justify-content: space-between;
+    padding: 6px 0; font-size: 13px;
   }
-  .row:last-child { border-bottom: none; }
   .row-label { color: #94a3b8; }
   .row-value { color: #e2e8f0; font-weight: 600; }
   .sensor-value {
-    font-size: 28px;
-    color: #f59e0b;
-    font-weight: 700;
+    font-size: 22px; color: #f59e0b; font-weight: 700;
   }
-  .sensor-value.normal { color: #10b981; }
-  .threshold {
-    color: #64748b;
-    font-size: 14px;
-    font-weight: normal;
-    margin-left: 8px;
-  }
+  .threshold { color: #64748b; font-size: 13px; font-weight: normal; margin-left: 6px; }
   .btn {
     width: 100%;
-    padding: 16px;
-    font-size: 16px;
-    font-weight: 600;
-    background: #ea580c;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    letter-spacing: 0.05em;
+    padding: 12px; margin-top: 12px;
+    font-size: 14px; font-weight: 600;
+    background: #ea580c; color: white;
+    border: none; border-radius: 6px;
+    cursor: pointer; letter-spacing: 0.04em;
     transition: all 0.2s;
   }
-  .btn:hover { background: #c2410c; transform: translateY(-1px); }
-  .btn:disabled { background: #64748b; cursor: not-allowed; transform: none; }
-  .pipeline {
-    margin-top: 24px;
-    font-size: 12px;
-    color: #94a3b8;
-    text-align: center;
-  }
+  .btn:hover { background: #c2410c; }
+  .btn:disabled { background: #64748b; cursor: not-allowed; }
+  .pipeline { margin-top: 20px; font-size: 12px; color: #94a3b8; text-align: center; }
   .pipeline strong { color: #60a5fa; }
   .status {
-    margin-top: 20px;
-    padding: 16px;
-    background: #0f172a;
-    border-radius: 6px;
-    font-size: 13px;
-    color: #e2e8f0;
-    min-height: 24px;
-    white-space: pre-wrap;
+    margin-top: 20px; padding: 14px;
+    background: #0f172a; border-radius: 6px;
+    font-size: 12px; color: #e2e8f0;
+    min-height: 24px; white-space: pre-wrap;
     font-family: monospace;
   }
   .status.ok { border-left: 4px solid #10b981; }
   .status.err { border-left: 4px solid #ef4444; }
+
+  .input-row {
+    margin: 12px 0;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+  }
+  .input-label {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .input-pair { display: flex; align-items: center; gap: 8px; }
+  .input-num {
+    width: 80px;
+    padding: 6px 10px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    color: #f59e0b;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: right;
+    font-family: monospace;
+  }
+  .input-num:focus {
+    outline: none;
+    border-color: #ea580c;
+  }
+  .input-sep { color: #64748b; font-size: 12px; }
+  .input-unit { color: #94a3b8; font-size: 12px; }
+
+  /* progress steps */
+  .progress-section {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: #0f172a;
+    border: 1px solid #1e3a8a;
+    border-radius: 6px;
+  }
+  .progress-title {
+    font-size: 11px;
+    color: #60a5fa;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 12px;
+    color: #64748b;
+    transition: all 0.3s;
+  }
+  .progress-step.current {
+    color: #93c5fd;
+    font-weight: 600;
+  }
+  .progress-step.done {
+    color: #6ee7b7;
+  }
+  .step-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .progress-step.current .step-icon {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* tool history */
+  .tool-history {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: #0f172a;
+    border: 1px solid #166534;
+    border-radius: 6px;
+  }
+  .tool-history-title {
+    font-size: 11px;
+    color: #6ee7b7;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .tool-row {
+    display: grid;
+    grid-template-columns: 22px 130px 1fr 1fr 50px;
+    gap: 8px;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 11px;
+    border-bottom: 1px dashed #1e293b;
+    font-family: monospace;
+  }
+  .tool-row:last-child { border-bottom: none; }
+  .tool-num { color: #64748b; }
+  .tool-name { color: #93c5fd; font-weight: 700; }
+  .tool-args { color: #cbd5e1; }
+  .tool-result { color: #6ee7b7; }
+  .tool-time { color: #94a3b8; text-align: right; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>⚡ BPS 設備監視シミュレーター</h1>
-  <div class="subtitle">IoT センサーイベント発火デモ</div>
+  <div class="subtitle">IoT センサーイベント発火デモ（複数シナリオ）</div>
 
-  <div class="panel">
-    <div class="panel-label">設備情報</div>
-    <div class="row"><span class="row-label">設備</span><span class="row-value">__ASSET_LABEL__</span></div>
-    <div class="row"><span class="row-label">顧客</span><span class="row-value">__ACCOUNT_LABEL__</span></div>
-    <div class="row"><span class="row-label">設置場所</span><span class="row-value">タイ・バンコク郊外 工場B棟</span></div>
+  <!-- シナリオA: E-2000 -->
+  <div class="scenario">
+    <div class="scenario-header">
+      <span class="scenario-title">シナリオA: 蓄電システム高温異常</span>
+      <span class="scenario-tag">E-2000</span>
+    </div>
+    <div class="row"><span class="row-label">設備</span><span class="row-value">EnerCharge Pro #001 (Bangkok Plant B)</span></div>
+    <div class="row"><span class="row-label">顧客</span><span class="row-value">東亜電子工業</span></div>
+    <div class="input-row">
+      <label class="input-label">センサー: セル温度</label>
+      <div class="input-pair">
+        <input type="number" step="0.1" id="value-e2000" value="47.5" class="input-num"/>
+        <span class="input-sep">/ 閾値</span>
+        <input type="number" step="0.1" id="threshold-e2000" value="45.0" class="input-num"/>
+        <span class="input-unit">℃</span>
+      </div>
+    </div>
+    <button class="btn" id="trigger-e2000" onclick="fireEvent('e2000')">⚠ 異常イベントを発火</button>
   </div>
 
-  <div class="panel">
-    <div class="panel-label">最新センサー値（セル温度）</div>
-    <div class="row" style="border-bottom: none; padding-top: 0;">
-      <span class="row-label">検知値</span>
-      <span><span class="sensor-value">47.5℃</span><span class="threshold">/ 閾値 45.0℃</span></span>
+  <!-- シナリオB: A-1000 -->
+  <div class="scenario">
+    <div class="scenario-header">
+      <span class="scenario-title">シナリオB: 風力タービン振動異常</span>
+      <span class="scenario-tag">A-1000</span>
+    </div>
+    <div class="row"><span class="row-label">設備</span><span class="row-value">A-1000 大型風力タービン #003 (中部第3拠点)</span></div>
+    <div class="row"><span class="row-label">顧客</span><span class="row-value">アライドパワー株式会社</span></div>
+    <div class="input-row">
+      <label class="input-label">センサー: ブレード振動値</label>
+      <div class="input-pair">
+        <input type="number" step="0.1" id="value-a1000" value="8.7" class="input-num"/>
+        <span class="input-sep">/ 閾値</span>
+        <input type="number" step="0.1" id="threshold-a1000" value="7.0" class="input-num"/>
+        <span class="input-unit">mm/s</span>
+      </div>
+    </div>
+    <button class="btn" id="trigger-a1000" onclick="fireEvent('a1000')">⚠ 異常イベントを発火</button>
+  </div>
+
+  <!-- 進捗ステップ表示 -->
+  <div class="progress-section" id="progress" style="display:none">
+    <div class="progress-title">エージェント処理状況</div>
+    <div class="progress-step" data-step="1">
+      <span class="step-icon">⟳</span>
+      <span class="step-text">イベントを Pub/Sub 経由で Cloud Functions に送信中...</span>
+    </div>
+    <div class="progress-step" data-step="2">
+      <span class="step-icon">⟳</span>
+      <span class="step-text">Salesforce から Asset 情報を取得中（get_asset_info）</span>
+    </div>
+    <div class="progress-step" data-step="3">
+      <span class="step-icon">⟳</span>
+      <span class="step-text">Cloud Storage から仕様書PDF・図面PNGを取得中</span>
+    </div>
+    <div class="progress-step" data-step="4">
+      <span class="step-icon">⟳</span>
+      <span class="step-text">Vertex AI Gemini が仕様書と照合し業務的解釈を生成中...</span>
+    </div>
+    <div class="progress-step" data-step="5">
+      <span class="step-icon">⟳</span>
+      <span class="step-text">Salesforce に Equipment_Alert__c レコードを書き戻し中</span>
     </div>
   </div>
 
-  <button class="btn" id="trigger" onclick="fireEvent()">⚠ 異常イベントを発火</button>
+  <!-- Tool呼出履歴 (完了後) -->
+  <div class="tool-history" id="toolHistory" style="display:none">
+    <div class="tool-history-title">Agent ツール呼出履歴 (実行ログ)</div>
+    <div id="toolHistoryBody"></div>
+  </div>
 
   <div class="pipeline">
     Pub/Sub → Cloud Functions → <strong>Product Engineering Agent</strong>
     <br>(Vertex AI Gemini Function Calling) → Salesforce
   </div>
 
-  <div class="status" id="status">待機中。ボタンをクリックしてイベントを発火してください。</div>
+  <div class="status" id="status">待機中。シナリオを選んでイベントを発火してください。</div>
 </div>
 
 <script>
-async function fireEvent() {
-  const btn = document.getElementById('trigger');
+const SCENARIOS = {
+  'e2000': {
+    btnId: 'trigger-e2000',
+    valueId: 'value-e2000',
+    thresholdId: 'threshold-e2000',
+    base: {
+      assetId: '__DEMO_ASSET_E2000_ID__',
+      sensorType: 'セル温度',
+      location: 'タイ・バンコク郊外 工場B棟'
+    }
+  },
+  'a1000': {
+    btnId: 'trigger-a1000',
+    valueId: 'value-a1000',
+    thresholdId: 'threshold-a1000',
+    base: {
+      assetId: '__DEMO_ASSET_A1000_ID__',
+      sensorType: '振動',
+      location: '中部第3拠点 風車3号機'
+    }
+  }
+};
+
+// ステップ進捗演出（実時間に近似）
+function startProgress() {
+  const prog = document.getElementById('progress');
+  prog.style.display = 'block';
+  document.getElementById('toolHistory').style.display = 'none';
+  // すべての step を pending 状態にリセット
+  prog.querySelectorAll('.progress-step').forEach(s => {
+    s.classList.remove('done', 'current');
+    s.querySelector('.step-icon').textContent = '○';
+  });
+
+  const schedule = [
+    { step: 1, at: 0 },     // 0秒で開始
+    { step: 2, at: 1500 },  // 1.5秒
+    { step: 3, at: 5000 },  // 5秒
+    { step: 4, at: 9000 },  // 9秒（最も時間がかかるところ）
+    { step: 5, at: 25000 }, // 25秒
+  ];
+  schedule.forEach(({step, at}) => {
+    setTimeout(() => {
+      // 直前のstepをdoneに
+      const prev = prog.querySelector('[data-step="' + (step - 1) + '"]');
+      if (prev) {
+        prev.classList.remove('current');
+        prev.classList.add('done');
+        prev.querySelector('.step-icon').textContent = '✓';
+      }
+      const cur = prog.querySelector('[data-step="' + step + '"]');
+      cur.classList.add('current');
+      cur.querySelector('.step-icon').textContent = '⟳';
+    }, at);
+  });
+}
+
+function completeProgress() {
+  const prog = document.getElementById('progress');
+  prog.querySelectorAll('.progress-step').forEach(s => {
+    s.classList.remove('current');
+    s.classList.add('done');
+    s.querySelector('.step-icon').textContent = '✓';
+  });
+}
+
+function showToolHistory(history) {
+  const wrap = document.getElementById('toolHistory');
+  const body = document.getElementById('toolHistoryBody');
+  body.innerHTML = '';
+  history.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'tool-row';
+    row.innerHTML =
+      '<span class="tool-num">' + (i + 1) + '.</span>' +
+      '<span class="tool-name">' + t.tool + '</span>' +
+      '<span class="tool-args">' + (t.args || '') + '</span>' +
+      '<span class="tool-result">→ ' + (t.result_summary || '') + '</span>' +
+      '<span class="tool-time">' + t.elapsed_sec + 's</span>';
+    body.appendChild(row);
+  });
+  wrap.style.display = 'block';
+}
+
+async function fireEvent(scenarioKey) {
+  const cfg = SCENARIOS[scenarioKey];
+  const btn = document.getElementById(cfg.btnId);
   const status = document.getElementById('status');
+
+  // 入力値を取得
+  const value = parseFloat(document.getElementById(cfg.valueId).value);
+  const threshold = parseFloat(document.getElementById(cfg.thresholdId).value);
+
   btn.disabled = true;
+  const orig = btn.textContent;
   btn.textContent = '処理中...';
   status.className = 'status';
-  status.textContent = '⟳ イベントをエージェントに送信中...';
+  status.textContent = '⟳ イベントをエージェントに送信中... (' + scenarioKey.toUpperCase() + ', value=' + value + ', threshold=' + threshold + ')';
 
-  const payload = {
-    assetId: '__DEMO_ASSET_ID__',
-    sensorType: 'セル温度',
-    value: 47.5,
-    threshold: 45.0,
-    location: 'タイ・バンコク郊外 工場B棟',
+  startProgress();
+
+  const payload = Object.assign({}, cfg.base, {
+    value: value,
+    threshold: threshold,
     timestamp: new Date().toISOString()
-  };
+  });
 
   try {
     const t0 = Date.now();
@@ -653,13 +872,15 @@ async function fireEvent() {
     const data = await resp.json();
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 
+    completeProgress();
+
     if (resp.ok && data.alertId) {
       status.className = 'status ok';
       status.textContent =
-        '✓ エージェント処理完了 (' + elapsed + '秒)\\n' +
-        'Agent iterations: ' + data.iterations + '\\n' +
-        'Salesforce Equipment_Alert__c 作成: ' + data.alertId + '\\n\\n' +
-        '→ Salesforce 画面で該当設備のアラートタブをご確認ください';
+        '✓ エージェント処理完了 (' + elapsed + '秒) / Iterations: ' + data.iterations + '\\n' +
+        'Salesforce Equipment_Alert__c 作成: ' + data.alertId + '\\n' +
+        '→ Salesforce で該当 Asset の「設備アラート by GCP」タブを確認';
+      if (data.toolHistory) showToolHistory(data.toolHistory);
     } else {
       status.className = 'status err';
       status.textContent = '✗ エラー: ' + JSON.stringify(data, null, 2);
@@ -669,10 +890,15 @@ async function fireEvent() {
     status.textContent = '✗ 通信エラー: ' + e.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = '⚠ 異常イベントを発火';
+    btn.textContent = orig;
   }
 }
 </script>
 </body>
 </html>
-""".replace("__ASSET_LABEL__", DEMO_ASSET_LABEL).replace("__ACCOUNT_LABEL__", DEMO_ACCOUNT_LABEL).replace("__DEMO_ASSET_ID__", DEMO_ASSET_ID)
+"""
+TRIGGER_HTML = _TRIGGER_HTML_TEMPLATE.replace(
+    "__DEMO_ASSET_E2000_ID__", DEMO_ASSET_E2000_ID
+).replace(
+    "__DEMO_ASSET_A1000_ID__", DEMO_ASSET_A1000_ID
+)

@@ -102,9 +102,16 @@
                     <!-- 商談機会 -->
                     <template lwc:if={latestAlert.estimatedOpportunity}>
                         <div class="opportunity-section">
-                            <lightning-icon icon-name="utility:moneybag" size="small"></lightning-icon>
-                            <span class="opp-label">想定商談機会</span>
-                            <span class="opp-value">{latestAlert.estimatedOpportunityFormatted}</span>
+                            <div class="opportunity-main">
+                                <lightning-icon icon-name="utility:moneybag" size="small"></lightning-icon>
+                                <span class="opp-label">想定商談機会</span>
+                                <span class="opp-value">{latestAlert.estimatedOpportunityFormatted}</span>
+                            </div>
+                            <template lwc:if={latestAlert.opportunityRationale}>
+                                <div class="opportunity-rationale">
+                                    {latestAlert.opportunityRationale}
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </div>

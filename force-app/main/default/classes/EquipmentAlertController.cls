@@ -13,6 +13,7 @@ public with sharing class EquipmentAlertController {
         @AuraEnabled public String recommendedAction;
         @AuraEnabled public Decimal estimatedOpportunity;
         @AuraEnabled public String estimatedOpportunityFormatted;
+        @AuraEnabled public String opportunityRationale;
         @AuraEnabled public String processedBy;
         @AuraEnabled public String status;
         @AuraEnabled public String gcpRequestId;
@@ -40,7 +41,7 @@ public with sharing class EquipmentAlertController {
         List<Equipment_Alert__c> alerts = [
             SELECT Id, Name, Sensor_Type__c, Detected_Value__c, Threshold__c,
                    Severity__c, Detected_At__c, Anomaly_Description__c,
-                   Recommended_Action__c, Estimated_Opportunity__c,
+                   Recommended_Action__c, Estimated_Opportunity__c, Opportunity_Rationale__c,
                    ProcessedBy__c, Status__c, GcpRequestId__c
             FROM Equipment_Alert__c
             WHERE Asset__c = :assetId
@@ -71,6 +72,7 @@ public with sharing class EquipmentAlertController {
             v.recommendedAction = r.Recommended_Action__c;
             v.estimatedOpportunity = r.Estimated_Opportunity__c;
             v.estimatedOpportunityFormatted = formatCurrency(r.Estimated_Opportunity__c);
+            v.opportunityRationale = r.Opportunity_Rationale__c;
             v.processedBy = r.ProcessedBy__c;
             v.status = r.Status__c;
             v.gcpRequestId = r.GcpRequestId__c;

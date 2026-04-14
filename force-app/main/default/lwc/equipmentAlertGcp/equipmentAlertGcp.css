@@ -213,12 +213,14 @@
 }
 
 .opportunity-section {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     padding: 0.625rem 0.875rem;
     background: linear-gradient(135deg, #fef3c7, #fde68a);
     border-radius: 6px;
+}
+.opportunity-main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 .opp-label {
     font-size: 0.75rem;
@@ -230,6 +232,14 @@
     font-weight: 700;
     color: #92400e;
     margin-left: auto;
+}
+.opportunity-rationale {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(146, 64, 14, 0.3);
+    font-size: 0.6875rem;
+    color: #78350f;
+    line-height: 1.5;
 }
 
 .alert-footer {
