@@ -1,28 +1,41 @@
-# GCP 連携構築ログ — Vertex AI マルチモーダル × Salesforce 製品改善提案
+# GCP 連携構築ログ — Salesforce × Product Engineering Agent
 
-> **目的**: 製品施策 × 顧客ニーズ × GCP Vertex AI Gemini マルチモーダル × Salesforce書き戻し のデータパイプラインを構築する
+> **目的**: Salesforce と GCP Vertex AI を統合し、製品施策に対する設計改善提案（シナリオ1）と IoT 設備異常の業務的解釈（シナリオ2）を同じ Product Engineering Agent で処理するデータパイプラインを構築する。
 > **設計書**: [gcp_demo_design_concept.md](../concepts/gcp_demo_design_concept.md)
 
 ---
 
-## 0. 確定済みUI/UX決定事項
+## 0. 確定済み UI/UX 決定事項
+
+### シナリオ1（製品改善提案）
 
 | 論点 | 決定 | 理由 |
 |---|---|---|
-| 配置先 | **Product_Initiative__c（製品施策）レコードページ** FlexiPage12 | ビジネス意思決定と技術提案の交差点 |
-| エントリーポイント | FlexiPage12 に新規タブ「製品改善提案 by GCP」 | SFとGCPの境界が明示的 |
-| 処理中表示 | 4ステップのプログレス表示（CSSスピナー） | パイプラインの可視化。オーバーレイなし |
-| 結果表示 | タブ内にインライン＋軽いスライドイン＋**参照資料プレビュー** | Geminiが参照したPDF/図面が画面上で見える |
-| 入力プレビュー | ボタン前に**施策情報（Why/What）+ 紐付くニーズカード一覧**をプレビュー | 「何がGCPに渡るか」を画面で明示 |
+| 配置先 | Product_Initiative__c（製品施策）レコードページ FlexiPage12 | ビジネス意思決定と技術提案の交差点 |
+| エントリーポイント | タブ「製品改善提案 by GCP」 | SFとGCPの境界が明示的 |
+| 処理中表示 | 4ステップ進捗表示（CSSスピナー、オーバーレイなし） | 実際のツール呼出順に対応 |
+| 結果表示 | タブ内インライン + スライドイン + 参照資料プレビュー | Geminiが参照したPDF/図面が画面上で見える |
+| 入力プレビュー | ボタン前に施策情報 + 紐付くニーズカード一覧 | 「何がGCPに渡るか」を画面で明示 |
+| Agent tool_history | 結果カード下部に実行ログを表示 | ブラックボックス化を回避、CEらしい透明性 |
 | 履歴 | 毎回新規生成のみ | 収録用シンプル優先 |
+
+### シナリオ2（IoT設備異常アラート）
+
+| 論点 | 決定 | 理由 |
+|---|---|---|
+| 配置先 | Asset（納入商品）レコードページ FlexiPage `Asset_BPS_Demo` | IoTの主語「この設備」が明確 |
+| トリガー | HTMLボタン（Cloud Functions 同梱）でイベント発火 | GCP側の操作だと明示 |
+| 検知値入力 | HTML上で編集可能 | リアリティ向上 |
+| 処理中表示 | 5ステップ進捗演出 + 完了後の Agent ツール呼出履歴 | 体感遅延の緩和 + 実行ログで透明性 |
+| アラート結果UI | Asset ページ「設備アラート by GCP」タブ | 設備起点で見るのが自然 |
 
 ### データパイプライン設計変更の経緯（ニーズカード→製品施策へ移動）
 
-当初はニーズカード（Needs_Card__c）レコードページにGCP連携タブを配置していたが、以下の理由で製品施策（Product_Initiative__c）に移動した：
+当初シナリオ1はニーズカード（Needs_Card__c）レコードページにGCP連携タブを配置する構想だったが、以下の理由で製品施策（Product_Initiative__c）に移動した：
 
-1. **ビジネスと技術の交差**: 製品施策はビジネスサイドの意思決定（Why/What/Who）が集約されるレコード。ここにGCPの技術提案を返すことで、ビジネスの意思と技術の具体策が合流する
-2. **入力情報の豊かさ**: 製品施策には施策の Why/What/ターゲット顧客像 + Initiative_Need__c 経由で**複数のニーズカード**が紐付く → Geminiへの入力が格段に豊かになる
-3. **パイプラインの一貫性**: 「面談メモ → ニーズ構造化 → ターゲッティング → 製品施策（ビジネス意思決定）→ GCPが技術的な裏付けを返す」という一本道のデータパイプラインが成立
+1. **ビジネスと技術の交差**: 製品施策はビジネス意思決定（Why/What/Who）が集約されるレコード。GCPの技術提案を返すことで「ビジネスの意思と技術の具体策が合流する」
+2. **入力情報の豊かさ**: 製品施策には Why/What/ターゲット顧客像 + Initiative_Need__c 経由で**複数のニーズカード**が紐付く → Geminiへの入力が格段に豊かになる
+3. **パイプラインの一貫性**: 「面談メモ → ニーズ構造化 → ターゲッティング → 製品施策（ビジネス意思決定）→ GCPが技術的裏付けを返す」という一本道のデータパイプラインが成立
 
 ---
 
@@ -31,406 +44,353 @@
 ### 1.1 Salesforce 側データパイプライン
 
 ```
+[シナリオ1: 人発の問い合わせ]
 面談記録 → ニーズカード → ターゲッティングLWC → 製品施策（Product_Initiative__c）
- (Meeting)   (Needs_Card)  (initiativeNeedsMatcher)  ├─ Why: なぜやるか
-                                                      ├─ What: 何をするか
-                                                      ├─ Who: ターゲット顧客像
-                                                      ├─ Product: 対象製品
-                                                      └─ [タブ] 製品改善提案 by GCP ← ★ここ
-                                                           ↕ GCP連携
+                                                      └─ [タブ] 製品改善提案 by GCP
+                                                           ↕
+                                                       Product Engineering Agent
+
+[シナリオ2: 設備発のイベント]
+IoTイベント(HTMLトリガー) → Product Engineering Agent → Asset レコード
+                                                             └─ [タブ] 設備アラート by GCP
 ```
 
-### 1.2 SF ↔ GCP 連携アーキテクチャ
+### 1.2 GCP 側の統一エージェント構成
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│ Salesforce (BPS デモ org)                                         │
-│                                                                   │
-│  Product_Initiative__c Record Page (FlexiPage12)                 │
-│   └─ [タブ] 製品改善提案 by GCP                                   │
-│       └─ LWC: designSuggestionGcp                                │
-│           ├─ 施策プレビュー（Why/What/Who + 対象製品）             │
-│           ├─ 紐付くニーズカード一覧（Initiative_Need__c経由）     │
-│           ├─ ボタン「GCP 製品改善提案を生成」                     │
-│           ├─ 4ステップ進捗表示（CSSスピナー、オーバーレイなし）    │
-│           ├─ 結果カード（スライドイン）                            │
-│           └─ 参照資料プレビュー（仕様書PDF + 図面PNG）             │
-│                │                                                  │
-│                │ imperative Apex                                  │
-│                ▼                                                  │
-│  Apex: DesignSuggestionGcpController                             │
-│   ├─ getPreviewData(initiativeId) @wire                          │
-│   │    → Initiative + Initiative_Need__c → Needs_Card__c 取得    │
-│   └─ generateDesignSuggestion(initiativeId) imperative           │
-│        → HTTP Callout via Remote Site Setting                    │
-│                │                                                  │
-└────────────────┼──────────────────────────────────────────────────┘
-                 │
-                 │ HTTPS POST (JSON: { initiativeId, initiativeTitle,
-                 │   whyRationale, whatDescription, targetCustomer,
-                 │   productName, linkedNeeds: [...] })
-                 ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ GCP Project: ageless-lamp-251200 (表示名: bps-demo-project)      │
-│                                                                   │
-│  Cloud Functions Gen2 (Python 3.12, asia-northeast1)             │
-│  generate-design-suggestion                                      │
-│   ├─ ① 施策 + ニーズデータ受信                                    │
-│   ├─ ② Cloud Storage から仕様書PDF・図面PNG取得                   │
-│   ├─ ③ Vertex AI Gemini 2.5 Flash マルチモーダル呼出             │
-│   │    （テキスト × PDF × PNG を同時処理）                         │
-│   ├─ ④ GCS Signed URL 生成（PDF/PNG プレビュー用）               │
-│   ├─ ⑤ Salesforce REST API で DesignSuggestion__c 書き戻し       │
-│   │    （JWT Bearer Flow 認証）                                   │
-│   └─ ⑥ レスポンス返却（提案JSON + Signed URL）                   │
-│                                                                   │
-│  Cloud Storage: gs://bps-design-assets (asia-northeast1)         │
-│   ├─ specs/bps_spec_wind_turbine_a1000.pdf (5p, 478KB)           │
-│   └─ diagrams/blade_pitch_control_diagram.png (91KB)             │
-│                                                                   │
-│  Vertex AI: Gemini 2.5 Flash (us-central1)                       │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│ GCP Project: ageless-lamp-251200 (表示名: bps-demo-project)         │
+│                                                                     │
+│  Cloud Functions Gen2 (Python 3.12, asia-northeast1)               │
+│  generate-design-suggestion                                        │
+│    ├─ POST /design-suggestion-agent ← シナリオ1エントリ              │
+│    ├─ POST /equipment-alert         ← シナリオ2エントリ              │
+│    ├─ POST /prompt                  ← needsAnalysisV2（非Agent）     │
+│    ├─ POST /                        ← シナリオ1固定パイプライン(旧)  │
+│    ├─ GET  /trigger                 ← IoTトリガーHTMLページ          │
+│    └─ GET  /signed-url              ← GCSオブジェクトのSigned URL生成│
+│                                                                     │
+│  product_engineering_agent.py（エージェントコア）                   │
+│    ├─ Vertex AI Gemini 2.5 Flash (us-central1)                     │
+│    ├─ system_instruction をモード別切替 (design_suggestion/equipment_alert) │
+│    ├─ 10ツールを FunctionDeclaration として登録                     │
+│    ├─ ツール呼出ループ (max 15 iterations)                         │
+│    └─ tool_history をレスポンスに含める                            │
+│                                                                     │
+│  Cloud Storage: gs://bps-design-assets (asia-northeast1)           │
+│    ├─ specs/bps_spec_wind_turbine_a1000.pdf (5p, 478KB)            │
+│    ├─ specs/bps_spec_battery_e2000.pdf (5p, 515KB)                 │
+│    ├─ diagrams/blade_pitch_control_diagram.png (79KB)              │
+│    ├─ diagrams/e2000_bms_architecture.png (109KB)                  │
+│    ├─ products/a1000_wind_turbine.png (Imagen生成)                 │
+│    └─ products/enercharge_pro_e2000.png (Imagen生成)               │
+│                                                                     │
+│  Vertex AI Imagen 3.0 (us-central1) — 製品写真生成用                │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 1.3 実装方針
 
-- LWC → Apex → Cloud Functions → (Gemini + GCS + Signed URL + SF書き戻し) → Apex → LWC の往復構造
-- Cloud Functions が Salesforce に書き戻す（GCP主導の連携感を演出）
-- Cloud Functions が GCS Signed URL を生成してレスポンスに含める → LWC が仕様書PDF/図面PNGをインライン表示（マルチモーダル処理の証拠を可視化）
-- 複数ニーズが入力されてもGeminiは1つの統合提案を返す（プロンプトで制御）
+- **統一 Product Engineering Agent**: シナリオ1/2 が同じエージェント・同じツール基盤を共有（system_instruction だけモード別）
+- **SF認証**: JWT Bearer Flow。sf CLI 既存の `server.key` を base64 化して Cloud Functions 環境変数に格納
+- **min-instances=1** でコールドスタート回避、timeout=300秒でGemini応答遅延に耐える
+- **tool_history** をレスポンスに同梱し、LWC / HTMLで実行ログを可視化
 
 ---
 
-## 2. Salesforce側の実装 ✅ 完了
+## 2. Salesforce 側の実装 ✅ 完了
 
-### 2.1 カスタムオブジェクト: `DesignSuggestion__c`（製品改善提案）✅
+### 2.1 カスタムオブジェクト
 
-**オブジェクトラベル**: **製品改善提案**
-**配置先**: Product_Initiative__c（製品施策）レコードページ
+#### DesignSuggestion__c（製品改善提案）
 
-| API名 | 型 | ラベル | 備考 |
-|---|---|---|---|
-| `Name` | AutoNumber | 提案番号 | `DS-{0000}` |
-| `Initiative__c` | Lookup(Product_Initiative__c) | 製品施策 | **主要な親レコード** |
-| `NeedsCard__c` | Lookup(Needs_Card__c) | 元ニーズカード | 任意（下位互換用） |
-| `TargetProduct__c` | Text(255) | 対象製品 | Geminiが推論 |
-| `TargetComponent__c` | Text(255) | 対象コンポーネント | — |
-| `SuggestionText__c` | LongTextArea(32768, 8行) | 提案本文 | — |
-| `ReferenceSpec__c` | Text(255) | 参照仕様書 | 仕様書セクション番号 |
-| `ReferenceDiagram__c` | Text(255) | 参照図面 | 図面ファイル名 |
-| `Priority__c` | Picklist | 優先度 | 高/中/低（日本語値） |
-| `ProcessedBy__c` | Text(100) | 生成AI | 「Vertex AI gemini-2.5-flash」 |
-| `GeneratedAt__c` | DateTime | 生成日時 | — |
-| `GcpRequestId__c` | Text(64) | GCPリクエストID | トレース用 |
+配置先: Product_Initiative__c レコードページ
 
-**FLS**: ✅ `BOM_Full_Access` にオブジェクト+全フィールド権限追加済み
-
-### 2.2 Apexクラス: `DesignSuggestionGcpController` ✅
-
-**製品施策起点**に変更済み。主要メソッド：
-- `getPreviewData(Id initiativeId)` — 施策情報 + Initiative_Need__c経由でニーズカード一覧を取得
-- `generateDesignSuggestion(Id initiativeId)` — 施策+ニーズをGCPに送信、結果をDTOで返却
-- DTOに `specUrl` / `diagramUrl`（Signed URL）を含む
-
-### 2.3 外部接続: Remote Site Setting ✅
-
-- Named Credentialではなく既存パターンに合わせて**Remote Site Setting**を使用
-- `GCP_Design_Suggestion`: `https://asia-northeast1-ageless-lamp-251200.cloudfunctions.net`
-
-### 2.4 LWC: `designSuggestionGcp` ✅
-
-**配置先**: FlexiPage12（Product_Initiative__c レコードページ）の3番目のタブ
-
-**UI構成**:
-1. **施策プレビュー**: Why/What/ターゲット顧客像/対象製品
-2. **紐付くニーズカード一覧**: チップ表示（タイトル + 顧客名）
-3. **GCP情報バー**: 「施策の意図 × 顧客ニーズ × 仕様書PDF × 図面 → Vertex AI Gemini でマルチモーダル照合」
-4. **生成ボタン**: 「GCP 製品改善提案を生成」
-5. **4ステップ進捗**: CSSスピナー（オーバーレイなし）
-6. **結果カード**: スライドイン（対象製品/コンポーネント/提案本文/参照/優先度）
-7. **参照資料プレビュー**: Cloud Storage の図面PNG + 仕様書PDF をインライン表示（GCS Signed URL）
-
-### 2.5 CSP Trusted Site ✅
-
-- `GCS_Storage`: `https://storage.googleapis.com`（img-src, frame-src, connect-src 許可）
-
-### 2.6 Connected App ✅
-
-- `GCP_Design_Suggestion`（Consumer Key/Secret 取得済み）
-- GCP→SF認証は JWT Bearer Flow（sf CLIの既存 server.key を流用）
-- `isGenerating` — ボタン活性制御
-- `showResult` — スライドイン演出トリガー
-
-**4ステップの見せ方**（収録時にナレーションと同期しやすい設計）:
-| # | ラベル | 実態 |
+| API名 | 型 | 用途 |
 |---|---|---|
-| ① | Salesforce → GCP へニーズ送信 | Apex Callout 開始直前 |
-| ② | Cloud Storage から仕様書PDF・図面を取得 | Cloud Functions側のステップ（ダミー時間挿入可） |
-| ③ | Vertex AI Gemini マルチモーダル処理中 | Gemini API 呼出中 |
-| ④ | 設計示唆を Salesforce へ書き戻し | DesignSuggestion__c insert |
+| `Name` | AutoNumber `DS-{0000}` | — |
+| `Initiative__c` | Lookup(Product_Initiative__c) | 主要な親レコード |
+| `NeedsCard__c` | Lookup(Needs_Card__c) | 下位互換（任意） |
+| `TargetProduct__c` | Text(255) | Geminiが推論した対象製品 |
+| `TargetComponent__c` | Text(255) | 対象コンポーネント |
+| `SuggestionText__c` | LongTextArea(32768) | 提案本文 |
+| `ReferenceSpec__c` | Text(255) | 参照仕様書セクション |
+| `ReferenceDiagram__c` | Text(255) | 参照図面 |
+| `Priority__c` | Picklist | 高/中/低 |
+| `ProcessedBy__c` | Text(100) | 「Vertex AI gemini-2.5-flash (Agent)」 |
+| `GeneratedAt__c` | DateTime | — |
+| `GcpRequestId__c` | Text(64) | トレース用 |
 
-> **実装トリック**: Cloud Functionsから「進捗」をリアルタイムに取る必要はない。LWC側でステップを一定間隔（例: 800ms）で進めつつ、Apexの結果が返ってきたら④を完了→結果カードをスライドインする。動画収録なので実時間との厳密な同期は不要。
+#### Equipment_Alert__c（設備アラート）
 
-**CSS演出**: 結果カードは `transform: translateY(20px); opacity: 0` から `translateY(0); opacity: 1` への transition（400ms）
+配置先: Asset レコードページ
 
-### 2.5 FlexiPage9への新規タブ追加
+| API名 | 型 | 用途 |
+|---|---|---|
+| `Name` | AutoNumber `EA-{0000}` | — |
+| `Asset__c` | Lookup(Asset) | 親レコード |
+| `Sensor_Type__c` | Picklist | セル温度 / 振動 / 充電サイクル / その他 |
+| `Detected_Value__c` | Number(10,2) | 検知値 |
+| `Threshold__c` | Number(10,2) | 閾値 |
+| `Severity__c` | Picklist | 高/中/低 |
+| `Detected_At__c` | DateTime | — |
+| `Anomaly_Description__c` | LongTextArea(32768) | AI診断テキスト（仕様書引用付き） |
+| `Recommended_Action__c` | LongTextArea(32768) | 推奨アクション（箇条書き） |
+| `Estimated_Opportunity__c` | Currency | 想定商談機会金額 |
+| `Opportunity_Rationale__c` | Text(255) | 商談機会算出根拠（納入価格×係数） |
+| `ProcessedBy__c` | Text(100) | 「Vertex AI gemini-2.5-flash (Agent)」 |
+| `GcpRequestId__c` | Text(64) | — |
+| `Status__c` | Picklist | 新規/対応中/解決済 |
 
-既存の2タブ（detailTab / relatedListsTab）に3つ目を追加:
-```xml
-<itemInstances>
-  <componentInstance>
-    <componentInstanceProperties>
-      <name>body</name>
-      <value>...Facet参照...</value>
-    </componentInstanceProperties>
-    <componentInstanceProperties>
-      <name>title</name>
-      <value>設計示唆 by GCP</value>
-    </componentInstanceProperties>
-    <componentName>flexipage:tab</componentName>
-    <identifier>designSuggestionGcpTab</identifier>
-  </componentInstance>
-</itemInstances>
-```
-Facet内に `c:designSuggestionGcp` を配置。
+### 2.2 Apex クラス
+
+| クラス | 役割 |
+|---|---|
+| `DesignSuggestionGcpController` | シナリオ1用。`getPreviewData` / `generateDesignSuggestion`（旧固定版）/ `generateDesignSuggestionAgent`（新エージェント版） |
+| `EquipmentAlertController` | Asset 情報 + 過去アラート一覧を取得（LWC wire 用） |
+| `AssetShowcaseController` | 納入商品LWC用。Asset情報 + 地図座標（ハードコード） + 画像 Signed URL |
+| `NeedsAnalysisV2Controller` | （シナリオ外）ニーズ分析ダッシュボードV2。Vertex AI 直接呼出 |
+
+### 2.3 LWC
+
+| LWC | 配置先 | 役割 |
+|---|---|---|
+| `designSuggestionGcp` | Product_Initiative__c ページ | シナリオ1のUI。施策プレビュー + 4ステップ進捗 + 結果カード + PDF/図面プレビュー + Agent tool_history |
+| `equipmentAlertGcp` | Asset ページ | シナリオ2の結果表示。最新アラート + 過去アラート一覧 |
+| `assetShowcaseGcp` | Asset ページ | 納入商品情報。Imagen生成画像 + lightning-map で設置ロケーション表示 |
+| `needsAnalysisDashboardV2` | アプリページ | （参考）ニーズ分析ダッシュボード（Trust Layer バイパス版） |
+
+### 2.4 FlexiPage
+
+| FlexiPage | 対象オブジェクト | タブ構成 |
+|---|---|---|
+| `FlexiPage12` | Product_Initiative__c | 施策説明 / 施策トレーサビリティ / **製品改善提案 by GCP** |
+| `Asset_BPS_Demo` | Asset | **納入商品**（既定） / 設備アラート by GCP / 詳細 / 関連 |
+
+### 2.5 外部接続 / 認証
+
+- **Remote Site Setting**: `GCP_Design_Suggestion` = `https://asia-northeast1-ageless-lamp-251200.cloudfunctions.net`
+- **CSP Trusted Site**: `GCS_Storage` = `https://storage.googleapis.com`（img-src / frame-src / connect-src）
+- **Connected App**: `GCP_Design_Suggestion`（GCP→SF 認証用、JWT Bearer Flow用）
+- **権限セット**: `BOM_Full_Access` に全カスタムオブジェクト・全カスタムApexクラス・全フィールドを追加済み
 
 ---
 
-## 3. GCP側の実装
+## 3. GCP 側の実装 ✅ 完了
 
 ### 3.1 プロジェクト構成
 
 | 項目 | 値 |
 |---|---|
 | Project 表示名 | `bps-demo-project` |
-| **Project ID（実ID）** | **`ageless-lamp-251200`** |
+| **Project ID（実ID）** | `ageless-lamp-251200` |
 | Project Number | `174999106767` |
-| Billing Account | `010067-E62B2B-D634F6`（有効） |
+| Billing Account | `010067-E62B2B-D634F6` |
 | リージョン | `asia-northeast1`（Cloud Functions/Storage）/ `us-central1`（Vertex AI） |
-| 有効化API | Cloud Functions, Cloud Build, Cloud Run, Artifact Registry, Vertex AI (aiplatform), Eventarc, IAM Credentials, Cloud Logging, Cloud Storage 等 |
+| 有効化API | Cloud Functions, Cloud Build, Cloud Run, Artifact Registry, Vertex AI (aiplatform), Eventarc, IAM Credentials, Cloud Logging, Cloud Storage |
 
-> ⚠️ `bps-demo-project` は表示名。gcloudコマンドでは必ず `ageless-lamp-251200` を使うこと。
+### 3.2 サービスアカウント
 
-### 3.2 サービスアカウント（作成済み）
+- `bps-demo-sa@ageless-lamp-251200.iam.gserviceaccount.com`
+- 付与済みロール: `roles/aiplatform.user`, `roles/storage.objectViewer`, `roles/logging.logWriter`, `roles/iam.serviceAccountTokenCreator`（自己署名用）
 
-- 名前: `bps-demo-sa@ageless-lamp-251200.iam.gserviceaccount.com`
-- 表示名: `BPS Demo Service Account`
-- 付与済みロール（2026-04-12 確認）:
-  - ✅ `roles/aiplatform.user` (Vertex AI)
-  - ✅ `roles/storage.objectViewer` (GCS 読み取り)
-  - ✅ `roles/logging.logWriter`
-- 用途: Cloud Functions Gen2 の実行アイデンティティとしてアタッチ予定
+### 3.3 Cloud Storage
 
-### 3.3 Cloud Storage バケット
+バケット `gs://bps-design-assets` (asia-northeast1, uniform bucket-level access)
 
-- バケット名: `bps-design-assets`（グローバル一意化のため必要に応じて `bps-design-assets-<suffix>`）
-- ロケーション: `asia-northeast1`
-- 格納物:
-  - `specs/BPS_spec_wind_turbine_A1000.pdf` — 風力タービン仕様書（自作3ページ）
-  - `specs/BPS_spec_battery_E2000.pdf` — 蓄電システム仕様書（シーン2用、今回は未使用だが置いておく）
-  - `diagrams/blade_pitch_control_diagram.png` — ブレードピッチ制御模式図
+| パス | 用途 |
+|---|---|
+| `specs/bps_spec_wind_turbine_a1000.pdf` | A-1000 仕様書（5ページ、weasyprintで生成） |
+| `specs/bps_spec_battery_e2000.pdf` | E-2000 仕様書（5ページ） |
+| `diagrams/blade_pitch_control_diagram.png` | A-1000 図面（Pillow生成、79KB） |
+| `diagrams/e2000_bms_architecture.png` | E-2000 BMS図面（Pillow生成、109KB） |
+| `products/a1000_wind_turbine.png` | A-1000 製品写真（Imagen 3.0 生成） |
+| `products/enercharge_pro_e2000.png` | E-2000 製品写真（Imagen 3.0 生成） |
 
 ### 3.4 Cloud Functions: `generate-design-suggestion`
 
-**言語**: Python 3.11 / Cloud Functions Gen2 / functions-framework
+| 項目 | 値 |
+|---|---|
+| 公開URL | `https://asia-northeast1-ageless-lamp-251200.cloudfunctions.net/generate-design-suggestion` |
+| ランタイム | Python 3.12 / Cloud Functions Gen2 / functions-framework |
+| メモリ | 1 GiB |
+| タイムアウト | 300 秒 |
+| min-instances | 1（コールドスタート回避） |
+| Service Account | `bps-demo-sa` |
 
-**ディレクトリ構成** (Salesforceプロジェクト外。別リポジトリまたは同リポジトリの `gcp/` 配下):
+#### ディレクトリ構成
+
 ```
 gcp/generate-design-suggestion/
-  main.py
+  main.py                            # ルーティング + HTMLトリガーページ
+  product_engineering_agent.py      # エージェントコア（ツール + run_agent）
   requirements.txt
-  .env.yaml (非コミット)
-  .gcloudignore
+  .env.yaml                          # 環境変数（非コミット）
+  .env.yaml.example
+  test_local.py / test_writeback.py  # ローカルテスト
+  test_request.json
 ```
 
-**リクエスト仕様**:
-```json
-POST /
-{
-  "needsCardId": "a00...",
-  "title": "低風速域での発電効率向上の要望",
-  "customerVoice": "...",
-  "description": "...",
-  "productName": "A-1000 大型風力タービン",
-  "accountName": "BPS Wind Farms Inc."
-}
-```
+#### エンドポイント一覧
 
-**レスポンス仕様**:
-```json
-{
-  "designSuggestionId": "a01...",
-  "targetProduct": "A-1000 大型風力タービン",
-  "targetComponent": "ブレード角度制御機構",
-  "suggestionText": "...",
-  "referenceSpec": "BPS_spec_wind_turbine_A1000.pdf (P.3)",
-  "referenceDiagram": "blade_pitch_control_diagram.png",
-  "priority": "高",
-  "processedBy": "Vertex AI Gemini 1.5 Flash",
-  "generatedAt": "2026-04-12T10:23:45+09:00",
-  "gcpRequestId": "req_abc123"
-}
-```
+| メソッド | パス | 用途 |
+|---|---|---|
+| POST | `/` | シナリオ1 固定パイプライン（旧、互換維持） |
+| POST | `/design-suggestion-agent` | **シナリオ1 エージェント版（現用）** |
+| POST | `/equipment-alert` | **シナリオ2 エージェント（IoT異常）** |
+| POST | `/prompt` | 汎用プロンプト（needsAnalysisV2用、Trust Layerバイパス） |
+| GET | `/trigger` | シナリオ2のIoTトリガーHTMLページ |
+| GET | `/signed-url?path=...` | GCS オブジェクトの Signed URL 生成（LWC画像表示用） |
 
-**内部処理フロー**:
-1. リクエストバリデーション
-2. GCSから仕様書PDF (bytes) + 図面PNG (bytes) を取得
-3. Vertex AI `GenerativeModel('gemini-1.5-flash')` にマルチモーダル入力で呼出
-   - Part 1: テキスト（ニーズ情報 + システムプロンプト）
-   - Part 2: PDF（inline_data, mime_type=application/pdf）
-   - Part 3: PNG（inline_data, mime_type=image/png）
-4. レスポンスをJSON構造にパース（Geminiに構造化出力を指示）
-5. Salesforce REST API (`/services/data/v62.0/sobjects/DesignSuggestion__c`) にPOST
-   - 認証: JWT Bearer Flow（サービスアカウント秘密鍵 + Connected App）
-6. 作成されたレコードIDをレスポンスに含めて返す
+### 3.5 Product Engineering Agent 詳細
 
-### 3.5 Vertex AI プロンプト設計
+詳細は [gcp_demo_design_concept.md §7.5](../concepts/gcp_demo_design_concept.md) を参照。要点のみ記載：
 
-**システムプロンプト** (text part):
-```
-あなたは再生可能エネルギー機器メーカー BPS Corporation の製品設計アドバイザーです。
-営業が収集した顧客ニーズと、添付の製品仕様書PDFおよび図面画像を照合し、
-具体的な製品エンハンス提案を生成してください。
+- **10ツール**: get_initiative_info / get_linked_needs / get_asset_info / get_product_spec / get_product_diagram / generate_signed_urls / calculate_severity / estimate_opportunity / write_design_suggestion / write_equipment_alert
+- **system_instruction** を `design_suggestion` と `equipment_alert` の2モードで切替
+- **マルチモーダル**: PDF / PNG バイトを取得時に Part 化し、次ターンに添付して Gemini に渡す
+- **429 リトライ**: 指数的バックオフで最大3回
+- **tool_history**: 各ツール呼出の引数・結果サマリ・実行時間をレスポンスに同梱
 
-出力は以下のJSON形式で、他のテキストは含めないでください：
-{
-  "targetProduct": "対象製品名",
-  "targetComponent": "対象コンポーネント名",
-  "suggestionText": "設計示唆本文（3〜5行）",
-  "referenceSpec": "参照した仕様書の該当ページ",
-  "referenceDiagram": "参照した図面ファイル名",
-  "priority": "高" | "中" | "低"
-}
-```
+### 3.6 Salesforce Connected App (GCP → Salesforce 認証)
 
-**ユーザープロンプト** (text part):
-```
-以下の顧客ニーズに対して、添付の仕様書・図面を参照しながら、
-どの製品のどの部分をどう改善すればよいか提案してください。
-
-【顧客】{accountName}
-【対象製品】{productName}
-【ニーズタイトル】{title}
-【顧客の声】{customerVoice}
-【詳細】{description}
-```
-
-### 3.6 Salesforce Connected App (GCP → Salesforce 認証) ✅ 作成済み
-
-- Connected App名: `GCP Design Suggestion Integration`（API参照名: `GCP_Design_Suggestion`）
-- 作成日: 2026-04-12
-- Consumer Key: `3MVG9RcRPG0Y85btiQ0UVggA23_T2u6epT8W_bXH2DuQj78uVCB.5Zwaun4ZiAYcO.waOFrUi0QqTQ0qoJ4oS`
-- OAuth Scopes: `api`, `refresh_token`, `offline_access`
-- IP制限: BYPASS（IP制限の緩和）
-
-**認証方式（実装済み）**: 2段階フォールバック
-1. 環境変数 `SF_ACCESS_TOKEN` が設定されていればそのまま使用（テスト/デモ用）
-2. `SF_PRIVATE_KEY_B64` + `SF_CONSUMER_KEY` + `SF_USERNAME` が設定されていれば **JWT Bearer Flow** で自動トークン取得
-   - sf CLI で既に利用している `server.key` をbase64エンコードしてCloud Functionsの環境変数に格納する想定
-   - sf CLIの既存Connected App（consumer_key: `3MVG9RcRPG...R2gH`）をJWT認証に流用可能
-
-**備考**: 当初 Client Credentials Flow を検討したが、デモorgの「接続アプリケーションの編集」画面にClient Credentials有効化オプションが表示されなかったため、JWT Bearer Flow + アクセストークン直指定のフォールバック方式を採用
+- Connected App名: `GCP Design Suggestion Integration`
+- 認証方式: **JWT Bearer Flow**
+- sf CLI 既存の `server.key` を base64 化して `SF_PRIVATE_KEY_B64` 環境変数に設定
+- Consumer Key は Cloud Functions の `SF_CONSUMER_KEY` 環境変数に設定
+- 当初 Client Credentials Flow を検討したが、デモorgで有効化オプションが表示されなかったため JWT Bearer に切替
 
 ---
 
-## 4. サンプル資産の準備 ✅ 完了
+## 4. サンプル資産とデモデータ ✅ 完了
 
-### 4.1 仕様書PDF ✅
+### 4.1 製品仕様書PDF / 図面PNG
 
-- **ファイル**: `gcp/assets/specs/bps_spec_wind_turbine_a1000.pdf`（5ページ, 478KB）
-- **GCS**: `gs://bps-design-assets/specs/bps_spec_wind_turbine_a1000.pdf`
-- **生成方法**: Markdown → Pandoc(HTML) → weasyprint(PDF)
-- **ソースファイル**: `gcp/assets/specs/bps_spec_wind_turbine_a1000.md` + `spec_style.css`
-- **仕込み**: P.3(PDF上P.4) §3.2で「起動モード3.5-5.0m/sは発電効率最適化の対象外」と明記。P.3(PDF上P.5) §3.4で既知の設計課題として低風速域の翼角度制御パラメータ未最適化を記載 → Geminiがこのギャップを検出して改善提案を生成する
+| 資産 | 生成方法 | 仕込み |
+|---|---|---|
+| `bps_spec_wind_turbine_a1000.pdf` | Markdown → Pandoc(HTML) → weasyprint(PDF) | P.3 §3.2「起動モード3.5-5.0m/sは発電効率最適化対象外」。§3.4で低風速域の翼角度制御パラメータ未最適化を既知課題として記載 |
+| `bps_spec_battery_e2000.pdf` | 同上 | 高温環境（35-45℃）での充放電プロファイル最適化が未対応であることを仕様書・既知課題に記載 |
+| `blade_pitch_control_diagram.png` | Pillow 自動生成 | ブレード+アクチュエータ配置の模式図 |
+| `e2000_bms_architecture.png` | Pillow 自動生成 | BMS 3階層構成の模式図 |
 
-### 4.2 図面PNG ✅（プレースホルダ）
+### 4.2 製品写真（Imagen 3.0 生成）
 
-- **ファイル**: `gcp/assets/diagrams/blade_pitch_control_diagram.png`（91KB）
-- **GCS**: `gs://bps-design-assets/diagrams/blade_pitch_control_diagram.png`
-- **生成方法**: Python(Pillow)で自動生成（`gcp/assets/diagrams/generate_placeholder.py`）
-- **状態**: C-3プレースホルダ（白背景＋テキストラベル＋簡易図形）。後半でC-2（Excalidraw等で描いた実図面）に差し替え予定
+| 資産 | プロンプト要点 |
+|---|---|
+| `products/a1000_wind_turbine.png` | 5MW級風力タービン3基、山岳地帯、BPSロゴ入り、写真風 |
+| `products/enercharge_pro_e2000.png` | 20ftコンテナ型蓄電システム、工業施設背景、BPSロゴ入り、写真風 |
 
-### 4.3 シード用ニーズカードデータ 🔲 未作成
+### 4.3 Salesforce デモデータ
 
-デモ専用のNeeds_Card__cレコードを新規作成する必要あり（風力タービン×低風速域のニーズ）。現在のテストでは既存レコード `NC-0500`（a3BIe000000DJBQMA4）を使用
+| データ | 用途 |
+|---|---|
+| Product_Initiative__c `a3EIe000000AulqMAC` | 「A-1000 低風速域対応強化」 + 紐付くNeedsCard 3件 |
+| Product_Initiative__c `a3EIe000000AullMAC` | 「蓄電システム高温環境対応強化」 + 紐付くNeedsCard 3件 |
+| Asset `02iIe00000165VhIAI` | A-1000 大型風力タービン #003（中部第3拠点 / アライドパワー） |
+| Asset `02iIe00000165UeIAI` | EnerCharge Pro #001（Bangkok Plant B / 東亜電子工業） |
+| Task × 6件 | 各 Asset に紐付く活動履歴（シナリオに即した実績風） |
 
 ---
 
-## 5. 実装ステップ（進捗）
+## 5. 実装ステップ（全進捗）
 
-| # | ステップ | 状態 | 完了日 | 備考 |
-|---|---|---|---|---|
-| 1 | GCPプロジェクト初期化 | ✅ | 2026-04-12 | gcloud CLI + API有効化 + SA作成 |
-| 2 | サンプル資産作成 | ✅ | 2026-04-12 | PDF(5p, weasyprint) + ダミーPNG(Pillow) |
-| 3 | Cloud Storage バケット作成＋アップロード | ✅ | 2026-04-12 | gs://bps-design-assets (2ファイル) |
-| 4-5 | Cloud Functions + Vertex AI | ✅ | 2026-04-12 | gemini-2.5-flash、Signed URL対応 |
-| 6 | DesignSuggestion__c 作成 | ✅ | 2026-04-12 | ラベル「製品改善提案」+ Initiative__c Lookup追加 |
-| 7 | Connected App + JWT認証 | ✅ | 2026-04-12 | server.key B64化、CF環境変数に設定 |
-| 8 | SF書き戻し実装 | ✅ | 2026-04-12 | Initiative__c / NeedsCard__c 両対応 |
-| 9 | Remote Site Setting | ✅ | 2026-04-12 | GCP_Design_Suggestion |
-| 10 | Apex Controller | ✅ | 2026-04-12 | 製品施策起点に変更。Initiative + Initiative_Need__c 経由でニーズ取得 |
-| 11 | LWC designSuggestionGcp | ✅ | 2026-04-12 | 施策プレビュー + ニーズチップ + 4ステップ + 結果カード + 参照資料プレビュー |
-| 12 | FlexiPage12 タブ追加 | ✅ | 2026-04-12 | Product_Initiative__c ページに「製品改善提案 by GCP」タブ |
-| — | CSP Trusted Site | ✅ | 2026-04-12 | storage.googleapis.com (img/frame/connect) |
-| — | BOM_Full_Access 権限セット | ✅ | 2026-04-12 | オブジェクト+12フィールド+Apexクラス |
-| — | E2Eテスト（製品施策ページ） | ✅ | 2026-04-12 | 「次世代静音型タービン性能強化」施策 × 3ニーズカードで動作確認 |
-| — | デモ用ニーズカード紐付け | ✅ | 2026-04-12 | NC-0448/0447/0435 → 次世代静音型タービン施策 |
-| — | ダミー図面 → 実図面差し替え | 🔲 | — | C-2（Excalidraw等）で差し替え予定 |
-| — | デモ専用ニーズカード作成 | 🔲 | — | 風力タービン×低風速域の専用レコード |
-| — | 動画収録リハーサル | 🔲 | — | — |
+### シナリオ1（製品改善提案）
+
+| # | ステップ | 状態 |
+|---|---|---|
+| 1 | GCP プロジェクト初期化 | ✅ |
+| 2 | サンプル資産（PDF/図面）生成 + GCS アップロード | ✅ |
+| 3 | Cloud Functions 初回デプロイ（固定パイプライン） | ✅ |
+| 4 | DesignSuggestion__c + 権限セット | ✅ |
+| 5 | Connected App + JWT 認証 | ✅ |
+| 6 | Apex Controller + Remote Site Setting | ✅ |
+| 7 | LWC `designSuggestionGcp` 初版 | ✅ |
+| 8 | FlexiPage12 タブ追加 | ✅ |
+| 9 | CSP Trusted Site（storage.googleapis.com） | ✅ |
+| 10 | 参照資料プレビュー（PDF iframe / 図面img） | ✅ |
+| 11 | **エージェント化**: 固定パイプライン → Function Calling | ✅ |
+| 12 | LWC に Agent tool_history 表示追加 | ✅ |
+
+### シナリオ2（IoT設備異常）
+
+| # | ステップ | 状態 |
+|---|---|---|
+| 1 | Equipment_Alert__c カスタムオブジェクト | ✅ |
+| 2 | Asset デモレコード作成（EnerCharge + A-1000） | ✅ |
+| 3 | Product Engineering Agent 実装（Function Calling + 6ツール） | ✅ |
+| 4 | HTML トリガーページ（Cloud Functions 同梱） | ✅ |
+| 5 | LWC `equipmentAlertGcp` | ✅ |
+| 6 | Asset FlexiPage `Asset_BPS_Demo` | ✅ |
+| 7 | 検知値編集UI + 5ステップ進捗演出 + tool_history表示 | ✅ |
+| 8 | estimate_opportunity を Asset Price ベースに改善 | ✅ |
+
+### シナリオ共通拡張
+
+| # | ステップ | 状態 |
+|---|---|---|
+| 1 | シナリオ1も Product Engineering Agent に統合（10ツール体制） | ✅ |
+| 2 | Imagen 3.0 による製品写真生成（2枚） | ✅ |
+| 3 | LWC `assetShowcaseGcp`（画像 + lightning-map） | ✅ |
+| 4 | Asset Task 活動履歴のシード（6件） | ✅ |
+| 5 | Cloud Functions timeout 180→300秒（Geminiレイテンシ耐性） | ✅ |
+
+### 残作業
+
+| タスク | 優先度 |
+|---|---|
+| 収録リハーサル | 高 |
+| 動画収録（バックアップ用） | 中 |
 
 ---
 
 ## 6. デモ簡略化と本番構成の差異
 
-本デモでは以下の点を意図的に簡略化している。本番構成との対比は [gcp_demo_design_concept.md §8](../concepts/gcp_demo_design_concept.md) に詳述。
+詳細は [gcp_demo_design_concept.md §7.5〜§8](../concepts/gcp_demo_design_concept.md) に詳述。要約：
 
 | デモでの簡略化 | 本番で必要な構成 |
 |---|---|
-| 仕様書/図面を環境変数で1ファイル固定 | RAG（Vertex AI Embeddings + Vector Search）で製品に応じた資料を動的検索 |
-| GCSに手動アップロード（2ファイル） | PLMからの定期同期パイプライン（Dataflow / Cloud Composer） |
-| Gemini 1回呼出 | 複数資料のバッチ処理 + 品質評価（Vertex AI Evaluation） |
-| 提案結果はSFにのみ保存 | BigQueryにも蓄積しLookerでダッシュボード化 |
-| IoTは未実装 | Pub/Sub → Dataflow → Bigtable → Vertex AI予兆保全モデル |
+| 仕様書/図面を製品名キーワードでGCSから固定取得 | RAG（Vertex AI Embeddings + Vector Search）で動的検索 |
+| GCSに手動アップロード | PLM/CADシステムからの定期同期（Transfer Service / Cloud Composer） |
+| 単一エージェント・10ツール | マルチエージェント（Sales/Field Service/Market Intelligence）+ オーケストレーター |
+| Python ループによるFunction Calling | Agent Development Kit (ADK) + Agent Builder 併用 |
+| tool_history を レスポンス同梱のみ | Cloud Trace + Vertex AI Logging + Evaluation + Monitoring |
+| Gemini組込 Safety Filter のみ | 入力/出力 Guardrail + PIIマスキング + 業務ルール検証 + 監査ログ |
+| 手動確認 | 継続評価バッチ（BigQuery + Vertex AI Evaluation + Looker） |
 
 ---
 
 ## 7. リスク・注意点・得られた知見
 
-- **Gemini応答の揺れ**: `response_mime_type: application/json` 指定で JSON 確定。フォールバック正規表現パーサもmain.pyに組込済
-- **max_output_tokens**: 2048では不足（途中で切れてJSON壊れる）。**4096必須**（反映済）
-- **モデルID**: 2026-04時点で `gemini-1.5-flash-002` は退役。**`gemini-2.5-flash`** を使用（反映済）
-- **vertexai SDK 廃止予定**: 2026-06-24で `vertexai.generative_models` が削除。`google-genai` SDK への移行が必要（将来タスク）
-- **macOS ローカル gunicorn fork問題**: `functions-framework` CLI で起動するとgRPCのObjective-C fork()問題でワーカーがSIGKILLされる。`OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES` では不十分。**対策**: ローカルテストは `test_local.py` で直接 `_call_gemini()` を呼び出す方式に切替。Cloud Functions本番環境(Linux)では発生しない
-- **レイテンシ**: デプロイ後実測で12.7秒（コールドスタート含む）。LWC側の4ステップ進捗表示で体感を和らげる
-- **Cloud Functions コールドスタート**: 収録前に1回ウォームアップを叩いておく
-- **JWT Bearer認証の初期設定**: 証明書生成・Connected App設定が一度ハマると時間を食う。ここだけ別セクションで丁寧に進める
-- **リージョン**: Vertex AIは `us-central1`、Cloud Functions は `asia-northeast1` のクロスリージョン構成。数百msのレイテンシ差は許容範囲
-- **選択リスト日本語値**: `Priority__c` の値は「高/中/低」の日本語（CLAUDE.mdルール）
+### 実装上ハマった点
 
-## 6.5 実装完了済みリソース（Step 4-5 時点）
+- **Gemini 応答の揺れ**: `response_mime_type: application/json` 指定で JSON 確定。フォールバック正規表現パーサも組込
+- **max_output_tokens**: 2048では不足（途中で切れてJSON壊れる）。**8192** に設定
+- **モデルID**: 2026-04時点で `gemini-1.5-flash-002` は退役。`gemini-2.5-flash` を使用
+- **vertexai SDK 廃止予定**: 2026-06-24で `vertexai.generative_models` が削除予定。将来的に `google-genai` へ移行が必要
+- **macOS ローカル gunicorn fork 問題**: `functions-framework` CLI で gRPC の Objective-C fork 問題。対策としてローカルテストは `test_local.py` で直接関数呼出（Linux本番環境では発生せず）
+- **FlexiPage の mode 指定**: 親テンプレートの領域を上書きする Facet には `<mode>Replace</mode>` が必要（カスタム Facet には不要）
+- **Salesforce 日本語選択リスト値**: CLAUDE.md ルールで `Priority__c` 等は「高/中/低」の日本語値
 
-| リソース | 値 |
-|---|---|
-| Cloud Function URL | `https://asia-northeast1-ageless-lamp-251200.cloudfunctions.net/generate-design-suggestion` |
-| Cloud Run URI (内部) | `https://generate-design-suggestion-7lvftppqya-an.a.run.app` |
-| ランタイム | Python 3.12 |
-| メモリ | 1 GiB |
-| タイムアウト | 120秒 |
-| リビジョン | `generate-design-suggestion-00001-rup` |
-| モデル | `gemini-2.5-flash` |
-| 実測レイテンシ（初回） | 約12.7秒 |
+### エージェント特有の問題と対策
 
----
+- **ツール呼び忘れ**: `write_*` ツールを Gemini が呼ばないことがある。system_instruction で「最後に必ず呼ぶこと」を強く指示
+- **配列応答**: 複数ニーズ入力時に Gemini が配列で返すことがある。パーサで先頭要素を自動採用 + プロンプトで「1つのJSONオブジェクトにまとめよ」を明示
+- **ツール引数の型**: Function Calling の仕様上、原始型（string/number/enum）しか使えない。複雑な構造は辞書の value として渡す
+- **tool_history の配列順序**: Gemini の並列 function_call 対応により同時に複数呼出される可能性があり、iteration 内で配列として処理
 
-## 7. 未決・後で詰める項目
+### 運用上の知見
 
-- [ ] 論点4: GCP感の演出詳細（バッジ色、「Processed by Vertex AI Gemini」ロゴの出し方）
-- [ ] 論点5: 結果カードの情報粒度最終形（項目の追加・削除）
-- [ ] 論点6: 動画上のシーン1-A→1-Bの遷移演出
-- [ ] サンプルPDFの具体的な文面・図面の具体的な絵柄
-- [ ] デモ用ニーズカードのAccount/Product紐付け先（既存マスタ流用 or 新規作成）
-- [ ] 収録台本（ナレーション稿）
+- **Vertex AI レイテンシは変動**: 通常30秒のところ78秒〜180秒超に伸びる日がある（Gemini 側の負荷）。Cloud Functions timeout は余裕を持って設定（現行300秒）
+- **429 レート制限**: Vertex AI のデフォルト RPM は低い。本番では Quota 増枠リクエストが必要。エージェント側に指数バックオフリトライ実装済
+- **min-instances=1** でコールドスタート回避。月額約 ¥800 程度でデモ用途なら許容範囲
+- **Cloud Functions への HTML 同梱**: `/trigger` でHTMLページを返す構成。CORS 不要、管理がシンプル
+
+### セキュリティ設計の簡略化（デモ限定）
+
+- `allow-unauthenticated` で公開（本番では IAM 認証 + Apigee 推奨）
+- SF→GCP は Remote Site Setting + TLS のみ（本番では mTLS + VPC Service Controls）
+- JWT 秘密鍵を環境変数にべた置き（本番では Secret Manager）
+- VPC Service Controls 未設定（本番では必須、特に機密な設計図面を扱う場合）
 
 ---
 
@@ -438,6 +398,12 @@ POST /
 
 | 日付 | 内容 |
 |---|---|
-| 2026-04-12 | 初版作成（UI/UX決定を反映、実装ステップ定義） |
-| 2026-04-12 | Step 1-8 完了: GCPバックエンド全構築完了（Cloud Functions + Vertex AI gemini-2.5-flash + SF書き戻し）|
-| 2026-04-12 | Step 9-12 完了: SF UI側完成。**アーキテクチャ変更**: LWC配置先をNeeds_Card__c→Product_Initiative__c（製品施策）に移動。ビジネス意思決定と技術提案の交差点を製品施策レコード上に実現。Apex Controllerを製品施策起点に書換（Initiative + Initiative_Need__c経由で複数ニーズ取得）。GCS Signed URL生成を追加し、LWC上で仕様書PDF/図面PNGのインラインプレビューを実現。CSP Trusted Site追加。Cloud Functions rev 00007（max_output_tokens=8192、配列応答耐性、Initiative対応プロンプト） |
+| 2026-04-12 | 初版作成。UI/UX決定、実装ステップ定義、シナリオ1（固定パイプライン）完成 |
+| 2026-04-12 | LWC配置先を Needs_Card__c → Product_Initiative__c に変更。Initiative + 複数ニーズ対応 |
+| 2026-04-13 | GCS Signed URL 生成 + LWC インラインプレビュー実装 |
+| 2026-04-13 | ニーズ分析ダッシュボードV2（Trust Layer バイパス版）追加 |
+| 2026-04-14 | シナリオ2（Product Engineering Agent）着手・完成。Equipment_Alert__c、HTMLトリガー、LWC 一式 |
+| 2026-04-14 | A-1000 シナリオ追加、検知値編集UI、5ステップ進捗演出、tool_history表示 |
+| 2026-04-15 | シナリオ1 エージェント化完了。統一エージェント10ツール体制に移行 |
+| 2026-04-15 | Imagen 3.0 で製品写真生成、assetShowcaseGcp LWC 追加（地図 + 画像） |
+| 2026-04-16 | Cloud Functions timeout 180→300秒。ドキュメント全体整理（本書含む） |

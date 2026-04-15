@@ -1,0 +1,85 @@
+<template>
+    <lightning-card icon-name="standard:asset_object">
+        <div slot="title">納入商品情報</div>
+
+        <template lwc:if={hasData}>
+            <div class="showcase-body">
+
+                <!-- Hero: 製品画像 + 基本情報 -->
+                <div class="hero-row">
+                    <template lwc:if={hasImage}>
+                        <div class="hero-image">
+                            <img src={data.imageUrl} alt={data.assetName}/>
+                        </div>
+                    </template>
+
+                    <div class="hero-info">
+                        <div class="info-title">{data.assetName}</div>
+                        <div class="info-sub">{data.productName}</div>
+
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">顧客</span>
+                                <span class="info-value">{data.accountName}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">シリアル番号</span>
+                                <span class="info-value">{data.serialNumber}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">納入日</span>
+                                <span class="info-value">
+                                    <lightning-formatted-date-time value={data.installDate}
+                                        year="numeric" month="2-digit" day="2-digit">
+                                    </lightning-formatted-date-time>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ステータス</span>
+                                <span class="info-value">{data.status}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">納入価格</span>
+                                <span class="info-value info-value-strong">{data.priceFormatted}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">IoT</span>
+                                <span class={iotBadgeClass}>{iotBadgeText}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map: 設置ロケーション -->
+                <template lwc:if={hasDemoData}>
+                    <div class="map-section">
+                        <div class="map-header">
+                            <lightning-icon icon-name="standard:location" size="x-small"></lightning-icon>
+                            <span class="map-title">設置ロケーション</span>
+                            <span class="map-location-label">{data.locationLabel}</span>
+                        </div>
+                        <div class="map-container">
+                            <lightning-map
+                                map-markers={mapMarkers}
+                                center={mapCenter}
+                                zoom-level="8"
+                                list-view="hidden">
+                            </lightning-map>
+                        </div>
+                    </div>
+                </template>
+
+                <template lwc:else>
+                    <div class="no-demo">
+                        この Asset にはデモ用の地図・画像データが登録されていません
+                    </div>
+                </template>
+
+            </div>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="error-box">{error}</div>
+        </template>
+    </lightning-card>
+</template>

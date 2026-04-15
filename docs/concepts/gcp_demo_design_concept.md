@@ -454,6 +454,233 @@ VERTEX_AI_MODEL=gemini-1.5-flash-001
 
 ---
 
+## 7.5 Product Engineering Agent アーキテクチャ
+
+### 設計原則
+
+製品エンジニアリングに関わるAI処理を、用途別に独立したCloud Functionsで実装するのではなく、**1つの統一「Product Engineering Agent」に集約**する。エージェントは Vertex AI Gemini Function Calling で実装し、ツール呼出により動的に必要な情報を取得・処理する。
+
+本デモではすでに **2つのユースケース（設計改善提案・IoT設備異常診断）が同じエージェント・同じツール基盤で動作する**構成を実現している。将来のユースケース追加（製品仕様問い合わせ、故障原因調査等）はツール追加だけで対応可能。
+
+### 7.5.1 エージェントが扱うユースケース
+
+| ユースケース | トリガー | 入口 | 状態 |
+|---|---|---|---|
+| 設計改善提案（シナリオ1） | 製品施策レコードからの問い合わせ | `POST /design-suggestion-agent` | ✅ 実装済 |
+| 設備異常診断（シナリオ2） | IoTイベントの到着 | `POST /equipment-alert` | ✅ 実装済 |
+| 製品仕様問い合わせ | 営業からのチャット質問 | 将来 | 🔲 |
+| 故障原因調査 | 不具合報告の登録 | 将来 | 🔲 |
+
+### 7.5.2 現状のエージェント実装詳細
+
+#### ランタイム
+
+```
+Cloud Functions Gen2 (Python 3.12, asia-northeast1)
+  ├─ generate-design-suggestion (エントリポイント関数)
+  └─ product_engineering_agent.py (エージェントコア)
+      - Vertex AI Gemini 2.5 Flash (us-central1)
+      - system_instruction を用途別に切替
+      - 10ツールを FunctionDeclaration として登録
+      - ツール呼出ループ (max 15 iterations)
+      - マルチモーダル対応（PDF+PNG Part をツール応答と同時送信）
+      - ツール呼出履歴 (tool_history) をレスポンスに含める
+```
+
+#### 登録済みツール（10個）
+
+| カテゴリ | ツール | 役割 |
+|---|---|---|
+| **Salesforce 読取（製品施策系）** | `get_initiative_info(initiative_id)` | Product_Initiative__c から Why/What/対象製品を取得 |
+| | `get_linked_needs(initiative_id)` | Initiative_Need__c 経由で紐付くニーズカードを取得 |
+| **Salesforce 読取（設備系）** | `get_asset_info(asset_id)` | Asset 情報（製品名/顧客/納入価格）を取得 |
+| **製品ナレッジ（GCS）** | `get_product_spec(product_name)` | 仕様書 PDF を取得（Geminiへマルチモーダル入力） |
+| | `get_product_diagram(product_name)` | 図面 PNG を取得 |
+| | `generate_signed_urls(product_name)` | LWCプレビュー用 Signed URL 生成 |
+| **業務判断ロジック** | `calculate_severity(value, threshold, sensor_type)` | 重要度（高/中/低）を算出 |
+| | `estimate_opportunity(asset_price, severity, sensor_type)` | 想定商談機会金額を算出 |
+| **Salesforce 書戻** | `write_design_suggestion(...)` | DesignSuggestion__c レコード作成 |
+| | `write_equipment_alert(...)` | Equipment_Alert__c レコード作成 |
+
+#### エージェントの動作フロー例（シナリオ2）
+
+```
+POST /equipment-alert { assetId, sensorType, value, threshold, location }
+    ↓
+Cloud Functions が system_instruction（equipment_alert用）を選択
+    ↓
+Gemini Chat セッション開始
+    ↓
+Iteration 1: Gemini → tool_call: get_asset_info(assetId)
+  Runtime: SF REST API で Asset 取得 → 結果を Gemini に返す
+    ↓
+Iteration 2: Gemini → tool_call: get_product_spec(productName)
+  Runtime: GCS から PDF bytes 取得 → PDF を Part 化して次 turn で添付
+    ↓
+Iteration 3: Gemini → tool_call: get_product_diagram(productName)
+  Runtime: GCS から PNG bytes 取得 → PNG を Part 化
+    ↓
+Iteration 4: Gemini → tool_call: calculate_severity(47.5, 45.0, "セル温度")
+  Runtime: 簡易閾値計算 → "高" を返す
+    ↓
+Iteration 5: Gemini → tool_call: estimate_opportunity(180000000, "高", ...)
+  Runtime: Asset Price × 係数 → ¥2.7億を返す
+    ↓
+Iteration 6: Gemini が仕様書+図面+Asset情報から業務的解釈を生成
+    ↓
+Iteration 7: Gemini → tool_call: write_equipment_alert(...)
+  Runtime: SF REST API で Equipment_Alert__c 作成
+    ↓
+Iteration 8: Gemini が最終応答
+    ↓
+Response { alertId, iterations, toolHistory, status }
+```
+
+#### 設計上の工夫
+
+| 工夫 | 理由 |
+|---|---|
+| **統一エージェント + モード別 system_instruction** | ツール基盤を共有しつつ、用途別の語り口・手順指示を使い分け可能 |
+| **ツール引数は原始型のみ**（string/number/enum） | Gemini の Function Calling 仕様に素直。複雑な構造は辞書の value として渡す |
+| **マルチモーダル Part をツール応答に添付** | PDF/PNG を取得したタイミングで次 turn に渡すことで、Gemini が逐次的に資料を参照可能に |
+| **tool_history を返却** | フロントエンドで「エージェントが実際に何をしたか」を表示可能にし、ブラックボックス性を解消 |
+| **JWT Bearer Flow による SF 認証** | sf CLI 既存の server.key を base64 化して Cloud Functions の環境変数に格納 |
+| **429 リトライ** | Vertex AI のレート制限に対して最大3回、指数的バックオフでリトライ |
+
+### 7.5.3 本番アーキテクチャへの発展
+
+本番運用では以下の観点で発展させる必要がある。
+
+#### (A) マルチエージェント化
+
+現状の Product Engineering Agent は設計改善・異常診断に特化。本番では**業務領域ごとにエージェントを分割**し、必要に応じて連携させる構成が望ましい。
+
+```
+[オーケストレーター Agent]
+  ├─ Product Engineering Agent ← 現在の実装
+  │   - 製品仕様・図面照合
+  │   - 設計改善提案
+  │   - 異常診断
+  │
+  ├─ Sales Agent
+  │   - 商談ステージ管理
+  │   - 提案書ドラフト生成
+  │   - 価格交渉サポート
+  │
+  ├─ Field Service Agent
+  │   - WorkOrder 最適割当
+  │   - 現場作業員スケジュール
+  │   - 修理履歴参照
+  │
+  └─ Market Intelligence Agent
+      - 競合分析
+      - 業界トレンド
+      - 顧客行動パターン
+```
+
+各エージェントは独立デプロイ。オーケストレーターが問い合わせ内容に応じて適切なサブエージェントに委譲する（「この顧客の商談状況と過去の修理履歴を両方踏まえた提案を出して」などに対応可能）。
+
+#### (B) Agent Development Kit (ADK) への移行
+
+現在の Function Calling による実装は**単エージェント・固定ツール**の範囲では十分だが、マルチエージェント化すると素の Python では運用負担が増える。Google の **Agent Development Kit (ADK)** は以下を提供する：
+
+- **Agent / Tool / Workflow の抽象化**: エージェント定義を宣言的に記述
+- **マルチエージェント orchestration**: Agent Graph で agent-to-agent 連携を定義
+- **Evaluation フレームワーク**: エージェントの出力品質を継続評価
+- **Deployment 統合**: Cloud Run / Agent Engine への一発デプロイ
+
+移行タイミングとしては、Phase 4（マルチエージェント）着手時が妥当。単エージェント段階では Function Calling の方が軽量。
+
+#### (C) Vertex AI Agent Builder（GUIベース）の併用
+
+本番運用フェーズに入ると、**非エンジニアがエージェントの振る舞いを調整したい**ニーズが出る：
+- プロンプトの文言を営業チームが編集したい
+- 新しいツールをローコードで追加したい
+- A/Bテストで複数バージョンを比較したい
+
+Vertex AI Agent Builder は GUI でエージェント定義ができるため、**ADK のコードと併用**することで「コア機能はエンジニアが実装、運用調整はビジネス側が実施」という役割分担が実現可能。
+
+#### (D) 観測性（Observability）
+
+本番エージェントは以下を可視化する必要がある：
+
+| 観点 | ツール | 役割 |
+|---|---|---|
+| **エージェント実行トレース** | Cloud Trace | 各ツール呼出の時系列・レイテンシ・依存関係 |
+| **LLM コール詳細** | Vertex AI Logging | プロンプト・応答・トークン数・コスト |
+| **エラー集約** | Cloud Error Reporting | 失敗パターンの傾向分析 |
+| **品質評価** | Vertex AI Evaluation | 応答の事実正確性・関連性・安全性をスコアリング |
+| **カスタムメトリクス** | Cloud Monitoring | 「tool_call 数の異常増加」「iteration 数がmaxに達した率」等 |
+
+デモではツール履歴をレスポンスに含めているが、本番では**全実行を Cloud Trace に投げる**。問題発生時にどのエージェントのどのツール呼出で詰まったかを即座に特定できる。
+
+#### (E) 安全性（Safety / Guardrails）
+
+本番エージェントには以下の安全層が必要：
+
+| リスク | 対策 |
+|---|---|
+| **プロンプトインジェクション** | 入力サニタイゼーション、system_instruction の保護、出力に対する二次LLMによる検証 |
+| **ハルシネーション（事実と異なる出力）** | Grounding（Vertex AI Search 連携）、引用元の必須要件化、信頼度スコア付与 |
+| **機密情報漏洩** | 入力 PII マスキング、出力ログのレッドacting、VPC Service Controls |
+| **無限ループ / コスト暴走** | max_iterations 強制、トークン上限、Budget アラート |
+| **権限昇格** | ツールごとに最小権限、書き戻しツールは別 SA での実行 |
+| **有害コンテンツ** | Vertex AI Safety Filters、Output Content Moderation API |
+
+現状のデモは安全層が薄い（max_iterations=15、基本的な安全フィルタのみ）。本番は以下を追加：
+- **Input Guardrail**: プロンプトインジェクション検出
+- **Output Guardrail**: 出力が業務ルールに反していないか（例「¥5億超の商談は人間の承認必須」）をチェック
+- **Audit Log**: 全エージェント実行を BigQuery に蓄積し、後からの監査・トレーニングデータ化に活用
+
+#### (F) 継続的評価（Continuous Evaluation）
+
+エージェントは一度デプロイしたら終わりではなく、**継続的に品質評価する必要がある**：
+
+```
+[本番トラフィック]
+  ↓
+[エージェント実行]
+  ↓
+[BigQuery に記録: 入力 / 出力 / tool_history / ユーザーフィードバック]
+  ↓
+[定期的な評価バッチ（Cloud Scheduler）]
+  ├─ Vertex AI Evaluation で事実正確性・関連性スコアリング
+  ├─ "採用された提案" vs "破棄された提案" の比較
+  └─ 不適切な出力パターンの検出
+  ↓
+[結果を Looker ダッシュボードに可視化]
+  ↓
+[プロンプト改善・ツール追加・モデル切替の判断材料]
+```
+
+### 7.5.4 デモ実装 vs 本番アーキテクチャの対比
+
+| 観点 | デモ（現在） | 本番（目指す姿） |
+|---|---|---|
+| **エージェント数** | 1（Product Engineering Agent） | 複数（Sales / Field Service / Market Intelligence 等） |
+| **オーケストレーション** | なし（単一エージェントが単一タスクを処理） | オーケストレーター Agent が適切なサブエージェントにルーティング |
+| **実装フレームワーク** | Vertex AI SDK + 自作ループ | Agent Development Kit (ADK) + Agent Builder 併用 |
+| **ツール数** | 10 | 数十〜数百（業務横断で追加） |
+| **観測性** | ツール履歴をレスポンス同梱 | Cloud Trace + Vertex AI Logging + Evaluation + Monitoring |
+| **安全層** | Gemini 組込 Safety Filter | 入力/出力 Guardrail、PII マスキング、業務ルール違反検知、監査ログ |
+| **評価** | 手動確認 | 継続評価バッチ + Looker ダッシュボード |
+| **デプロイ** | gcloud CLI 手動 | Cloud Build + Cloud Deploy (CI/CD) + Canary リリース |
+| **スケーリング** | min-instances=1 の固定 | 需要予測ベースのオートスケール、GPU プロビジョニング |
+| **コスト管理** | 月 ¥800〜¥1,500 | Budget アラート + CUD + トークン節約施策（プロンプトキャッシュ） |
+
+### 7.5.5 段階的な発展パス
+
+| Phase | 内容 | 状態 |
+|---|---|---|
+| **Phase 1** | 単一 Product Engineering Agent（本デモ） | ✅ 実装済 |
+| **Phase 2** | 観測性・安全層の追加（Cloud Trace、Guardrail、監査ログ） | 🔲 |
+| **Phase 3** | 第2エージェント追加（Sales Agent 等） | 🔲 |
+| **Phase 4** | オーケストレーター導入 + ADK 移行 | 🔲 |
+| **Phase 5** | Agent Builder 併用、非エンジニア向け編集UI | 🔲 |
+| **Phase 6** | 継続評価・A/Bテスト基盤 | 🔲 |
+
+---
+
 ## 8. デモ簡略化と本番構成の対比
 
 ### 前提
@@ -570,6 +797,19 @@ IoTセンサーデータは「高頻度書き込み × 長期保存 × 低レイ
 | Vertex AI Endpoints オートスケーリング | 推論エンドポイントをゼロスケール可能にして¥20K〜40K削減 | コールドスタートで初回推論が遅延 |
 
 > 上記はすべて中規模製造業（設備数千台、センサーデータ数万件/日）を想定した概算。実際の費用は利用量・リージョン・契約条件（CUD等）に依存する。
+
+#### デモ環境のコスト（参考）
+
+| シナリオ | 月額コスト |
+|---|---|
+| デモ開発・準備期間（数百回呼出） | ¥800〜1,500/月 |
+| 散発利用（min-instances=0） | ¥0〜数百円/月 |
+| 本番展開（1日100回利用、min=1） | ¥3,000〜5,000/月 |
+
+主要コスト要因：
+- Cloud Functions min-instances=1（コールドスタート対策）: 月¥800
+- Vertex AI Gemini 2.5 Flash: 1呼出あたり¥0.5〜1.0
+- Cloud Storage / Pub/Sub / Logging: 無料枠内
 
 ### 8.7 設計資産（仕様書・図面）の発生源とGCPへの同期
 

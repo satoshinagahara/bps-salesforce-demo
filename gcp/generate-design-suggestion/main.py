@@ -336,6 +336,33 @@ def _handle_design_suggestion_agent(request):
     return (json.dumps({**result, "requestId": request_id}, ensure_ascii=False), 200, _cors_headers())
 
 
+def _handle_signed_url(request):
+    """任意のGCSオブジェクトのSigned URLを生成する汎用エンドポイント（GET ?path=...）"""
+    import google.auth
+    from google.auth.transport import requests as auth_requests
+
+    path = request.args.get("path", "")
+    if not path:
+        return (json.dumps({"error": "path required"}), 400, _cors_headers())
+
+    try:
+        credentials, _ = google.auth.default()
+        if hasattr(credentials, "refresh"):
+            credentials.refresh(auth_requests.Request())
+        sa_email = os.environ.get("SA_EMAIL", "bps-demo-sa@ageless-lamp-251200.iam.gserviceaccount.com")
+        client = storage.Client(project=GCP_PROJECT)
+        blob = client.bucket(GCS_BUCKET).blob(path)
+        url = blob.generate_signed_url(
+            version="v4", expiration=3600, method="GET",
+            service_account_email=sa_email,
+            access_token=credentials.token,
+        )
+        return (json.dumps({"url": url, "path": path}), 200, _cors_headers())
+    except Exception as e:
+        log.exception("signed_url error")
+        return (json.dumps({"error": str(e)}), 500, _cors_headers())
+
+
 def _handle_trigger_html(request):
     """HTMLトリガーページ。シナリオ2のデモ用にIoTイベントを発火する画面"""
     html = _build_trigger_html()
@@ -354,11 +381,13 @@ def generate_design_suggestion(request):
     if request.method == "OPTIONS":
         return ("", 204, _cors_headers())
 
-    # GET /trigger → HTMLページを返す
+    # GET /trigger → HTMLページを返す / GET /signed-url → URL生成
     if request.method == "GET":
         path = request.path.rstrip("/")
         if path.endswith("/trigger"):
             return _handle_trigger_html(request)
+        if path.endswith("/signed-url"):
+            return _handle_signed_url(request)
         return (json.dumps({"error": "method not allowed"}), 405, _cors_headers())
 
     if request.method != "POST":
