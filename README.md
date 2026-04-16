@@ -178,4 +178,3 @@ sf org assign permset --name BOM_Full_Access --target-org bps-demo
 | [gcp_demo_design_concept.md](docs/concepts/gcp_demo_design_concept.md) | GCP連携デモ設計仕様書（Product Engineering Agent、現状実装+本番アーキテクチャ） |
 | [gcp-demo-build-log.md](docs/in-progress/gcp-demo-build-log.md) | GCP連携デモ構築ログ（SF/GCPコンポーネント・実装ステップ・知見） |
 | [needs-correlation-network-design.md](docs/design/needs-correlation-network-design.md) | ニーズ相関ネットワーク設計（bi-gram Jaccard類似度、k-NN、業界別クラスタ配置） |
-| [agentforce-2.0-design.md](docs/in-progress/agentforce-2.0-design.md) | Agentforce 2.0設計（外部Agent Runtime + MCP + LWC薄クライアント） |
