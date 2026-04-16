@@ -1,5 +1,6 @@
 functions-framework==3.*
 google-cloud-aiplatform>=1.71.0
 google-cloud-storage>=2.18.0
+google-cloud-logging>=3.10.0
 PyJWT[crypto]>=2.9.0
 requests>=2.32.0

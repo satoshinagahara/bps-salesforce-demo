@@ -34,6 +34,7 @@ from vertexai.generative_models import (
 )
 
 log = logging.getLogger("product-engineering-agent")
+log.setLevel(logging.INFO)
 
 GCP_PROJECT = os.environ.get("GCP_PROJECT", "ageless-lamp-251200")
 VERTEX_LOCATION = os.environ.get("VERTEX_LOCATION", "us-central1")
@@ -610,7 +611,7 @@ def run_agent(
     vertexai.init(project=GCP_PROJECT, location=VERTEX_LOCATION)
     storage_client = storage.Client(project=GCP_PROJECT)
     tool_history: list[dict] = []
-    iteration = 0
+    token_usage: dict = {"prompt": 0, "output": 0, "total": 0, "gemini_calls": 0}
 
     try:
         return _run_agent_inner(
@@ -623,6 +624,7 @@ def run_agent(
             run_start=run_start,
             storage_client=storage_client,
             tool_history=tool_history,
+            token_usage=token_usage,
         )
     except Exception as e:
         elapsed_sec = round(time.time() - run_start, 2)
@@ -638,6 +640,7 @@ def run_agent(
             status="error",
             result={},
             error=str(e),
+            token_usage=token_usage,
         )
         raise
 
@@ -653,6 +656,7 @@ def _run_agent_inner(
     run_start: float,
     storage_client: storage.Client,
     tool_history: list[dict],
+    token_usage: dict,
 ) -> dict:
     if mode == "design_suggestion":
         system_instruction = SYSTEM_INSTRUCTION_DESIGN_SUGGESTION
@@ -690,6 +694,8 @@ def _run_agent_inner(
     # tool_history は呼出元から渡される（エラー時にも部分履歴を GCS に残すため）
     iteration = 0
     max_iterations = 15
+    # Vertex AI トークン使用量アキュムレータ（外側から渡される dict に累積）
+    _accumulate_usage(token_usage, response)
 
     while iteration < max_iterations:
         iteration += 1
@@ -809,6 +815,7 @@ def _run_agent_inner(
             cached_png_part = None
 
         response = chat.send_message(send_parts)
+        _accumulate_usage(token_usage, response)
 
     elapsed_sec = round(time.time() - run_start, 2)
     if mode == "design_suggestion":
@@ -842,8 +849,25 @@ def _run_agent_inner(
         tool_history=tool_history,
         status=status,
         result=result,
+        token_usage=token_usage,
     )
+    # LWC表示用にもトークン使用量を返す
+    result["tokenUsage"] = token_usage
     return result
+
+
+def _accumulate_usage(acc: dict, response) -> None:
+    """Vertex AI レスポンスの usage_metadata を累積する（失敗しても握りつぶす）。"""
+    try:
+        um = getattr(response, "usage_metadata", None)
+        if um is None:
+            return
+        acc["prompt"] += int(getattr(um, "prompt_token_count", 0) or 0)
+        acc["output"] += int(getattr(um, "candidates_token_count", 0) or 0)
+        acc["total"] += int(getattr(um, "total_token_count", 0) or 0)
+        acc["gemini_calls"] += 1
+    except Exception:
+        pass
 
 
 def _persist_run_log(
@@ -859,6 +883,7 @@ def _persist_run_log(
     status: str,
     result: dict,
     error: str | None = None,
+    token_usage: dict | None = None,
 ) -> None:
     """1実行=1JSONをGCS runs/YYYY-MM-DD/ に保存する。失敗しても本処理には影響させない。"""
     try:
@@ -885,6 +910,7 @@ def _persist_run_log(
             "tool_history": tool_history,
             "status": status,
             "gemini_model": VERTEX_MODEL,
+            "token_usage": token_usage or {"prompt": 0, "output": 0, "total": 0, "gemini_calls": 0},
             "written_record_id": (
                 result.get("designSuggestionId") or result.get("alertId")
             ),

@@ -22,8 +22,11 @@ import vertexai
 from google.cloud import storage
 from vertexai.generative_models import GenerativeModel, Part
 
-logging.basicConfig(level=logging.INFO)
+# Cloud Run Gen2 のデフォルト root logger が WARNING のため force=True で上書きする
+logging.basicConfig(level=logging.INFO, force=True)
+logging.getLogger().setLevel(logging.INFO)
 log = logging.getLogger("generate-design-suggestion")
+log.setLevel(logging.INFO)
 
 GCP_PROJECT = os.environ.get("GCP_PROJECT", "ageless-lamp-251200")
 VERTEX_LOCATION = os.environ.get("VERTEX_LOCATION", "us-central1")
@@ -379,6 +382,70 @@ def _handle_dashboard(request):
         return (f"<pre>dashboard error: {e}</pre>", 500, {"Content-Type": "text/html; charset=utf-8"})
 
 
+def _handle_dashboard_logs(request):
+    """ダッシュボード用の Cloud Logging 非同期取得エンドポイント。JSONで返す。"""
+    try:
+        from google.cloud import logging as gcp_logging
+        client = gcp_logging.Client(project=GCP_PROJECT)
+        # 直近15分のログを取得（INFO以上、対象関数のみ）
+        from datetime import timedelta
+        since = (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()
+        # アプリ本体の stdout/stderr のみ取得（Audit Log・varlog/system・requests などは除外）
+        # Python 標準 logging の出力は severity が DEFAULT のまま Cloud Logging に入るため、
+        # severity フィルタは使わず logName で絞り込む。
+        filter_str = (
+            'resource.type="cloud_run_revision" '
+            f'resource.labels.service_name="generate-design-suggestion" '
+            f'timestamp>="{since}" '
+            '(logName:"run.googleapis.com%2Fstdout" OR logName:"run.googleapis.com%2Fstderr")'
+        )
+        entries = []
+        # limitで上限、新しい順で取得
+        for entry in client.list_entries(
+            filter_=filter_str,
+            order_by=gcp_logging.DESCENDING,
+            page_size=80,
+            max_results=80,
+        ):
+            payload = entry.payload
+            if isinstance(payload, dict):
+                msg = payload.get("message") or json.dumps(payload, ensure_ascii=False)[:240]
+            else:
+                msg = str(payload)
+            # Python logging 形式 "INFO:logger-name:メッセージ" を解析
+            sev = entry.severity or ""
+            for level in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+                if msg.startswith(f"{level}:"):
+                    sev = level
+                    # "LEVEL:logger:msg" → "msg"
+                    parts = msg.split(":", 2)
+                    if len(parts) == 3:
+                        msg = parts[2].strip()
+                    break
+            if not sev:
+                sev = "INFO"
+            # UserWarning 等のノイズを除外
+            if "UserWarning" in msg or "warning_logs.show_deprecation_warning" in msg:
+                continue
+            entries.append({
+                "ts": entry.timestamp.astimezone().isoformat() if entry.timestamp else "",
+                "sev": sev,
+                "msg": msg[:240],
+            })
+        return (
+            json.dumps({"logs": entries, "count": len(entries)}, ensure_ascii=False),
+            200,
+            {"Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*"},
+        )
+    except Exception as e:
+        log.exception("dashboard logs fetch failed")
+        return (
+            json.dumps({"error": str(e), "logs": []}),
+            500,
+            {"Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*"},
+        )
+
+
 def _list_recent_runs(limit: int = 30) -> list[dict]:
     """GCS runs/ プレフィックスから直近のログJSONをN件取得。"""
     client = _get_storage_client()
@@ -407,16 +474,23 @@ def _aggregate_today(runs: list[dict]) -> dict:
     today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     todays = [r for r in runs if r.get("started_at", "").startswith(today_iso)]
     if not todays:
-        return {"count": 0, "avg_elapsed": 0, "success_rate": 0, "total_tool_calls": 0}
+        return {
+            "count": 0, "avg_elapsed": 0, "success_rate": 0,
+            "total_tool_calls": 0, "total_tokens": 0, "gemini_calls": 0,
+        }
     total = len(todays)
     success = sum(1 for r in todays if r.get("status") == "completed")
     elapsed_sum = sum(float(r.get("elapsed_sec", 0)) for r in todays)
     tool_calls = sum(int(r.get("tool_count", 0)) for r in todays)
+    total_tokens = sum(int((r.get("token_usage") or {}).get("total", 0)) for r in todays)
+    gemini_calls = sum(int((r.get("token_usage") or {}).get("gemini_calls", 0)) for r in todays)
     return {
         "count": total,
         "avg_elapsed": round(elapsed_sum / total, 2) if total else 0,
         "success_rate": round(success / total * 100) if total else 0,
         "total_tool_calls": tool_calls,
+        "total_tokens": total_tokens,
+        "gemini_calls": gemini_calls,
     }
 
 
@@ -456,6 +530,13 @@ def _build_dashboard_html() -> str:
         elapsed = r.get("elapsed_sec", 0)
         iterations = r.get("iterations", 0)
         rec_id = r.get("written_record_id") or "—"
+        tokens = r.get("token_usage") or {}
+        total_tok = tokens.get("total", 0)
+        prompt_tok = tokens.get("prompt", 0)
+        output_tok = tokens.get("output", 0)
+        gemini_calls = tokens.get("gemini_calls", 0)
+        tok_disp = f"{total_tok:,}" if total_tok else "—"
+        tok_detail = f"in:{prompt_tok:,} out:{output_tok:,} calls:{gemini_calls}" if total_tok else ""
         # tool_history を詳細展開用 JSON にエンコード
         th_json = json.dumps(r.get("tool_history", []), ensure_ascii=False)
         request_id = r.get("request_id", "")
@@ -467,6 +548,7 @@ def _build_dashboard_html() -> str:
   <td class="c-elapsed">{elapsed}s</td>
   <td class="c-iter">{iterations}</td>
   <td class="c-tools"><span class="tool-count">{tool_count}</span> <span class="tool-preview">{tool_preview}</span></td>
+  <td class="c-tokens"><div class="tok-total">{tok_disp}</div><div class="tok-detail">{tok_detail}</div></td>
   <td class="c-rec"><code>{rec_id}</code></td>
   <td class="c-status"><span class="status-badge {status_class}">{status}</span></td>
 </tr>
@@ -474,7 +556,7 @@ def _build_dashboard_html() -> str:
 
     # 空のときのメッセージ
     empty_row = "" if runs else """
-<tr><td colspan="8" style="text-align:center; color:#64748b; padding:40px;">
+<tr><td colspan="9" style="text-align:center; color:#64748b; padding:40px;">
 直近の実行履歴がまだありません。シナリオ1または2を実行すると、ここに表示されます。
 </td></tr>"""
 
@@ -520,7 +602,7 @@ def _build_dashboard_html() -> str:
   }}
 
   .stats {{
-    display: grid; grid-template-columns: repeat(4, 1fr);
+    display: grid; grid-template-columns: repeat(5, 1fr);
     gap: 12px; margin-bottom: 20px;
   }}
   .stat {{
@@ -613,6 +695,55 @@ def _build_dashboard_html() -> str:
     color: #94a3b8; font-family: monospace; font-size: 11px;
   }}
   .c-rec {{ color: #94a3b8; font-family: monospace; font-size: 10px; }}
+  .c-tokens {{ font-family: monospace; }}
+  .c-tokens .tok-total {{
+    color: #fbbf24; font-weight: 700; font-size: 12px;
+  }}
+  .c-tokens .tok-detail {{
+    color: #64748b; font-size: 9px; letter-spacing: 0.02em;
+  }}
+
+  /* Live logs section */
+  .logs-section {{
+    margin-top: 20px;
+    background: rgba(11,16,32,0.85);
+    border: 1px solid rgba(12,166,120,0.2);
+    border-radius: 6px;
+    padding: 14px 18px;
+  }}
+  .logs-header {{
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }}
+  .logs-title {{
+    color: #5eead4; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }}
+  .logs-status {{
+    color: #64748b; font-size: 10px; font-family: monospace;
+  }}
+  .logs-body {{
+    max-height: 280px; overflow-y: auto;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 10.5px; line-height: 1.5;
+    color: #cbd5e1;
+    background: #05070f;
+    border-radius: 4px;
+    padding: 10px 12px;
+  }}
+  .log-row {{
+    display: grid;
+    grid-template-columns: 110px 60px 1fr;
+    gap: 10px;
+    padding: 2px 0;
+    border-bottom: 1px dashed rgba(71,85,105,0.1);
+  }}
+  .log-ts {{ color: #64748b; }}
+  .log-sev {{ font-weight: 700; }}
+  .log-sev.INFO {{ color: #60a5fa; }}
+  .log-sev.WARNING {{ color: #fbbf24; }}
+  .log-sev.ERROR {{ color: #f87171; }}
+  .log-msg {{ color: #cbd5e1; word-break: break-all; }}
   .status-badge {{
     display: inline-block;
     padding: 2px 8px; border-radius: 3px;
@@ -662,6 +793,10 @@ def _build_dashboard_html() -> str:
     <div class="stat-label">Today / Tool Calls</div>
     <div class="stat-value">{agg['total_tool_calls']}<span class="stat-unit">回</span></div>
   </div>
+  <div class="stat">
+    <div class="stat-label">Today / Gemini Tokens</div>
+    <div class="stat-value">{agg['total_tokens']:,}<span class="stat-unit">tok</span></div>
+  </div>
 </div>
 
 <table>
@@ -673,6 +808,7 @@ def _build_dashboard_html() -> str:
       <th>Elapsed</th>
       <th>Iter</th>
       <th>Tools</th>
+      <th>Tokens</th>
       <th>SF Record</th>
       <th>Status</th>
     </tr>
@@ -681,6 +817,17 @@ def _build_dashboard_html() -> str:
     {rows_str}
   </tbody>
 </table>
+
+<!-- Live Cloud Logging tail (非同期取得) -->
+<div class="logs-section">
+  <div class="logs-header">
+    <span class="logs-title">🌐 Cloud Logging (直近15分, INFO+)</span>
+    <span class="logs-status" id="logs-status">読み込み中...</span>
+  </div>
+  <div class="logs-body" id="logs-body">
+    <div style="color:#64748b; text-align:center; padding:20px;">Cloud Logging API からフェッチ中…</div>
+  </div>
+</div>
 
 <div class="footer">
   gs://{GCS_BUCKET}/runs/ から直近30件を表示 &nbsp;|&nbsp; Vertex AI {VERTEX_MODEL} &nbsp;|&nbsp; Region {VERTEX_LOCATION}
@@ -701,7 +848,7 @@ document.querySelectorAll('tr.run-row').forEach(row => {{
     const detailRow = document.createElement('tr');
     detailRow.className = 'detail-row';
     const td = document.createElement('td');
-    td.colSpan = 8;
+    td.colSpan = 9;
     if (history.length === 0) {{
       td.innerHTML = '<div class="detail-inner" style="color:#64748b">ツール呼出履歴なし</div>';
     }} else {{
@@ -734,6 +881,45 @@ document.getElementById('auto-refresh').addEventListener('change', (e) => {{
     refreshTimer = null;
   }}
 }});
+
+// Cloud Logging 非同期フェッチ
+async function fetchLogs() {{
+  const statusEl = document.getElementById('logs-status');
+  const bodyEl = document.getElementById('logs-body');
+  statusEl.textContent = 'fetching...';
+  try {{
+    const t0 = Date.now();
+    const resp = await fetch('./dashboard/logs', {{ cache: 'no-store' }});
+    const data = await resp.json();
+    const elapsed = Date.now() - t0;
+    if (data.error) {{
+      bodyEl.innerHTML = '<div style="color:#f87171">エラー: ' + data.error + '</div>';
+      statusEl.textContent = 'error';
+      return;
+    }}
+    const logs = data.logs || [];
+    if (logs.length === 0) {{
+      bodyEl.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px;">直近15分のログなし</div>';
+    }} else {{
+      bodyEl.innerHTML = logs.map(l => {{
+        const ts = (l.ts || '').slice(11, 19);  // HH:MM:SS
+        const sev = (l.sev || 'INFO').toUpperCase();
+        const msg = (l.msg || '').replace(/</g, '&lt;');
+        return '<div class="log-row">' +
+               '<span class="log-ts">' + ts + '</span>' +
+               '<span class="log-sev ' + sev + '">' + sev + '</span>' +
+               '<span class="log-msg">' + msg + '</span>' +
+               '</div>';
+      }}).join('');
+    }}
+    statusEl.textContent = logs.length + ' entries / ' + elapsed + 'ms';
+  }} catch (e) {{
+    bodyEl.innerHTML = '<div style="color:#f87171">fetch failed: ' + e.message + '</div>';
+    statusEl.textContent = 'error';
+  }}
+}}
+// ページロード後に実行（UIをブロックしない）
+setTimeout(fetchLogs, 100);
 </script>
 </body>
 </html>
@@ -762,6 +948,8 @@ def generate_design_suggestion(request):
         path = request.path.rstrip("/")
         if path.endswith("/trigger"):
             return _handle_trigger_html(request)
+        if path.endswith("/dashboard/logs"):
+            return _handle_dashboard_logs(request)
         if path.endswith("/dashboard"):
             return _handle_dashboard(request)
         if path.endswith("/signed-url"):
