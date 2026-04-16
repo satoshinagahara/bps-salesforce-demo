@@ -605,9 +605,55 @@ def run_agent(
       - 'equipment_alert': シナリオ2（IoT設備異常イベント）
       - 'design_suggestion': シナリオ1（製品施策 → 設計改善提案）
     """
+    started_at = datetime.now(timezone.utc)
+    run_start = time.time()
     vertexai.init(project=GCP_PROJECT, location=VERTEX_LOCATION)
     storage_client = storage.Client(project=GCP_PROJECT)
+    tool_history: list[dict] = []
+    iteration = 0
 
+    try:
+        return _run_agent_inner(
+            event_payload=event_payload,
+            sf_access_token=sf_access_token,
+            sf_instance_url=sf_instance_url,
+            request_id=request_id,
+            mode=mode,
+            started_at=started_at,
+            run_start=run_start,
+            storage_client=storage_client,
+            tool_history=tool_history,
+        )
+    except Exception as e:
+        elapsed_sec = round(time.time() - run_start, 2)
+        _persist_run_log(
+            storage_client=storage_client,
+            request_id=request_id,
+            mode=mode,
+            event_payload=event_payload,
+            started_at=started_at,
+            elapsed_sec=elapsed_sec,
+            iterations=len(tool_history),
+            tool_history=tool_history,
+            status="error",
+            result={},
+            error=str(e),
+        )
+        raise
+
+
+def _run_agent_inner(
+    *,
+    event_payload: dict,
+    sf_access_token: str,
+    sf_instance_url: str,
+    request_id: str,
+    mode: str,
+    started_at: datetime,
+    run_start: float,
+    storage_client: storage.Client,
+    tool_history: list[dict],
+) -> dict:
     if mode == "design_suggestion":
         system_instruction = SYSTEM_INSTRUCTION_DESIGN_SUGGESTION
         user_message = (
@@ -641,7 +687,7 @@ def run_agent(
     written_alert_id: str | None = None
     written_suggestion_id: str | None = None
     design_result: dict = {}  # シナリオ1用: LWCに返す最終結果を組み立てる
-    tool_history: list[dict] = []  # 各ツール呼出の履歴（フロントエンド表示用）
+    # tool_history は呼出元から渡される（エラー時にも部分履歴を GCS に残すため）
     iteration = 0
     max_iterations = 15
 
@@ -764,22 +810,98 @@ def run_agent(
 
         response = chat.send_message(send_parts)
 
+    elapsed_sec = round(time.time() - run_start, 2)
     if mode == "design_suggestion":
         design_result["processedBy"] = f"Vertex AI {VERTEX_MODEL} (Agent)"
         design_result["generatedAt"] = datetime.now(timezone.utc).astimezone().isoformat()
         design_result["gcpRequestId"] = request_id
-        return {
+        status = "completed" if written_suggestion_id else "incomplete"
+        result = {
             **design_result,
             "iterations": iteration,
-            "status": "completed" if written_suggestion_id else "incomplete",
+            "status": status,
             "toolHistory": tool_history,
         }
-    return {
-        "alertId": written_alert_id,
-        "iterations": iteration,
-        "status": "completed" if written_alert_id else "incomplete",
-        "toolHistory": tool_history,
-    }
+    else:
+        status = "completed" if written_alert_id else "incomplete"
+        result = {
+            "alertId": written_alert_id,
+            "iterations": iteration,
+            "status": status,
+            "toolHistory": tool_history,
+        }
+
+    _persist_run_log(
+        storage_client=storage_client,
+        request_id=request_id,
+        mode=mode,
+        event_payload=event_payload,
+        started_at=started_at,
+        elapsed_sec=elapsed_sec,
+        iterations=iteration,
+        tool_history=tool_history,
+        status=status,
+        result=result,
+    )
+    return result
+
+
+def _persist_run_log(
+    *,
+    storage_client: storage.Client,
+    request_id: str,
+    mode: str,
+    event_payload: dict,
+    started_at: datetime,
+    elapsed_sec: float,
+    iterations: int,
+    tool_history: list[dict],
+    status: str,
+    result: dict,
+    error: str | None = None,
+) -> None:
+    """1実行=1JSONをGCS runs/YYYY-MM-DD/ に保存する。失敗しても本処理には影響させない。"""
+    try:
+        tool_names = [t.get("tool") for t in tool_history if t.get("tool")]
+        target_id = (
+            event_payload.get("initiativeId")
+            or event_payload.get("assetId")
+            or ""
+        )
+        summary = {
+            "request_id": request_id,
+            "mode": mode,
+            "target_id": target_id,
+            "target_label": (
+                event_payload.get("productName")
+                or event_payload.get("sensorType")
+                or ""
+            ),
+            "started_at": started_at.isoformat(),
+            "elapsed_sec": elapsed_sec,
+            "iterations": iterations,
+            "tool_count": len(tool_history),
+            "unique_tools": sorted(set(tool_names)),
+            "tool_history": tool_history,
+            "status": status,
+            "gemini_model": VERTEX_MODEL,
+            "written_record_id": (
+                result.get("designSuggestionId") or result.get("alertId")
+            ),
+            "error": error,
+        }
+        path = (
+            f"runs/{started_at.strftime('%Y-%m-%d')}/"
+            f"{started_at.strftime('%Y%m%dT%H%M%SZ')}_{request_id}.json"
+        )
+        blob = storage_client.bucket(GCS_BUCKET).blob(path)
+        blob.upload_from_string(
+            json.dumps(summary, ensure_ascii=False, indent=2),
+            content_type="application/json; charset=utf-8",
+        )
+        log.info("[%s] run log persisted: gs://%s/%s", request_id, GCS_BUCKET, path)
+    except Exception as e:  # pragma: no cover
+        log.warning("[%s] run log persist failed: %s", request_id, e)
 
 
 def _summarize_args(fname: str, fargs: dict) -> str:

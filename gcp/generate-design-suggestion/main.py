@@ -369,6 +369,382 @@ def _handle_trigger_html(request):
     return (html, 200, {"Content-Type": "text/html; charset=utf-8"})
 
 
+def _handle_dashboard(request):
+    """Agent 実行履歴ダッシュボード。GCS runs/ prefix から直近実行を集計してHTML表示。"""
+    try:
+        html = _build_dashboard_html()
+        return (html, 200, {"Content-Type": "text/html; charset=utf-8"})
+    except Exception as e:
+        log.exception("dashboard render failed")
+        return (f"<pre>dashboard error: {e}</pre>", 500, {"Content-Type": "text/html; charset=utf-8"})
+
+
+def _list_recent_runs(limit: int = 30) -> list[dict]:
+    """GCS runs/ プレフィックスから直近のログJSONをN件取得。"""
+    client = _get_storage_client()
+    bucket = client.bucket(GCS_BUCKET)
+    # 直近3日分のprefixをなめる（高頻度運用でも十分）
+    from datetime import timedelta
+    today = datetime.now(timezone.utc).date()
+    prefixes = [(today - timedelta(days=i)).strftime("runs/%Y-%m-%d/") for i in range(3)]
+    blobs: list = []
+    for pfx in prefixes:
+        blobs.extend(list(client.list_blobs(bucket, prefix=pfx)))
+    # name（= ISO timestamp_request_id）で降順ソート → 先頭N件
+    blobs.sort(key=lambda b: b.name, reverse=True)
+    runs: list[dict] = []
+    for blob in blobs[:limit]:
+        try:
+            data = json.loads(blob.download_as_bytes().decode("utf-8"))
+            runs.append(data)
+        except Exception as e:
+            log.warning("skip malformed run log %s: %s", blob.name, e)
+    return runs
+
+
+def _aggregate_today(runs: list[dict]) -> dict:
+    """本日実行分のみ集計。"""
+    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    todays = [r for r in runs if r.get("started_at", "").startswith(today_iso)]
+    if not todays:
+        return {"count": 0, "avg_elapsed": 0, "success_rate": 0, "total_tool_calls": 0}
+    total = len(todays)
+    success = sum(1 for r in todays if r.get("status") == "completed")
+    elapsed_sum = sum(float(r.get("elapsed_sec", 0)) for r in todays)
+    tool_calls = sum(int(r.get("tool_count", 0)) for r in todays)
+    return {
+        "count": total,
+        "avg_elapsed": round(elapsed_sum / total, 2) if total else 0,
+        "success_rate": round(success / total * 100) if total else 0,
+        "total_tool_calls": tool_calls,
+    }
+
+
+def _build_dashboard_html() -> str:
+    runs = _list_recent_runs(30)
+    agg = _aggregate_today(runs)
+    generated = datetime.now(timezone.utc).astimezone().isoformat()
+
+    # 各 run を行 HTML に
+    rows_html = []
+    for r in runs:
+        status = r.get("status", "?")
+        status_class = {
+            "completed": "ok",
+            "incomplete": "warn",
+            "error": "err",
+        }.get(status, "warn")
+        mode = r.get("mode", "")
+        mode_label = {
+            "design_suggestion": "シナリオ1 (設計改善提案)",
+            "equipment_alert": "シナリオ2 (IoT異常診断)",
+        }.get(mode, mode)
+        started = r.get("started_at", "")
+        # ISO8601 → HH:MM:SS
+        try:
+            started_disp = started.split("T")[1][:8] if "T" in started else started
+            date_disp = started.split("T")[0]
+        except Exception:
+            started_disp = started
+            date_disp = ""
+        target = r.get("target_id", "")[:18]
+        tool_count = r.get("tool_count", 0)
+        unique_tools = r.get("unique_tools") or []
+        tool_preview = ", ".join(unique_tools[:4])
+        if len(unique_tools) > 4:
+            tool_preview += f" (+{len(unique_tools) - 4})"
+        elapsed = r.get("elapsed_sec", 0)
+        iterations = r.get("iterations", 0)
+        rec_id = r.get("written_record_id") or "—"
+        # tool_history を詳細展開用 JSON にエンコード
+        th_json = json.dumps(r.get("tool_history", []), ensure_ascii=False)
+        request_id = r.get("request_id", "")
+        rows_html.append(f"""
+<tr class="run-row" data-history='{_html_escape_attr(th_json)}'>
+  <td class="c-time"><div class="t-date">{date_disp}</div><div class="t-time">{started_disp}</div></td>
+  <td class="c-mode">{mode_label}</td>
+  <td class="c-target"><code>{target}</code></td>
+  <td class="c-elapsed">{elapsed}s</td>
+  <td class="c-iter">{iterations}</td>
+  <td class="c-tools"><span class="tool-count">{tool_count}</span> <span class="tool-preview">{tool_preview}</span></td>
+  <td class="c-rec"><code>{rec_id}</code></td>
+  <td class="c-status"><span class="status-badge {status_class}">{status}</span></td>
+</tr>
+""")
+
+    # 空のときのメッセージ
+    empty_row = "" if runs else """
+<tr><td colspan="8" style="text-align:center; color:#64748b; padding:40px;">
+直近の実行履歴がまだありません。シナリオ1または2を実行すると、ここに表示されます。
+</td></tr>"""
+
+    rows_str = "".join(rows_html) + empty_row
+
+    return f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>BPS × GCP Agent Activity Dashboard</title>
+<style>
+  body {{
+    font-family: 'Hiragino Sans', 'Yu Gothic', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0b0f1a 0%, #151b2e 100%);
+    color: #e2e8f0;
+    margin: 0; padding: 24px 32px;
+    min-height: 100vh;
+  }}
+  .header {{
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }}
+  .header-left h1 {{
+    margin: 0; font-size: 20px; letter-spacing: 0.04em; color: #f1f5f9;
+  }}
+  .header-left .subtitle {{
+    color: #94a3b8; font-size: 12px; margin-top: 4px;
+  }}
+  .header-right {{
+    display: flex; gap: 10px; align-items: center;
+  }}
+  .gen-at {{ color: #64748b; font-size: 11px; font-family: monospace; }}
+  .btn {{
+    background: #0ca678; color: white;
+    padding: 8px 16px; border: none; border-radius: 4px;
+    font-size: 12px; cursor: pointer; font-weight: 600;
+    letter-spacing: 0.05em;
+  }}
+  .btn:hover {{ background: #099268; }}
+  .auto-refresh {{
+    font-size: 11px; color: #94a3b8;
+    display: flex; align-items: center; gap: 6px;
+  }}
+
+  .stats {{
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 20px;
+  }}
+  .stat {{
+    background: rgba(12,166,120,0.08);
+    border: 1px solid rgba(12,166,120,0.2);
+    border-radius: 6px;
+    padding: 14px 18px;
+  }}
+  .stat-label {{
+    color: #94a3b8; font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }}
+  .stat-value {{
+    color: #5eead4; font-size: 26px; font-weight: 700;
+    font-family: 'SF Mono', Menlo, monospace;
+  }}
+  .stat-unit {{
+    color: #64748b; font-size: 12px; margin-left: 4px; font-weight: normal;
+  }}
+
+  table {{
+    width: 100%; border-collapse: collapse;
+    background: rgba(15,23,42,0.6);
+    border-radius: 6px; overflow: hidden;
+    font-size: 12px;
+  }}
+  thead tr {{
+    background: #0f172a;
+    border-bottom: 2px solid #0ca678;
+  }}
+  th {{
+    text-align: left; padding: 10px 12px;
+    color: #94a3b8; font-weight: 600;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }}
+  td {{
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(71,85,105,0.15);
+    vertical-align: middle;
+  }}
+  tr.run-row {{ cursor: pointer; transition: background 0.15s; }}
+  tr.run-row:hover {{ background: rgba(12,166,120,0.05); }}
+  tr.run-row.expanded td {{ background: rgba(12,166,120,0.08); }}
+  tr.detail-row td {{
+    padding: 0;
+    background: #0b1020;
+    border-bottom: 1px solid #1e293b;
+  }}
+  .detail-inner {{
+    padding: 16px 20px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    color: #cbd5e1;
+  }}
+  .detail-inner table {{
+    background: transparent; width: 100%;
+    font-size: 11px;
+  }}
+  .detail-inner th {{
+    color: #64748b; font-weight: 600;
+    padding: 6px 10px; font-size: 9px;
+  }}
+  .detail-inner td {{
+    padding: 6px 10px;
+    border-bottom: 1px dashed #1e293b;
+  }}
+  .detail-inner .tname {{ color: #93c5fd; font-weight: 700; }}
+  .detail-inner .targs {{ color: #cbd5e1; }}
+  .detail-inner .tres {{ color: #6ee7b7; }}
+  .detail-inner .ttime {{ color: #94a3b8; text-align: right; }}
+
+  .c-time {{ min-width: 100px; font-family: monospace; }}
+  .t-date {{ color: #64748b; font-size: 10px; }}
+  .t-time {{ color: #e2e8f0; font-size: 12px; font-weight: 600; }}
+  .c-mode {{ color: #cbd5e1; }}
+  .c-target {{ color: #94a3b8; font-family: monospace; font-size: 11px; }}
+  .c-elapsed {{ color: #fbbf24; font-family: monospace; font-weight: 600; }}
+  .c-iter {{ color: #94a3b8; font-family: monospace; text-align: center; }}
+  .c-tools .tool-count {{
+    display: inline-block;
+    background: rgba(12,166,120,0.2);
+    color: #5eead4;
+    padding: 1px 7px; border-radius: 10px;
+    font-weight: 700;
+    margin-right: 6px;
+  }}
+  .c-tools .tool-preview {{
+    color: #94a3b8; font-family: monospace; font-size: 11px;
+  }}
+  .c-rec {{ color: #94a3b8; font-family: monospace; font-size: 10px; }}
+  .status-badge {{
+    display: inline-block;
+    padding: 2px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }}
+  .status-badge.ok {{ background: rgba(16,185,129,0.15); color: #34d399; }}
+  .status-badge.warn {{ background: rgba(251,191,36,0.15); color: #fbbf24; }}
+  .status-badge.err {{ background: rgba(239,68,68,0.15); color: #f87171; }}
+
+  .footer {{
+    margin-top: 20px; color: #475569;
+    font-size: 10px; text-align: center;
+    font-family: monospace;
+  }}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <h1>🛰 BPS × GCP &nbsp;—&nbsp; Agent Activity Dashboard</h1>
+    <div class="subtitle">Product Engineering Agent (Vertex AI Gemini Function Calling) — 実行履歴</div>
+  </div>
+  <div class="header-right">
+    <label class="auto-refresh">
+      <input type="checkbox" id="auto-refresh" /> 30秒ごとに自動更新
+    </label>
+    <button class="btn" onclick="window.location.reload()">↻ 更新</button>
+    <span class="gen-at" id="gen-at">{generated}</span>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Today / Runs</div>
+    <div class="stat-value">{agg['count']}<span class="stat-unit">件</span></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Today / Avg Elapsed</div>
+    <div class="stat-value">{agg['avg_elapsed']}<span class="stat-unit">秒</span></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Today / Success Rate</div>
+    <div class="stat-value">{agg['success_rate']}<span class="stat-unit">%</span></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Today / Tool Calls</div>
+    <div class="stat-value">{agg['total_tool_calls']}<span class="stat-unit">回</span></div>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Time (UTC)</th>
+      <th>Mode</th>
+      <th>Target</th>
+      <th>Elapsed</th>
+      <th>Iter</th>
+      <th>Tools</th>
+      <th>SF Record</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {rows_str}
+  </tbody>
+</table>
+
+<div class="footer">
+  gs://{GCS_BUCKET}/runs/ から直近30件を表示 &nbsp;|&nbsp; Vertex AI {VERTEX_MODEL} &nbsp;|&nbsp; Region {VERTEX_LOCATION}
+</div>
+
+<script>
+// 行クリックで tool_history を展開
+document.querySelectorAll('tr.run-row').forEach(row => {{
+  row.addEventListener('click', () => {{
+    // 既存の詳細行を削除（別の行がexpanded中なら閉じる）
+    document.querySelectorAll('tr.detail-row').forEach(d => d.remove());
+    const wasExpanded = row.classList.contains('expanded');
+    document.querySelectorAll('tr.run-row').forEach(r => r.classList.remove('expanded'));
+    if (wasExpanded) return;
+
+    row.classList.add('expanded');
+    const history = JSON.parse(row.getAttribute('data-history') || '[]');
+    const detailRow = document.createElement('tr');
+    detailRow.className = 'detail-row';
+    const td = document.createElement('td');
+    td.colSpan = 8;
+    if (history.length === 0) {{
+      td.innerHTML = '<div class="detail-inner" style="color:#64748b">ツール呼出履歴なし</div>';
+    }} else {{
+      let inner = '<div class="detail-inner"><table><thead><tr>' +
+        '<th>#</th><th>Tool</th><th>Args</th><th>Result Summary</th><th style="text-align:right">Elapsed</th></tr></thead><tbody>';
+      history.forEach((t, i) => {{
+        inner += '<tr>' +
+          '<td style="color:#64748b">' + (i+1) + '</td>' +
+          '<td class="tname">' + (t.tool || '') + '</td>' +
+          '<td class="targs">' + (t.args || '') + '</td>' +
+          '<td class="tres">' + (t.result_summary || '') + '</td>' +
+          '<td class="ttime">' + (t.elapsed_sec || 0) + 's</td>' +
+          '</tr>';
+      }});
+      inner += '</tbody></table></div>';
+      td.innerHTML = inner;
+    }}
+    detailRow.appendChild(td);
+    row.parentNode.insertBefore(detailRow, row.nextSibling);
+  }});
+}});
+
+// Auto-refresh トグル
+let refreshTimer = null;
+document.getElementById('auto-refresh').addEventListener('change', (e) => {{
+  if (e.target.checked) {{
+    refreshTimer = setInterval(() => window.location.reload(), 30000);
+  }} else if (refreshTimer) {{
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }}
+}});
+</script>
+</body>
+</html>
+"""
+
+
+def _html_escape_attr(s: str) -> str:
+    """HTML属性値エスケープ（シングルクォート・ダブルクォート対応）"""
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#39;")
+
+
 def _build_trigger_html() -> str:
     """シナリオ2用HTMLトリガーページのHTML文字列を返す"""
     return TRIGGER_HTML
@@ -381,11 +757,13 @@ def generate_design_suggestion(request):
     if request.method == "OPTIONS":
         return ("", 204, _cors_headers())
 
-    # GET /trigger → HTMLページを返す / GET /signed-url → URL生成
+    # GET /trigger → HTMLページを返す / GET /dashboard → Activity dashboard / GET /signed-url → URL生成
     if request.method == "GET":
         path = request.path.rstrip("/")
         if path.endswith("/trigger"):
             return _handle_trigger_html(request)
+        if path.endswith("/dashboard"):
+            return _handle_dashboard(request)
         if path.endswith("/signed-url"):
             return _handle_signed_url(request)
         return (json.dumps({"error": "method not allowed"}), 405, _cors_headers())

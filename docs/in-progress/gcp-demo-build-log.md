@@ -192,7 +192,7 @@ IoTイベント(HTMLトリガー) → Product Engineering Agent → Asset レコ
 ### 3.2 サービスアカウント
 
 - `bps-demo-sa@ageless-lamp-251200.iam.gserviceaccount.com`
-- 付与済みロール: `roles/aiplatform.user`, `roles/storage.objectViewer`, `roles/logging.logWriter`, `roles/iam.serviceAccountTokenCreator`（自己署名用）
+- 付与済みロール: `roles/aiplatform.user`, `roles/storage.objectViewer`, `roles/storage.objectAdmin`（runs/ログ書込）, `roles/logging.logWriter`, `roles/iam.serviceAccountTokenCreator`（自己署名用）
 
 ### 3.3 Cloud Storage
 
@@ -206,6 +206,7 @@ IoTイベント(HTMLトリガー) → Product Engineering Agent → Asset レコ
 | `diagrams/e2000_bms_architecture.png` | E-2000 BMS図面（Pillow生成、109KB） |
 | `products/a1000_wind_turbine.png` | A-1000 製品写真（Imagen 3.0 生成） |
 | `products/enercharge_pro_e2000.png` | E-2000 製品写真（Imagen 3.0 生成） |
+| `runs/YYYY-MM-DD/<ISO>_<request_id>.json` | Agent 実行ログ。`/dashboard` エンドポイントから可視化 |
 
 ### 3.4 Cloud Functions: `generate-design-suggestion`
 
@@ -240,6 +241,7 @@ gcp/generate-design-suggestion/
 | POST | `/equipment-alert` | **シナリオ2 エージェント（IoT異常）** |
 | POST | `/prompt` | 汎用プロンプト（needsAnalysisV2用、Trust Layerバイパス） |
 | GET | `/trigger` | シナリオ2のIoTトリガーHTMLページ |
+| GET | `/dashboard` | Agent 実行履歴ダッシュボード（GCS `runs/` を集計してHTML表示） |
 | GET | `/signed-url?path=...` | GCS オブジェクトの Signed URL 生成（LWC画像表示用） |
 
 ### 3.5 Product Engineering Agent 詳細
