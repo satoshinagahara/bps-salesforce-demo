@@ -13,7 +13,9 @@ import os
 import re
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+JST = timezone(timedelta(hours=9))
 
 import functions_framework
 import jwt
@@ -428,7 +430,7 @@ def _handle_dashboard_logs(request):
             if "UserWarning" in msg or "warning_logs.show_deprecation_warning" in msg:
                 continue
             entries.append({
-                "ts": entry.timestamp.astimezone().isoformat() if entry.timestamp else "",
+                "ts": entry.timestamp.astimezone(JST).isoformat() if entry.timestamp else "",
                 "sev": sev,
                 "msg": msg[:240],
             })
@@ -470,9 +472,16 @@ def _list_recent_runs(limit: int = 30) -> list[dict]:
 
 
 def _aggregate_today(runs: list[dict]) -> dict:
-    """本日実行分のみ集計。"""
-    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    todays = [r for r in runs if r.get("started_at", "").startswith(today_iso)]
+    """本日実行分のみ集計（JSTの日付境界で判定）。"""
+    today_jst = datetime.now(JST).strftime("%Y-%m-%d")
+    def _is_today(r: dict) -> bool:
+        started = r.get("started_at", "")
+        try:
+            dt = datetime.fromisoformat(started)
+            return dt.astimezone(JST).strftime("%Y-%m-%d") == today_jst
+        except Exception:
+            return False
+    todays = [r for r in runs if _is_today(r)]
     if not todays:
         return {
             "count": 0, "avg_elapsed": 0, "success_rate": 0,
@@ -497,7 +506,7 @@ def _aggregate_today(runs: list[dict]) -> dict:
 def _build_dashboard_html() -> str:
     runs = _list_recent_runs(30)
     agg = _aggregate_today(runs)
-    generated = datetime.now(timezone.utc).astimezone().isoformat()
+    generated = datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S JST")
 
     # 各 run を行 HTML に
     rows_html = []
@@ -514,10 +523,12 @@ def _build_dashboard_html() -> str:
             "equipment_alert": "シナリオ2 (IoT異常診断)",
         }.get(mode, mode)
         started = r.get("started_at", "")
-        # ISO8601 → HH:MM:SS
+        # ISO8601(UTC) → JST に変換して表示
         try:
-            started_disp = started.split("T")[1][:8] if "T" in started else started
-            date_disp = started.split("T")[0]
+            dt = datetime.fromisoformat(started)
+            dt_jst = dt.astimezone(JST)
+            date_disp = dt_jst.strftime("%Y-%m-%d")
+            started_disp = dt_jst.strftime("%H:%M:%S")
         except Exception:
             started_disp = started
             date_disp = ""
@@ -802,7 +813,7 @@ def _build_dashboard_html() -> str:
 <table>
   <thead>
     <tr>
-      <th>Time (UTC)</th>
+      <th>Time (JST)</th>
       <th>Mode</th>
       <th>Target</th>
       <th>Elapsed</th>
