@@ -1,0 +1,273 @@
+.timeline-card {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.timeline-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 14px;
+    align-items: center;
+}
+
+.timeline-ico {
+    font-size: 18px;
+    margin-right: 6px;
+}
+
+.timeline-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+}
+
+.timeline-subtitle {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.timeline-body {
+    padding: 0;
+    max-height: 720px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+.timeline-list {
+    list-style: none;
+    margin: 0;
+    padding: 12px 0 0 0;
+    position: relative;
+}
+
+/* 各マイルストーン項目 */
+.ms-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
+    padding: 6px 14px 6px 14px;
+    position: relative;
+}
+
+.ms-icon-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.ms-icon-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #94a3b8;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.ms-line {
+    position: absolute;
+    top: 22px;
+    bottom: -12px;
+    left: 50%;
+    width: 2px;
+    background: #e2e8f0;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.ms-item:last-child .ms-line {
+    display: none;
+}
+
+/* ステータス別スタイル */
+.ms-done .ms-icon-dot {
+    background: #10b981;
+    box-shadow: 0 0 0 1px #6ee7b7;
+}
+
+.ms-late .ms-icon-dot {
+    background: #f97316;
+    box-shadow: 0 0 0 1px #fdba74;
+}
+
+.ms-near .ms-icon-dot {
+    background: #3b82f6;
+    box-shadow: 0 0 0 1px #93c5fd;
+    animation: pulse-near 2s ease-in-out infinite;
+}
+
+.ms-future .ms-icon-dot {
+    background: #cbd5e1;
+    color: #64748b;
+}
+
+.ms-warn .ms-icon-dot {
+    background: #dc2626;
+    box-shadow: 0 0 0 1px #fca5a5;
+}
+
+@keyframes pulse-near {
+    0%, 100% { box-shadow: 0 0 0 1px #93c5fd; }
+    50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3); }
+}
+
+/* 内容部分 */
+.ms-content-col {
+    padding-bottom: 10px;
+    min-width: 0;
+}
+
+.ms-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.ms-type {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ms-type-emoji {
+    margin-right: 2px;
+}
+
+.ms-date {
+    font-size: 10px;
+    color: #64748b;
+    font-family: 'SF Mono', Menlo, monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ms-desc {
+    font-size: 11.5px;
+    color: #334155;
+    line-height: 1.4;
+    margin: 2px 0 4px;
+    word-wrap: break-word;
+}
+
+.ms-row-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.ms-status-badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.ms-done .ms-status-badge {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.ms-near .ms-status-badge {
+    background: #dbeafe;
+    color: #1971c2;
+}
+
+.ms-late .ms-status-badge {
+    background: #fed7aa;
+    color: #c2410c;
+}
+
+.ms-warn .ms-status-badge {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.ms-countdown {
+    font-size: 10px;
+    color: #1971c2;
+    font-weight: 600;
+    font-family: 'SF Mono', Menlo, monospace;
+    background: #eff6ff;
+    padding: 1px 6px;
+    border-radius: 3px;
+}
+
+.ms-near .ms-countdown {
+    color: #1e40af;
+    background: #dbeafe;
+    font-weight: 700;
+}
+
+.ms-completed {
+    font-size: 10px;
+    color: #64748b;
+    font-family: 'SF Mono', Menlo, monospace;
+}
+
+.ms-notes {
+    font-size: 10.5px;
+    color: #64748b;
+    background: #f8fafc;
+    border-left: 2px solid #cbd5e1;
+    padding: 4px 8px;
+    margin-top: 4px;
+    border-radius: 0 3px 3px 0;
+    line-height: 1.4;
+}
+
+/* 「本日」マーカー */
+.today-marker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    margin: 4px 0;
+    position: relative;
+}
+
+.today-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #dc2626 20%, #dc2626 80%, transparent);
+}
+
+.today-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #dc2626;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    padding: 2px 10px;
+    background: #fee2e2;
+    border-radius: 10px;
+    font-family: 'SF Mono', Menlo, monospace;
+}
+
+.empty-state {
+    padding: 24px 16px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+}

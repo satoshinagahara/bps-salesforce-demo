@@ -1,0 +1,72 @@
+<template>
+    <article class="slds-card timeline-card">
+        <div class="slds-card__header slds-grid timeline-header">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <span class="timeline-ico">🛰</span>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <span class="timeline-title">ライフサイクル・マイルストーン</span>
+                    </h2>
+                    <p class="timeline-subtitle">納品〜保守期限までの運用イベント</p>
+                </div>
+            </header>
+            <div class="slds-no-flex">
+                <lightning-button-icon
+                    icon-name="utility:refresh"
+                    variant="bare"
+                    alternative-text="更新"
+                    title="更新"
+                    onclick={handleRefresh}>
+                </lightning-button-icon>
+            </div>
+        </div>
+
+        <div class="slds-card__body timeline-body">
+            <template if:true={items.length}>
+                <ul class="timeline-list">
+                    <template for:each={items} for:item="m">
+                        <template if:true={m.__isTodayMarker}>
+                            <li key={m.key} class="today-marker">
+                                <span class="today-line"></span>
+                                <span class="today-label">{m.label}</span>
+                                <span class="today-line"></span>
+                            </li>
+                        </template>
+                        <template if:false={m.__isTodayMarker}>
+                            <li key={m.key} class={m.cssClass}>
+                                <div class="ms-icon-col">
+                                    <span class="ms-icon-dot">{m.iconChar}</span>
+                                    <span class="ms-line"></span>
+                                </div>
+                                <div class="ms-content-col">
+                                    <div class="ms-row-top">
+                                        <span class="ms-type"><span class="ms-type-emoji">{m.typeIcon}</span> {m.milestoneType}</span>
+                                        <span class="ms-date">{m.dateLabel}</span>
+                                    </div>
+                                    <div class="ms-desc">{m.description}</div>
+                                    <div class="ms-row-bottom">
+                                        <span class="ms-status-badge">{m.status}</span>
+                                        <template if:true={m.countdown}>
+                                            <span class="ms-countdown">{m.countdown}</span>
+                                        </template>
+                                        <template if:true={m.completedLabel}>
+                                            <span class="ms-completed">{m.completedLabel}</span>
+                                        </template>
+                                    </div>
+                                    <template if:true={m.notes}>
+                                        <div class="ms-notes">{m.notes}</div>
+                                    </template>
+                                </div>
+                            </li>
+                        </template>
+                    </template>
+                </ul>
+            </template>
+            <template if:false={items.length}>
+                <div class="empty-state">マイルストーンがまだ登録されていません</div>
+            </template>
+        </div>
+    </article>
+</template>
