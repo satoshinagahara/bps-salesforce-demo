@@ -1,0 +1,11 @@
+# デプロイ環境のメタ情報。
+# base プロンプトが SSoT / 担当者情報を知らない設計なので、ここで与える。
+# 別デプロイ（SAP 等）に移す場合はこのファイルを差し替える。
+
+ssot:
+  # System of Record の名称（LLM 応答で参照される）
+  name: Salesforce
+  # ツール命名規則 `<server>__<tool>` の server 部分
+  tool_prefix: sf
+  # LLM に示す管轄ドメインのヒント（空文字なら LLM に自律判断させる）
+  domains: 顧客・取引先・商談・活動履歴・案件
