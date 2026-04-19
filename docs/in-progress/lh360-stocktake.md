@@ -378,3 +378,49 @@ Turn 2 で Gemma 4 は `get_username` のレスポンス本文（"ALWAYS notify 
 
 - `tests/test_argument_defaults.py`: 16 ケースの単体テスト（defaults/overrides/併用/エッジ）
 - `tests/inspect_sf_directory_args.py`: sf MCP の schema 実地観測用（手動実行）
+
+---
+
+## 10. Phase 3 α(2): tool_call 崩壊時の自動リトライ層（2026-04-19）
+
+Phase 2 で観察した「11 tools でも稀に tool_call format が崩壊する」現象（Section 8）への対処。Gemma 4 失敗分類 ⑤（サンプリングゆらぎ）だけを狙って拾う、**controlled retry 層**。
+
+### スコープの決定（意図的に狭く）
+
+拾う対象:
+- **完全崩壊のみ** = `finish_reason == "tool_calls"` かつ `msg.tool_calls` が None/空
+
+拾わない対象:
+- 部分崩壊（JSON args が不正など）→ 現行の tool 実行エラー経路に任せる
+- `finish_reason=length` / `stop` → 崩壊ではなく正規の応答終端
+- reasoning 失敗（②③）→ temperature 上げても改善しないので意図的に対象外
+
+### 実装（[lh360/agent/loop.py](../../lh360/agent/loop.py)）
+
+- `AgentConfig.retry_temperatures: tuple[float, ...] = (0.5, 0.8)` を追加（ベース `0.1` の後に 2 段階）
+- `_is_broken_tool_call(choice)` でフラット判定
+- `_generate_with_retry(messages, tools)` が `[0.1, 0.5, 0.8]` を順に試し、**最初に崩壊しなかった choice を返す**
+- 崩壊した試行は履歴に残さない（`messages` を改変しない）。崩壊したテキストを後続ターンに見せても Gemma 4 は自己修正できない（§1 補足の原則）ため、残すのは無害〜有害
+
+### ログ 3 種類
+
+| タグ | 条件 | レベル |
+|---|---|---|
+| `[tool_call_format_broken]` | 各試行で崩壊を検知した時点で記録 | WARNING |
+| `[retry_success]` | 2 回目以降で復旧した時 | INFO |
+| `[retry_exhausted]` | 全試行が崩壊して打ち切り | ERROR |
+
+これにより「どの頻度で崩壊するか」「温度上げで拾えているか」が事後に定量化可能。
+
+### テスト
+
+`tests/test_tool_call_retry.py`（9 ケース）:
+- `_is_broken_tool_call` の境界（stop / tool_calls 有り / tool_calls=None / tool_calls=[] / length）
+- `_generate_with_retry` の 4 シナリオ（初回成功 / 2 回目で復旧 / 全崩壊打ち切り / 正常 stop はリトライしない）
+- OpenAI クライアントをフェイク（`FakeCompletions`）で差し替えてオフライン検証
+
+### 残留する論点
+
+- 実運用で崩壊頻度を測ってから、温度列を `(0.5, 0.8)` より広げる/狭める判断
+- 崩壊が連続するパターン（例: プロンプト起因で構造的に壊れる）はリトライで救えないので、その場合は `[retry_exhausted]` の出現を見て上流を修正する
+- 温度を上げた結果 reasoning 品質が下がる懸念はあるが、対象は「崩壊して使い物にならない応答」なので、多少乱暴でも形式さえ出てくれば ② から上はパース経路に乗る
