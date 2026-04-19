@@ -97,6 +97,11 @@ def _current_specs() -> list[MCPServerSpec]:
     if "sf" in allow:
         sf_user = _sf_username()
         if sf_user:
+            # sf MCP の全ツールが `directory`（絶対パス必須）を required にしているが、
+            # Gemma 4 は "." や相対パスで呼びがちで validation ループに陥る。
+            # sfdx-project.json のある外側プロジェクトルートを既定値として固定し、
+            # LLM が不正値を渡したら mcp_manager 層で自動補正する。
+            sf_project_root = str(ROOT.parent)  # /Users/satoshi/claude/bps-salesforce-demo
             specs.append(MCPServerSpec(
                 name="sf",
                 command="npx",
@@ -106,6 +111,16 @@ def _current_specs() -> list[MCPServerSpec]:
                     "--toolsets", "core,data,orgs",
                     "--no-telemetry",
                 ],
+                # directory: 相対パスで呼ばれた時だけ絶対パスに補正（LLM が正しく渡すなら尊重）
+                argument_defaults={
+                    "directory": sf_project_root,
+                },
+                # usernameOrAlias: `--orgs` で単一 org 起動しているので常に強制上書き。
+                # Gemma 4 が get_username レスポンスの散文を丸ごと引数に詰めるハルシネーションを
+                # 根本対処（そもそも LLM に選ばせる余地が無い）。
+                argument_overrides={
+                    "usernameOrAlias": sf_user,
+                },
             ))
         else:
             logger.warning("sf-config.json not found or missing username; sf MCP disabled")
