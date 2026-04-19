@@ -1,11 +1,11 @@
-"""Agentforce 2.0 - Gradio UI
+"""Local Headless 360 - Gradio UI
 
 ローカル Gemma 4 + Multi-MCP エージェントの対話UI。
 - Chat パネル: ストリーミング + tool 呼び出しを collapsible メタデータで可視化
 - サイドバー: モデル / MCP サーバ / プロファイル情報
 
 起動:
-    cd agentforce2
+    cd lh360
     uv run python -m app.gradio_app
 """
 from __future__ import annotations
@@ -378,12 +378,12 @@ EXAMPLES = [
 
 def build_demo() -> gr.Blocks:
     with gr.Blocks(
-        title="Agentforce 2.0",
+        title="Local Headless 360",
         fill_height=True,
     ) as demo:
         with gr.Row():
             with gr.Column(scale=3):
-                gr.Markdown("# 🤖 Agentforce 2.0\n_Local Gemma 4 + Multi-MCP_")
+                gr.Markdown("# 🤖 Local Headless 360\n_Local Gemma 4 + Multi-MCP_")
                 chatbot = gr.Chatbot(
                     height=620,
                     buttons=["copy", "copy_all"],
