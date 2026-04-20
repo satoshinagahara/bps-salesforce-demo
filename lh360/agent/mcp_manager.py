@@ -54,6 +54,10 @@ class MCPServerSpec:
     env: dict[str, str] = field(default_factory=dict)
     argument_defaults: dict[str, Any] = field(default_factory=dict)
     argument_overrides: dict[str, Any] = field(default_factory=dict)
+    # このサーバから登録しない tool の original_name (not qualified) のリスト。
+    # 例: sf MCP の `get_username` は meta-instruction を返す使いづらい tool なので
+    # Gemma に見せない。
+    tool_blocklist: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -107,7 +111,12 @@ class MCPManager:
                 self._sessions[spec.name] = session
 
                 tools = (await session.list_tools()).tools
+                blocklist = set(spec.tool_blocklist or [])
+                registered = 0
                 for t in tools:
+                    if t.name in blocklist:
+                        logger.info(f"   ↯ {spec.name}__{t.name} blocked")
+                        continue
                     self._tools.append(ToolEntry(
                         server=spec.name,
                         original_name=t.name,
@@ -115,7 +124,8 @@ class MCPManager:
                         description=t.description or "",
                         input_schema=t.inputSchema or {"type": "object", "properties": {}},
                     ))
-                logger.info(f"✅ MCP '{spec.name}': {len(tools)} tools")
+                    registered += 1
+                logger.info(f"✅ MCP '{spec.name}': {registered} tools (from {len(tools)} advertised)")
             except Exception as e:
                 logger.error(f"❌ MCP '{spec.name}' failed to start: {e}")
                 raise

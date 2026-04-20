@@ -1,0 +1,192 @@
+version: 2026-04-20
+scope: |
+  lh360 の Salesforce 以外の MCP (gw = Gmail + Gcal / fetch / time) についての
+  業務的使い分けヒント。Planner のみに渡す (AtomicExecutor には当面渡さない)。
+
+  このファイルに書くべきもの:
+    - ツール名だけでは伝わらない業務文脈 (例: Gmail draft は送信しない)
+    - SF との典型的な組合せ順序
+    - 引数書式のハマりどころ (ISO 形式、タイムゾーン)
+  このファイルに書かない:
+    - tool schema そのもの ({AVAILABLE_TOOLS} で自動注入済)
+
+# ---- Google Workspace: Gmail + Gcal (自作 mcp_servers.google_mcp) ----
+# 命名: gw__<tool_name> で MCP 経由。実装は lh360/mcp_servers/google_mcp.py
+google_workspace:
+  scope_note: |
+    **Gmail は "下書き作成" のみ** (gmail_create_draft)。送信・検索・読み取り API は配線していない。
+    これは lh360 の方針: Agent は下書きまで、送信はユーザが Gmail 画面で承認して押す。
+    「先週のメール見せて」のような読み取り系は現状この tool set では実現できない。
+
+  tools:
+    - name: gmail_create_draft
+      when_to_use: |
+        SF で拾った顧客情報 (Contact.Email + Opp/Meeting コンテキスト) を元に、
+        ユーザ向けの **下書きを Gmail に置く** のが主用途。
+        典型: お礼メール / フォロー / 提案送付 / 日程調整。
+      args_hint: |
+        - to: 単一メールアドレス (カンマ区切りで複数可)
+        - subject: 日本語可。署名は不要 (Gmail 側署名が自動付与される)
+        - body: 平文。Markdown は展開されない。改行は \\n
+        - cc / bcc: optional
+      typical_pipeline: |
+        1. sf__run_soql_query: SELECT Id, Name, Email FROM Contact WHERE ...
+        2. (任意) sf__run_soql_query: 直近 Meeting_Record__c / Opportunity の context 取得
+        3. gw__gmail_create_draft: body に SF 情報を織り込む
+      common_mistakes:
+        - 下書きを作ったあと「送信しました」と誤報告しない (送信 API は無い)
+        - Contact.Email が空のレコードは事前に除外
+        - 敬称は Contact.Salutation__c もしくは役職から判断 (デフォルトは「様」)
+
+  calendar_tools:
+    - name: calendar_list_events
+      when_to_use: |
+        指定範囲の予定を列挙。「今週の予定」「◯日の空き時間」を問われた時の起点。
+      args_hint: |
+        - start_iso / end_iso: RFC3339 形式 **必須** (例: "2026-05-12T00:00:00+09:00")
+          → 現在時刻ベースなら time MCP で get_current_time → 加算して渡す
+        - calendar_id: "primary" がデフォルト (ユーザ本人のカレンダー)
+        - max_results: デフォルト 50
+      common_mistakes:
+        - date-only 形式 ("2026-05-12") は通らない。必ず RFC3339 で時刻+オフセット
+        - JST は "+09:00" を明示 (Z だと UTC 扱いで 9 時間ズレる)
+
+    - name: calendar_check_availability
+      when_to_use: |
+        「◯日の何時から何時なら空いてる？」候補スロットを渡して busy 判定。
+        空き時間自動検出ではなく **候補リストをこちらが用意する** 形式。
+      args_hint: |
+        - candidate_slots: [{"start": ISO, "end": ISO}, ...]
+      typical_pipeline: |
+        1. time: 現在時刻取得 → 提案したい時間帯を ISO 形式で複数生成 (例 30 分刻み 8 枠)
+        2. calendar_check_availability: busy=false のものを抽出
+        3. calendar_create_event: 空いてるスロットで作成
+
+    - name: calendar_create_event
+      when_to_use: |
+        予定の新規登録。tentative=True で仮押さえ、False で確定。
+        attendees は sendUpdates=none (招待メール送信しない) で動く。
+      args_hint: |
+        - summary: 件名
+        - start_iso / end_iso: RFC3339 必須、timeZone=Asia/Tokyo が自動付与される
+        - description: 予定詳細 (SF レコード URL を含めることが多い)
+        - attendees: ["email@example.com", ...] — 招待通知は送らない (lh360 方針)
+        - tentative: True なら仮押さえ (ユーザが後で確定)
+        - color_id: 1-11 (Gcal 色 ID)
+      common_mistakes:
+        - 招待メールが送られると思い込まない (sendUpdates=none なのでカレンダー上に予定が載るだけ)
+        - 'TZ 指定ミス: +09:00 を忘れると 9h ズレる'
+
+# ---- Web Search (Brave Search 公式 MCP) ----
+# Phase B (2026-04-20) 追加。BRAVE_API_KEY 必須で gate されているので、環境によっては
+# spec が load されず tool も露出しない。その場合は「検索できない」前提で計画する。
+brave_search:
+  scope_note: |
+    **URL が未知のクエリ** (「◯◯社の最新 IR を探して」「◯◯の業界動向」「◯◯ の
+    プレスリリース」等) の起点として使う。fetch との使い分けは明確:
+      - 検索したい (URL 不明) → brave__brave_web_search or brave__brave_news_search
+      - URL 既知の本文取得 → fetch
+    典型 2-hop: `brave_web_search → fetch(結果 URL)` で詳細を取得し要約。
+
+  tools:
+    - name: brave_web_search
+      when_to_use: |
+        一般的な Web 検索。公式サイト、Wikipedia、公的機関、企業の公開資料など。
+        顧客企業の公式情報 / 業界トレンド / 技術調査 の起点。
+      args_hint: |
+        - query: 検索クエリ (日本語可、英語可)。具体的に (例 "トヨタ 2025年3月期 決算")
+        - count: 結果件数 (1-20、default 10)。通常 5 で十分
+        - country: ISO 2 letter (例 "JP")。日本語サイトを優先したい時は "JP"
+        - safesearch: "strict" / "moderate" / "off"。ビジネス用途は "moderate"
+      common_mistakes:
+        - 1 語だけの抽象クエリ (例 "AI") は使えない情報が返る → 固有名詞 + 年度 を付ける
+        - URL が判っている時は brave 経由で二度手間。fetch 直行が正解
+
+    - name: brave_news_search
+      when_to_use: |
+        ニュース記事・プレスリリース・報道特化。時系列性を重視する検索。
+        「◯◯社の直近のニュース」「業界動向 最近」などで使う。
+      args_hint: |
+        - query: 同上
+        - count: 1-20 (default 10)
+        - freshness: "pd" (過去 24h) / "pw" (1週間) / "pm" (1ヶ月) / "py" (1年)
+          時系列クエリには必須に近い (指定なしだと古い記事が混じる)
+      common_mistakes:
+        - freshness 未指定で「最新」と言うと的外れな古記事が返る
+        - 企業 IR の一次資料が欲しい時は web_search (news_search は報道記事中心)
+
+  common_pipeline: |
+    標準的な cross-source フロー:
+      1. brave__brave_web_search / brave_news_search: 検索クエリ投入
+      2. fetch: 結果から該当 URL を 1-2 本選んで本文取得
+      3. (要約 or SF 紐付け記録は後段 step)
+    **検索結果の snippet だけで答えを返さないこと** — snippet は不正確な抜粋のため、
+    本文取りに fetch まで進めるのが基本 (信頼性とコスト両面のバランス)。
+
+# ---- Web Fetch (mcp-server-fetch、公式) ----
+fetch:
+  scope_note: |
+    **URL が既知** の場合にその URL を markdown 化して取得する tool。
+    URL 不明なクエリは brave_web_search / brave_news_search を先に使う。
+    Planner は URL を推測で作らず、**URL が無い場合は fetch を単独では計画しない**。
+
+  tools:
+    - name: fetch
+      when_to_use: |
+        - ユーザ発話や SF レコードに URL が含まれていて、その内容を読みたい時
+        - 公開資料 (IR、ニュース、プレスリリース) の内容を引用したい時
+      args_hint: |
+        - url: https:// から始まる完全 URL
+        - max_length: デフォルト 5000 文字。長い記事はこれで十分なことが多い
+        - start_index: ページネーション (普通は不要)
+        - raw: False (デフォルト = HTML→Markdown 自動変換)
+      common_mistakes:
+        - 存在しない URL を Planner が作文する (この場合 fetch は 404)
+        - PDF URL を fetch に渡しても本文テキストは出ない (HTML 前提)
+        - auth 必須の社内ポータル URL は取得できない (外部公開のみ)
+
+# ---- Time (mcp-server-time、公式) ----
+time:
+  scope_note: |
+    現在時刻取得・TZ 変換の utility。Gcal 系 tool の引数組み立てに必須。
+  tools:
+    - name: get_current_time
+      when_to_use: |
+        「今週」「明日」「◯日後」のような相対表現を解釈する時の基準取得。
+        TZ は "Asia/Tokyo" を明示指定する。
+    - name: convert_time
+      when_to_use: |
+        UTC ⇄ JST 変換等。Gcal の ISO 形式組み立てで稀に必要。
+
+# ---- 典型的な cross-source パイプライン (Planner 参考) ----
+common_patterns:
+  - name: "SF → Gmail 下書き (お礼メール / フォロー)"
+    steps:
+      - sf__run_soql_query で Contact.Email + 商談コンテキスト取得
+      - (任意) Meeting_Record__c / Opportunity_Summary__c で直近状況取得
+      - gw__gmail_create_draft で下書き作成 (送信はしない)
+    example_query: "オメガの鈴木部長に昨日の面談のお礼メール下書きを作って"
+
+  - name: "SF → Gcal 予定登録 (フォローアップ会議)"
+    steps:
+      - time で現在時刻取得 → 希望時間帯を ISO 形式で複数生成
+      - gw__calendar_check_availability で busy 判定
+      - gw__calendar_create_event で空きスロットに登録 (description に SF URL)
+    example_query: "来週月曜の午後で鈴木さんとの 1on1 を Gcal に入れて"
+
+  - name: "外部 URL → SF 紐付け記録 (URL 既知時)"
+    steps:
+      - fetch で公開 URL (IR、プレスリリース等) を取得・要約
+      - sf__create_record で Account に紐づくメモとして記録
+    example_query: "トヨタの最新プレスリリース (URL xxx) を要約して SF に記録"
+
+  - name: "Web 検索 → URL 選択 → 本文取得 → 要約 (URL 未知時)"
+    steps:
+      - brave__brave_news_search or brave_web_search でクエリ投入 (freshness 指定推奨)
+      - 結果から信頼できる URL を 1-2 本選ぶ (公式サイト / IR / 主要報道優先)
+      - fetch で選んだ URL を本文取得
+      - 要約 / SF 紐付け記録などの後段 step
+    example_query: "オメガエネルギーの直近の業界ニュース (EV シフト関連) を調べて要約"
+    note: |
+      snippet だけで結論を出さないこと。snippet は広告・要約劣化を含むため、
+      本文取りに fetch まで進めるのが基本。

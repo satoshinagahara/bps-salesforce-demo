@@ -66,6 +66,10 @@ class AgentConfig:
     model: str = field(default_factory=lambda: os.environ.get("MLX_MODEL", "mlx-community/gemma-4-26b-a4b-it-4bit"))
     api_key: str = field(default_factory=lambda: os.environ.get("MLX_API_KEY", "not-needed"))
     max_turns: int = field(default_factory=lambda: int(os.environ.get("AGENT_MAX_TURNS", "8")))
+    # Gemma 4 は thinking tokens を消費するので max_tokens は広めに確保する
+    # (mlx-lm の default は ~500 だが、system prompt + tool schema が長いと
+    # thinking phase で使い切って finish_reason='length' で空応答になる)
+    max_tokens: int = field(default_factory=lambda: int(os.environ.get("AGENT_MAX_TOKENS", "4096")))
     temperature: float = 0.1
     timeout_sec: float = field(default_factory=lambda: float(os.environ.get("AGENT_TIMEOUT_SEC", "120")))
     # tool_call 崩壊時のリトライ温度列（初回を除くリトライ分のみ）。
@@ -104,6 +108,7 @@ class AgentLoop:
                 tool_choice="auto",
                 temperature=temp,
                 parallel_tool_calls=True,
+                max_tokens=self.cfg.max_tokens,
             )
             choice = resp.choices[0]
             last_choice = choice
@@ -125,10 +130,19 @@ class AgentLoop:
         )
         return last_choice
 
-    async def run(self, user_message: str, history: list[dict] | None = None) -> AsyncIterator[Event]:
+    async def run(
+        self,
+        user_message: str,
+        history: list[dict] | None = None,
+        allowed_tools: set[str] | None = None,
+    ) -> AsyncIterator[Event]:
         """ユーザ発話を受けて、tool_call を解決しながら回答に到達するまで loop。
 
         history: 直前の会話履歴（OpenAI messages 形式）。
+        allowed_tools: None なら全 tool 開放。set が指定された場合は
+            qualified_name (`<server>__<tool>`) がその集合に含まれる tool のみ
+            Gemma に提示する。atomic モード（Planner から絞り込んだ少数 tool だけで
+            実行したいケース、Gemma 4 の 25 tool 崩壊閾値対策）で使う。
         """
         messages: list[dict] = []
         # ベース system prompt + 動的プロファイル/時刻を毎ターン注入
@@ -140,6 +154,16 @@ class AgentLoop:
         messages.append({"role": "user", "content": user_message})
 
         tools = self.mcp.to_openai_tools()
+        if allowed_tools is not None:
+            before = len(tools)
+            tools = [
+                t for t in tools
+                if t.get("function", {}).get("name") in allowed_tools
+            ]
+            logger.info(
+                f"[allowed_tools] filtered {before} -> {len(tools)} "
+                f"(allowed={sorted(allowed_tools)})"
+            )
 
         for turn in range(self.cfg.max_turns):
             logger.info(f"-- turn {turn+1}/{self.cfg.max_turns} --")
@@ -153,6 +177,12 @@ class AgentLoop:
             # tool_calls があれば実行
             tool_calls = msg.tool_calls or []
             if not tool_calls:
+                if turn == 0:
+                    logger.warning(
+                        f"[no_tool_on_first_turn] finish_reason={choice.finish_reason!r} "
+                        f"content_len={len(msg.content or '')} "
+                        f"content_preview={(msg.content or '')[:400]!r}"
+                    )
                 yield EvFinish(reason=choice.finish_reason or "stop", turns=turn + 1)
                 return
 
@@ -209,12 +239,26 @@ class AgentLoop:
                     "tool_call_id": tc.id,
                     "content": content_str,
                 })
+                if is_err:
+                    logger.warning(
+                        f"[tool_error] {tc.function.name} args={tc.function.arguments!r} "
+                        f"result={content_str[:500]!r}"
+                    )
+                else:
+                    logger.info(
+                        f"[tool_ok] {tc.function.name} args={tc.function.arguments!r} "
+                        f"→ {content_str[:200]!r}"
+                    )
                 summary = content_str[:200] + ("…" if len(content_str) > 200 else "")
                 yield EvToolCallResult(
                     id=tc.id, name=tc.function.name,
                     result_summary=summary, is_error=is_err,
                 )
 
+        logger.warning(
+            f"[max_turns] exhausted {self.cfg.max_turns} turns without finishing — "
+            f"increase AGENT_ATOMIC_MAX_TURNS / AGENT_MAX_TURNS if this recurs"
+        )
         yield EvFinish(reason="max_turns", turns=self.cfg.max_turns)
 
 

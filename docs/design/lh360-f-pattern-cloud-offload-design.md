@@ -1,8 +1,30 @@
 # Local Headless 360 — F パターン Cloud Offload 設計
 
 **作成日**: 2026-04-19
-**位置付け**: Phase 3 γ。β（[lh360-usecase-pattern-analysis.md](./lh360-usecase-pattern-analysis.md)）で identified した F 33 件（全 elementary の 12%）を、ローカル Gemma 4 で扱わず cloud LLM（Claude / GPT）にオフロードする設計。
+**位置付け**: Phase 3 γ。β（[lh360-usecase-pattern-analysis.md](../in-progress/lh360-usecase-pattern-analysis.md)）で identified した F 33 件（全 elementary の 12%）を、ローカル Gemma 4 で扱わず cloud LLM（Claude / GPT）にオフロードする設計。
 **前提となる議論**: [lh360-scope-reframing.md §5](../concepts/lh360-scope-reframing.md#5-補論-f-パターンをクラウド-llm-にオフロードする設計は成立するか) で概念レベルは合意済。本ドキュメントはそれを具体設計に落とす。
+
+## 実装ステータス (2026-04-20 更新)
+
+- **Stage 1 完了**: T1 機会評価 / T3 骨格設計 / T4 マッチング の 3 型 を Claude Sonnet 4.6 経由で稼働。`EscalateExecutor` を `Orchestrator` に配線済み。`return_mode=assist` のみ実装。Masking OFF (デモ org 前提)。Pre-router なし (Planner が step 単位で escalate 判断)。
+- **Stage 2 完了**: T2 仮説生成 / T5 リスク評価 / T6 マッピング を追加し、**全 6 型対応 (32/33 件 ≈ 97% カバー)**。「その他 3 件」(業界知見想起・比喩生成など型に収まらない F) は full にフォールバック。
+- **Stage 3 未着手**: Closed Loop (`return_mode=overflow`) は UI 改修と併せて設計する予定で保留。
+
+実装ファイル:
+- [lh360/agent/escalate.py](../../lh360/agent/escalate.py) — `EscalateExecutor` と `F_TYPE_TEMPLATES` レジストリ
+- [lh360/prompts/f_types/](../../lh360/prompts/f_types/) — `common_system.md` + T1-T6 の 6 テンプレ
+- [lh360/planner/orchestrator.py](../../lh360/planner/orchestrator.py) — `_dispatch` に escalate 分岐、`_plan_from_json` に `allow_escalate` フラグ
+- [lh360/planner/prompts/planner_system.md](../../lh360/planner/prompts/planner_system.md) — 「F 型の分類指針」で T1-T6 を自然文定義、context 仕様を明記
+
+検証済みシナリオ (direct call + E2E):
+- T1: 「今月の Closed Won の勢いのあるアカウントで、アップセル機会のある上位 3 件を評価して」→ atomic×2 で SSoT 収集 → escalate → synthesis で日本語ランキング
+- T2: 「オメガエネルギーの直近 Opp がなかなか動かない原因を仮説ベースで考えて」→ atomic → escalate(T2) → 3 仮説 (high/medium/low) 提示
+- T3: 「オメガエネルギー向けの提案書の骨格をドラフトして」→ atomic → escalate(T3) → 7 章構成の章立てドラフト
+- T5/T6: direct call smoke test でスキーマ遵守確認済み (Planner→E2E はサンプル発話次第で誘発されれば確認)
+
+既知の設計トレードオフ:
+- JSON 例示中の `{...}` が `str.format_map` の format specifier として解釈される問題を発見。明示的な `{name}` → value 置換に変更済 (`_SafeDict` は削除)。
+- escalate は tool 呼び出ししないため、SSoT データは必ず先行 atomic/full step で集めて `context` に詰める責務が Planner 側にある。
 
 ---
 

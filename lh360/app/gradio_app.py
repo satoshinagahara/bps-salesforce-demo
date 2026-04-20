@@ -30,7 +30,21 @@ from agent.loop import (
     EvToolCallResult,
     EvToolCallStart,
 )
+from agent.atomic import AtomicExecutor
+from agent.escalate import EscalateExecutor
 from agent.mcp_manager import MCPManager, MCPServerSpec
+from planner import (
+    PlannerLLM,
+    load_catalog,
+    load_semantic_layer,
+    load_workspace_semantic_layer,
+)
+from planner.orchestrator import (
+    EvPlanCreated,
+    EvStepEnd,
+    EvStepStart,
+    Orchestrator,
+)
 
 load_dotenv()
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
@@ -48,6 +62,7 @@ WORK_PATTERN_CHOICES = [
 # ---- MCP manager (プロセス全体で共有・遅延起動) ----
 _mgr: MCPManager | None = None
 _agent: AgentLoop | None = None
+_orchestrator: Orchestrator | None = None
 _init_lock = asyncio.Lock()
 
 
@@ -76,9 +91,9 @@ def _sf_username() -> str | None:
 # Gemma 4 26B A4B 4bit は同時ロード 20 tools 未満が安全圏（実測: 25 tools で tool_call 崩壊）。
 # 用途別に起動時選択する運用とし、動的ロードは Phase 3 以降で検討。
 MCP_PROFILES: dict[str, list[str]] = {
-    "sales":   ["sf", "gw", "fetch", "time"],               # 11 tools — 営業支援（SSoT + カレンダー/メール + Web + 時刻）
+    "sales":   ["sf", "gw", "fetch", "time", "brave"],      # ~13 tools — 営業支援（SSoT + カレンダー/メール + Web fetch/検索 + 時刻）
     "minimal": ["sf", "fetch", "time"],                     # 7 tools  — SSoT 単独検証用
-    "full":    ["sf", "gw", "fetch", "time", "fs", "memory"],  # 34 tools — 動作検証用（壊れる想定）
+    "full":    ["sf", "gw", "fetch", "time", "fs", "memory", "brave"],  # 動作検証用（壊れる想定）
 }
 DEFAULT_PROFILE = "sales"
 
@@ -111,16 +126,18 @@ def _current_specs() -> list[MCPServerSpec]:
                     "--toolsets", "core,data,orgs",
                     "--no-telemetry",
                 ],
-                # directory: 相対パスで呼ばれた時だけ絶対パスに補正（LLM が正しく渡すなら尊重）
-                argument_defaults={
-                    "directory": sf_project_root,
-                },
-                # usernameOrAlias: `--orgs` で単一 org 起動しているので常に強制上書き。
-                # Gemma 4 が get_username レスポンスの散文を丸ごと引数に詰めるハルシネーションを
-                # 根本対処（そもそも LLM に選ばせる余地が無い）。
+                # directory / usernameOrAlias は常に強制上書き。
+                # Gemma 4 は directory に elementary_id (`"e7-5-a"`) や hallucinated path
+                # (`"/home/user/workspace/..."`) を渡す failure mode があり、defaults では
+                # 防ぎ切れないため override で問答無用に固定する。
                 argument_overrides={
+                    "directory": sf_project_root,
                     "usernameOrAlias": sf_user,
                 },
+                # get_username は meta-instruction を返す使いづらい tool (ユーザ identity は
+                # user_profile.yaml 側で提供)。resume_tool_operation も LLM が使い方を
+                # 誤認する可能性があるため同時除外。
+                tool_blocklist=["get_username", "resume_tool_operation"],
             ))
         else:
             logger.warning("sf-config.json not found or missing username; sf MCP disabled")
@@ -135,6 +152,28 @@ def _current_specs() -> list[MCPServerSpec]:
     # 公式 Anthropic reference MCP: 現在時刻・TZ 変換
     if "time" in allow:
         specs.append(MCPServerSpec(name="time", command="uvx", args=["mcp-server-time"]))
+
+    # 公式 Brave Search MCP: Web 検索 (URL 未知クエリ用。fetch との使い分けは gw_semantic_layer.yaml 参照)
+    # 環境変数 BRAVE_API_KEY 必須。無ければ silent skip。
+    if "brave" in allow:
+        brave_key = os.environ.get("BRAVE_API_KEY")
+        if brave_key:
+            specs.append(MCPServerSpec(
+                name="brave",
+                command="npx",
+                args=["-y", "@brave/brave-search-mcp-server", "--transport", "stdio"],
+                env={"BRAVE_API_KEY": brave_key},
+                # SAE 用途では web/news のみ使う。local/video/image/summarizer は除外で
+                # tool 数を抑える (Gemma 4 の <20 tools 制約)。
+                tool_blocklist=[
+                    "brave_local_search",
+                    "brave_video_search",
+                    "brave_image_search",
+                    "brave_summarizer",
+                ],
+            ))
+        else:
+            logger.warning("BRAVE_API_KEY not set; brave MCP disabled (web search unavailable)")
 
     # 公式 Anthropic reference MCP: ローカルファイル操作（スコープを workspace/ に限定）
     if "fs" in allow:
@@ -160,7 +199,7 @@ def _current_specs() -> list[MCPServerSpec]:
 
 
 async def _ensure_initialized():
-    global _mgr, _agent
+    global _mgr, _agent, _orchestrator
     async with _init_lock:
         if _mgr is None:
             specs = _current_specs()
@@ -169,7 +208,68 @@ async def _ensure_initialized():
             await mgr.__aenter__()
             _mgr = mgr
             _agent = AgentLoop(_mgr, cfg=AgentConfig())
-    return _mgr, _agent
+
+            # Plan-Executor (α-3): ANTHROPIC_API_KEY があれば Claude Sonnet Planner、
+            # 無ければ α-1 互換のダミー Planner にフォールバック
+            planner_llm = None
+            catalog = None
+            semantic_layer = None
+            workspace_semantic_layer = None
+            if os.environ.get("ANTHROPIC_API_KEY"):
+                try:
+                    planner_llm = PlannerLLM()
+                    catalog = load_catalog()
+                    semantic_layer = load_semantic_layer()
+                    workspace_semantic_layer = load_workspace_semantic_layer()
+                    logger.info(
+                        f"[planner] Claude Sonnet Planner enabled "
+                        f"(model={planner_llm.cfg.model}, "
+                        f"catalog={len(catalog.elementaries)} elementaries, "
+                        f"semantic_layer={semantic_layer.object_count}obj@{semantic_layer.version}, "
+                        f"gw_layer={workspace_semantic_layer.tool_count}tools@{workspace_semantic_layer.version})"
+                    )
+                except Exception as e:
+                    logger.warning(f"[planner] init failed, falling back to dummy: {e}")
+                    planner_llm = None
+                    catalog = None
+                    semantic_layer = None
+                    workspace_semantic_layer = None
+            else:
+                logger.info("[planner] ANTHROPIC_API_KEY not set; using dummy planner")
+
+            # α-4: AtomicExecutor — Sonnet Planner が使える時だけ配線 (ダミー Planner は
+            # atomic を出さないので常に full に流れる → AtomicExecutor は不要)
+            atomic_executor = None
+            if planner_llm is not None:
+                atomic_executor = AtomicExecutor(mcp_manager=_mgr)
+                logger.info(
+                    f"[atomic] AtomicExecutor enabled "
+                    f"(max_turns={atomic_executor._loop.cfg.max_turns})"
+                )
+
+            # α-5: EscalateExecutor — Planner が使える & ANTHROPIC_API_KEY がある時だけ
+            # 配線。ダミー Planner は escalate を出さないので fallback は不要。
+            escalate_executor = None
+            if planner_llm is not None:
+                try:
+                    escalate_executor = EscalateExecutor()
+                    logger.info(
+                        f"[escalate] EscalateExecutor enabled "
+                        f"(model={escalate_executor.cfg.model})"
+                    )
+                except RuntimeError as e:
+                    logger.warning(f"[escalate] init failed, disabled: {e}")
+
+            _orchestrator = Orchestrator(
+                full_executor=_agent,
+                planner_llm=planner_llm,
+                catalog=catalog,
+                atomic_executor=atomic_executor,
+                escalate_executor=escalate_executor,
+                semantic_layer=semantic_layer,
+                workspace_semantic_layer=workspace_semantic_layer,
+            )
+    return _mgr, _orchestrator
 
 
 # ---- Chat handler ----
@@ -179,7 +279,7 @@ async def chat_fn(message: str, history: list[dict]):
         yield []
         return
 
-    mgr, agent = await _ensure_initialized()
+    mgr, orchestrator = await _ensure_initialized()
 
     # 既存履歴をLLM用履歴に変換（metadata 付きのtool行はskip）
     llm_history = [
@@ -206,8 +306,20 @@ async def chat_fn(message: str, history: list[dict]):
     assistant_text_idx: int | None = None
     thinking_removed = False
 
-    async for ev in agent.run(message, llm_history):
-        # 最初のイベントで thinking を消す
+    async for ev in orchestrator.run(message, llm_history):
+        # Planner 層のイベントは α-1 では UI 可視化しない (α-2 で実装予定)。
+        # ログだけ出して通過させる。thinking も消さない (Executor 起動まで待つ)。
+        if isinstance(ev, EvPlanCreated):
+            logger.debug(
+                f"[plan] id={ev.plan_id} intent={ev.user_intent!r} "
+                f"steps={len(ev.steps)}"
+            )
+            continue
+        if isinstance(ev, (EvStepStart, EvStepEnd)):
+            logger.debug(f"[step] {ev}")
+            continue
+
+        # 最初の Executor イベントで thinking を消す
         if not thinking_removed:
             messages.pop(thinking_idx)
             thinking_removed = True

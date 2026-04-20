@@ -1,0 +1,148 @@
+# lh360 Salesforce Semantic Layer
+#
+# Planner に渡す SF オブジェクトの「業務意味」辞書。describe API では取れない
+# 「このカスタムオブジェクトは何を意味するか」「どう業務に使われるか」を明示する。
+#
+# メンテ方針:
+# - システム管理者 (人) が手書きする。Sonnet / Gemma による自動更新はしない
+# - スコープは「SAE が触る主要オブジェクト」に限定 (全カスタムオブジェクトを入れない)
+# - 最小スコープから始めて、Planner が plan を誤る実例が出たら追加する
+# - Planner 専用。AtomicExecutor には当面渡さない (tool 25 threshold への影響回避)
+#
+# 参照: docs/design/lh360-f-pattern-cloud-offload-design.md (semantic layer 議論)
+version: "2026-04-20"
+scope: "SAE (Senior Account Executive) が日常的に触るオブジェクト。提案・商談・顧客会議のサイクルに直結するもの"
+
+objects:
+  # ---- 標準オブジェクト ----
+  - api_name: Account
+    label: 取引先
+    purpose: 顧客企業 (法人単位)。全ての営業活動の起点となるルートレコード
+    key_fields:
+      - {name: Name, meaning: 会社名 (日本語 / 英語混在)}
+      - {name: Industry, meaning: 業種}
+      - {name: AnnualRevenue, meaning: 年間売上高 (JPY、スケールが億単位になることが多い)}
+      - {name: NumberOfEmployees, meaning: 従業員数}
+    children:
+      - Contact (取引先責任者)
+      - Opportunity (商談)
+
+  - api_name: Contact
+    label: 取引先責任者
+    purpose: 顧客企業内のキーパーソン。個人単位。メール・電話の宛先解決に使う
+    key_fields:
+      - {name: Name, meaning: 氏名}
+      - {name: Title, meaning: 役職}
+      - {name: Email, meaning: 業務メール}
+      - {name: AccountId, meaning: 所属 Account への Lookup}
+
+  - api_name: Opportunity
+    label: 商談
+    purpose: 顧客との提案・受注案件。SAE の主要業務単位。受注金額・確度・ステージで管理される
+    key_fields:
+      - {name: Name, meaning: 商談名}
+      - {name: StageName, meaning: "商談ステージ (picklist 値は日本語: 資格確認/ニーズ分析/提案書提出済/交渉/Closed Won/Closed Lost 等)"}
+      - {name: Amount, meaning: 契約予定金額 (JPY)}
+      - {name: Probability, meaning: 受注確度 (%)}
+      - {name: CloseDate, meaning: 予定クローズ日}
+      - {name: AccountId, meaning: 所属 Account}
+    children:
+      - Meeting_Record__c (面談記録)
+      - Proposal_Context__c (提案書コンテキスト、master-detail)
+      - Opportunity_Summary__c (商談サマリカード)
+    notes:
+      - 「勢いのある商談」「停滞商談」のような表現は StageName + LastModifiedDate + 関連 Activity 頻度で判定する
+      - 関連 Contact は OpportunityContactRole 経由 (Primary フラグあり) で取得する
+
+  # ---- カスタムオブジェクト (describe では意味が取れないもの) ----
+  - api_name: Meeting_Record__c
+    label: 面談記録
+    purpose: |
+      顧客との会議の議事録サマリー + 文字起こし。
+      Opportunity の「進捗の質」を評価するための最重要ソース。
+      提案への反応・懸念点・次のステップが記録される。
+      通常、Summary__c に要約があり、Transcript__c に生の文字起こしがある。
+    parent: "Opportunity (Lookup: Opportunity__c)"
+    also_links_to: "Account (Lookup: Account__c)"
+    key_fields:
+      - {name: Meeting_Date__c, meaning: 面談日}
+      - {name: Meeting_Type__c, meaning: "面談種別 (picklist: キックオフ/提案/Q&A/契約交渉 等)"}
+      - {name: Summary__c, meaning: 面談サマリー。LLM が読むべき主要フィールド}
+      - {name: Transcript__c, meaning: 生の文字起こし (長文。トークン消費に注意)}
+      - {name: Participants__c, meaning: 参加者リスト (自由記述)}
+      - {name: Needs_Extracted__c, meaning: ニーズカードへの抽出が完了しているかフラグ}
+    usage_hints:
+      - Opp 進捗評価・停滞原因分析 (F-T2) では Summary__c を直近 3-5 件取得するのが基本パターン
+      - Transcript__c は context に詰めすぎない (長い)。Summary__c で足りない時だけ追加取得
+
+  - api_name: Proposal_Context__c
+    label: 提案書コンテキスト
+    purpose: |
+      アップロードした提案書 (PDF/PPT) をマルチモーダル分析した結果の抽出テキスト。
+      「自社が何を主張しているか」を知るための正本。
+      提案書の論点と顧客反応 (Meeting_Record__c) を突き合わせると、F-T1 機会評価や
+      F-T5 リスク評価 (提案スタンスと実際のフィードバックのギャップ) に効く。
+    parent: "Opportunity (MasterDetail: Opportunity__c)"
+    key_fields:
+      - {name: Extracted_Text__c, meaning: 抽出本文。LLM が読むべき主要フィールド}
+      - {name: Extraction_Status__c, meaning: "抽出ステータス (picklist: 処理中/完了/失敗)"}
+      - {name: File_Name__c, meaning: 元ファイル名}
+      - {name: Slide_Count__c, meaning: スライド枚数}
+      - {name: Extracted_At__c, meaning: 抽出完了日時}
+    usage_hints:
+      - Extraction_Status__c='完了' のものだけ参照する
+      - 1 Opp に複数枚ぶら下がることがある (提案書の版改訂)。最新のみか全件かは task 次第
+
+  - api_name: Opportunity_Summary__c
+    label: 商談サマリカード
+    purpose: |
+      Opportunity 1 件ごとに、LLM が事前生成した「商談のストーリー」「主要関係者」
+      「競合状況」「リスク」「提案価値」等を構造化フィールドに保存したもの。
+      Opp 詳細理解のショートカット。**描画可能な情報が既にあれば、これ 1 件読めば
+      Meeting_Record / Proposal_Context を全件走査しなくて済む**ことが多い。
+    parent: "Opportunity (Lookup: Opportunity__c)"
+    key_fields:
+      - {name: Deal_Narrative__c, meaning: 商談ストーリー (LLM 生成の叙述文)}
+      - {name: Customer_Challenge__c, meaning: 顧客課題}
+      - {name: Our_Value_Proposition__c, meaning: 提案価値}
+      - {name: Key_Stakeholders__c, meaning: 主要関係者}
+      - {name: Key_Risks__c, meaning: 主要リスク}
+      - {name: Competitive_Situation__c, meaning: "競合状況 (picklist)"}
+      - {name: Engagement_Depth__c, meaning: "接点の深さ (picklist)"}
+      - {name: Decision_Complexity__c, meaning: "意思決定構造 (picklist)"}
+      - {name: Urgency_Driver__c, meaning: "緊急性の動因 (picklist)"}
+      - {name: Sales_Motion__c, meaning: "営業アプローチ (picklist)"}
+      - {name: Confidence_Score__c, meaning: サマリの信頼度スコア (1.0=高)}
+    usage_hints:
+      - 個別 Opp の深掘り前に最初に読む「目次」的位置付け
+      - Confidence_Score__c が低い場合は生データ (Meeting_Record / Proposal_Context) に遡る
+      - 複数 Opp の比較・ランキング (F-T1) で軽量に周回する用途にも向く
+
+  # ---- Activity (polymorphic) ----
+  - api_name: Task
+    label: ToDo
+    purpose: 顧客対応の活動ログ (電話・メール・訪問メモ等)。Opp / Account / Contact に
+      どれにでも紐づく polymorphic lookup
+    key_fields:
+      - {name: Subject, meaning: 件名}
+      - {name: ActivityDate, meaning: 活動日}
+      - {name: Description, meaning: 活動メモ本文}
+      - {name: WhatId, meaning: "紐付く対象レコード (polymorphic: Opportunity / Account / Campaign 等)"}
+      - {name: WhoId, meaning: "紐付く人 (polymorphic: Contact / Lead)"}
+    usage_hints:
+      - Opp 直下の Task は WhatId で引く。Opportunity.Tasks のような child relationship 名は **存在しない**
+      - '"その Account の直近 Activity" は WhatId = AccountId で絞る'
+      - "SOQL 例: SELECT Subject, ActivityDate, Description FROM Task WHERE WhatId = 'xxx' ORDER BY ActivityDate DESC"
+
+# ---- この org 全体の規約 (Planner が plan を組む上で押さえるべき) ----
+org_conventions:
+  language:
+    - "picklist の値は基本的に日本語 (英語値を使うとエラー)"
+    - "カスタムオブジェクトのラベルも日本語。API 名は英語 __c 付き"
+  currency:
+    - "レコードの Amount は JPY 保存。ダッシュボード表示時は convertCurrency() で JPY 統一する慣例"
+  fiscal_year:
+    - "日本会計年度: 4 月始まり。`Month >= 4 → FY = year`、`Month < 4 → FY = year - 1`"
+  soql_gotchas:
+    - "Task/Event の What/Who は polymorphic lookup。`Opportunity.Name` の様な関係参照は書けない (親側から Tasks を引くには WhereId で絞る別クエリになる)"
+    - "レコードタイプや OCR.IsPrimary 等の標準機能の一部が無効な org あり。ID 解決は ContactId 直接参照が安全"
