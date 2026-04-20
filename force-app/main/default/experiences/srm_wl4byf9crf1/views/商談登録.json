@@ -1,0 +1,107 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:dynamicLayout",
+  "dataProviders" : [ ],
+  "id" : "b1378340-4dbc-4a02-8775-79bcdd4073f5",
+  "label" : "商談登録",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : {
+        "background" : "background: rgba(0,0,0,0)",
+        "backgroundOverlay" : "rgba(0,0,0,0.5)",
+        "contentAreaWidth" : 100,
+        "sectionConfig" : {
+          "UUID" : "289db7fb-fcf5-4936-9cf6-f5e9c1a6cd75",
+          "columns" : [ {
+            "UUID" : "6697599c-3d9f-4a22-aaa8-b8458ccc422a",
+            "columnKey" : "col1",
+            "columnName" : "Deal Registration Flow Column",
+            "columnWidth" : "7",
+            "seedComponents" : [ {
+              "attributes" : {
+                "flowArguments" : "",
+                "flowName" : "prm_slack_flows__DealRegistration",
+                "sfdc:identifier" : "forceCommunity_dealRegistrationFlow"
+              },
+              "fqn" : "forceCommunity:flowCommunity"
+            } ]
+          }, {
+            "UUID" : "4c65bb0a-50d3-45c1-9e53-24ab5a17d64c",
+            "columnKey" : "col2",
+            "columnName" : "Deal Registration TnC Column",
+            "columnWidth" : "5",
+            "seedComponents" : [ {
+              "attributes" : {
+                "richTextValue" : "<div class=\"slds-box slds-theme_default slds-rounded_large slds-text-color_default\">                                                 <h1 class=\"slds-text-heading_large slds-text-title_bold slds-m-bottom_medium\">                                                   Deal Registration Terms &amp; Conditions                                                 </h1>                                                  <h2 class=\"slds-text-title_bold slds-m-bottom_x-small\">Eligibility</h2>                                                 <ul class=\"slds-list_dotted slds-m-left_medium slds-m-bottom_medium\">                                                   <li>Only direct partners/resellers can register opportunities.</li>                                                   <li>An opportunity must not already be registered by another partner.</li>                                                   <li>                                                     Before registering, the partner must have made significant pre-sales efforts, such as:                                                     <ul class=\"slds-list_dotted slds-m-left_medium slds-m-top_xx-small\">                                                       <li>Meeting decision-makers</li>                                                       <li>Qualifying the opportunity</li>                                                       <li>Assisting the customer in setting a project budget with Welo’s products or services</li>                                                       <li>Helping define project requirements that include Welo’s products or services</li>                                                     </ul>                                                   </li>                                                 </ul>                                                  <hr class=\"slds-m-vertical_medium\">                                                  <h2 class=\"slds-text-title_bold slds-m-bottom_x-small\">Registration Process</h2>                                                 <ol class=\"slds-list_ordered slds-m-left_medium slds-m-bottom_medium\">                                                   <li>Submit the deal via the <strong>Deal Registration Form</strong>.</li>                                                   <li>Approval is given to the first partner who submits and meets all eligibility criteria.</li>                                                   <li>                                                     <strong>Notifications:</strong>                                                     <ul class=\"slds-list_dotted slds-m-left_medium slds-m-top_xx-small\">                                                       <li>If approved, Partner will confirm via the portal experience.</li>                                                       <li>If declined, Partner will notify you via the partner site and explain the reasons.</li>                                                     </ul>                                                   </li>                                                   <li>                                                     <strong>Protection Period:</strong>                                                     <ul class=\"slds-list_dotted slds-m-left_medium slds-m-top_xx-small\">                                                       <li>Approved deals are protected for 3 months from the approval date.</li>                                                       <li>If there is a material change to the solution, a new registration is required.</li>                                                     </ul>                                                   </li>                                                 </ol>                                                  <h2 class=\"slds-text-title_bold slds-m-bottom_x-small\">Disputes</h2>                                                 <p>Any disputes with Partner Site or any other sites must be submitted through the partner site.</p>                                               </div>",
+                "sfdc:identifier" : "dealRegistration_tnc"
+              },
+              "fqn" : "forceCommunity:htmlBlock"
+            }, {
+              "attributes" : {
+                "sfdc:identifier" : "partnerReferralWelcome_component"
+              },
+              "fqn" : "runtime_sales_prm:partnerReferralWelcomeContainer"
+            } ]
+          } ]
+        },
+        "sectionHeight" : 32
+      },
+      "componentName" : "forceCommunity:section",
+      "id" : "289db7fb-fcf5-4936-9cf6-f5e9c1a6cd75",
+      "regions" : [ {
+        "components" : [ {
+          "componentAttributes" : {
+            "flowArguments" : "",
+            "flowName" : "prm_slack_flows__DealRegistration"
+          },
+          "componentName" : "forceCommunity:flowCommunity",
+          "id" : "8cd88435-2c96-469f-8419-fead749ff66d",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        } ],
+        "id" : "6697599c-3d9f-4a22-aaa8-b8458ccc422a",
+        "regionLabel" : "Deal Registration Flow Column",
+        "regionName" : "col1",
+        "renditionMap" : { },
+        "type" : "region"
+      }, {
+        "components" : [ {
+          "componentAttributes" : {
+            "richTextValue" : "<div class=\"slds-box slds-theme_default slds-rounded_large slds-text-color_default\">                                                 <h1 class=\"slds-text-heading_large slds-text-title_bold slds-m-bottom_medium\">                                                   Deal Registration Terms &amp; Conditions                                                 </h1>                                                  <h2 class=\"slds-text-title_bold slds-m-bottom_x-small\">Eligibility</h2>                                                 <ul class=\"slds-list_dotted slds-m-left_medium slds-m-bottom_medium\">                                                   <li>Only direct partners/resellers can register opportunities.</li>                                                   <li>An opportunity must not already be registered by another partner.</li>                                                   <li>                                                     Before registering, the partner must have made significant pre-sales efforts, such as:                                                     <ul class=\"slds-list_dotted slds-m-left_medium slds-m-top_xx-small\">                                                       <li>Meeting decision-makers</li>                                                       <li>Qualifying the opportunity</li>                                                       <li>Assisting the customer in setting a project budget with Welo’s products or services</li>                                                       <li>Helping define project requirements that include Welo’s products or services</li>                                                     </ul>                                                   </li>                                                 </ul>                                                  <hr class=\"slds-m-vertical_medium\">                                                  <h2 class=\"slds-text-title_bold slds-m-bottom_x-small\">Registration Process</h2>                                                 <ol class=\"slds-list_ordered slds-m-left_medium slds-m-bottom_medium\">                                                   <li>Submit the deal via the <strong>Deal Registration Form</strong>.</li>                                                   <li>Approval is given to the first partner who submits and meets all eligibility criteria.</li>                                                   <li>                                                     <strong>Notifications:</strong>                                                     <ul class=\"slds-list_dotted slds-m-left_medium slds-m-top_xx-small\">                                                       <li>If approved, Partner will confirm via the portal experience.</li>                                                       <li>If declined, Partner will notify you via the partner site and explain the reasons.</li>                                                     </ul>                                                   </li>                                                   <li>                                                     <strong>Protection Period:</strong>                                                     <ul class=\"slds-list_dotted slds-m-left_medium slds-m-top_xx-small\">                                                       <li>Approved deals are protected for 3 months from the approval date.</li>                                                       <li>If there is a material change to the solution, a new registration is required.</li>                                                     </ul>                                                   </li>                                                 </ol>                                                  <h2 class=\"slds-text-title_bold slds-m-bottom_x-small\">Disputes</h2>                                                 <p>Any disputes with Partner Site or any other sites must be submitted through the partner site.</p>                                               </div>"
+          },
+          "componentName" : "forceCommunity:htmlBlock",
+          "id" : "da71c2a5-4feb-4e79-8ca0-9ab581262c7d",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        }, {
+          "componentAttributes" : {
+            "buttonLabel" : "Find Referral Code",
+            "description" : "<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"/sfsites/assets/Images/PrmEnhancedBanner/ReferralVoucher.jpg\" alt=\"Referral Program\" style=\"max-width: 180px; height: auto; border-radius: 8px;\" /></div><p>The Program is Step's B2B referral initiative designed to empower businesses to grow together while enhancing cybersecurity resilience. By referring companies to Welo, participants unlock exclusive rewards for both themselves and the referred businesses.</p><br><p>This program fosters a collaborative network of organisations committed to safeguarding digital assets with Welo's cutting-edge solutions.</p>",
+            "title" : "Welcome to Steps Partner Referral Programme"
+          },
+          "componentName" : "runtime_sales_prm:partnerReferralWelcomeContainer",
+          "id" : "08f19332-2e12-424f-ad1e-aa180494d1b2",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        } ],
+        "id" : "4c65bb0a-50d3-45c1-9e53-24ab5a17d64c",
+        "regionLabel" : "Deal Registration TnC Column",
+        "regionName" : "col2",
+        "renditionMap" : { },
+        "type" : "region"
+      } ],
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "7afca98d-db09-4979-b14f-586b24bcbd8f",
+    "regionName" : "content",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "deal-registration-flow"
+}

@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "686e0620-0282-4c64-8191-71fb4ca0b173",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "InvestigationList",
+  "id" : "85ed193d-72de-4be8-aebe-928187f53f67",
+  "label" : "品質調査一覧",
+  "routeType" : "case-list",
+  "type" : "route",
+  "urlPrefix" : "investigation-list"
+}

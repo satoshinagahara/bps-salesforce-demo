@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>RFQ見積回答フォーム</masterLabel>
+    <description>サプライヤー側がRFQ依頼に対して見積を提出するためのフォーム。</description>
+    <targets>
+        <target>lightning__RecordPage</target>
+        <target>lightning__AppPage</target>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property name="accountId" type="String" label="サプライヤーAccount Id (デモ用)"
+                      description="Experience Cloudではログインユーザーから自動解決。本org内Record Page配置時はデモ用に指定してください。"/>
+            <objects>
+                <object>RFQ__c</object>
+            </objects>
+        </targetConfig>
+        <targetConfig targets="lightning__AppPage">
+            <property name="rfqId" type="String" label="RFQ Id (デモ用)"/>
+            <property name="accountId" type="String" label="サプライヤーAccount Id (デモ用)"/>
+        </targetConfig>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="rfqId" type="String" label="RFQ Id"/>
+            <property name="accountId" type="String" label="サプライヤーAccount Id"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

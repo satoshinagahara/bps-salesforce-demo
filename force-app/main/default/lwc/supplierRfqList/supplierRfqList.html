@@ -1,0 +1,100 @@
+<template>
+    <div class="srl-root">
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div class="srl-loading">
+                <lightning-spinner alternative-text="読み込み中..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Error -->
+        <template if:true={error}>
+            <div class="srl-error">
+                <lightning-icon icon-name="utility:warning" size="small" class="srl-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- 見積回答モード -->
+        <template lwc:if={isRespondMode}>
+            <div class="srl-inline-detail">
+                <button class="srl-back-btn" onclick={handleBackToList}>
+                    <lightning-icon icon-name="utility:back" size="x-small" alternative-text="戻る"></lightning-icon>
+                    <span>一覧に戻る</span>
+                </button>
+                <c-rfq-quote-response-form rfq-id={selectedRfqId} account-id={targetAccountId}></c-rfq-quote-response-form>
+            </div>
+        </template>
+
+        <!-- リストモード -->
+        <template lwc:if={isListMode}>
+            <template if:true={data}>
+                <header class="srl-header">
+                    <div>
+                        <h1 class="srl-header__title">見積依頼 (RFQ)</h1>
+                        <p class="srl-header__sub">届いている見積依頼の一覧・回答状況の確認と回答送信</p>
+                    </div>
+                    <div class="srl-header__count">{totalLabel}</div>
+                </header>
+
+                <!-- フィルタ -->
+                <div class="srl-filter">
+                    <template for:each={filterButtons} for:item="f">
+                        <button key={f.key} class={f.btnClass}
+                                data-filter={f.key}
+                                onclick={handleFilterClick}>
+                            {f.label} <span class="srl-filter__count">{f.count}</span>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- カードリスト -->
+                <template if:true={hasItems}>
+                    <div class="srl-list">
+                        <template for:each={rfqRows} for:item="rfq">
+                            <div key={rfq.quoteId} class="srl-card"
+                                 data-rfq-id={rfq.rfqId}
+                                 onclick={handleRfqClick}
+                                 role="button"
+                                 tabindex="0">
+                                <div class="srl-card__head">
+                                    <div class="srl-card__title-row">
+                                        <span class="srl-card__name">{rfq.rfqName}</span>
+                                        <span class={rfq.quoteBadgeClass}>{rfq.quoteStatus}</span>
+                                    </div>
+                                    <p class="srl-card__title">{rfq.rfqTitle}</p>
+                                </div>
+                                <div class="srl-card__meta-grid">
+                                    <div class="srl-card__meta">
+                                        <span class="srl-card__meta-label">品番</span>
+                                        <span class="srl-card__meta-value">{rfq.partNumber}</span>
+                                    </div>
+                                    <div class="srl-card__meta">
+                                        <span class="srl-card__meta-label">必要数</span>
+                                        <span class="srl-card__meta-value">{rfq.qtyLabel}</span>
+                                    </div>
+                                    <div class="srl-card__meta">
+                                        <span class="srl-card__meta-label">回答期限</span>
+                                        <span class={rfq.dueClass}>{rfq.dueLabel} {rfq.daysLabel}</span>
+                                    </div>
+                                    <div class="srl-card__meta">
+                                        <span class="srl-card__meta-label">回答単価</span>
+                                        <span class="srl-card__meta-value">{rfq.priceLabel}</span>
+                                    </div>
+                                </div>
+                                <span class="srl-card__chevron">›</span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={hasItems}>
+                    <div class="srl-empty">
+                        <lightning-icon icon-name="utility:quote" size="medium"></lightning-icon>
+                        <p>該当する見積依頼はありません</p>
+                    </div>
+                </template>
+            </template>
+        </template>
+    </div>
+</template>

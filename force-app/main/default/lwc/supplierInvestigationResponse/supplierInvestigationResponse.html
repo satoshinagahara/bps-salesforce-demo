@@ -1,0 +1,237 @@
+<template>
+    <div class="sir-root">
+        <template if:true={error}>
+            <div class="sir-error">
+                <lightning-icon icon-name="utility:error" size="x-small" class="sir-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <template if:true={isLoading}>
+            <div class="sir-loading">
+                <lightning-spinner alternative-text="読込中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={hasData}>
+            <!-- === Header === -->
+            <div class="sir-header">
+                <div class="sir-header__top">
+                    <span class="sir-header__tag">INVESTIGATION</span>
+                    <span class="sir-header__name">{data.name}</span>
+                    <span class={severityBadgeClass}>{data.severity}</span>
+                    <span class={statusBadgeClass}>{data.status}</span>
+                </div>
+                <h2 class="sir-header__title">{data.supplierName} — 品質調査依頼</h2>
+                <div class="sir-header__meta">
+                    <div class="sir-meta">
+                        <span class="sir-meta__label">依頼日</span>
+                        <span class="sir-meta__value">{requestDateLabel}</span>
+                    </div>
+                    <div class="sir-meta">
+                        <span class="sir-meta__label">回答期限</span>
+                        <span class={dueCountdownClass}>
+                            {dueLabel}
+                            <template if:true={dueCountdownLabel}>
+                                <span class="sir-meta__countdown">（{dueCountdownLabel}）</span>
+                            </template>
+                        </span>
+                    </div>
+                    <div class="sir-meta">
+                        <span class="sir-meta__label">窓口担当者</span>
+                        <span class="sir-meta__value">{data.supplierContact}</span>
+                    </div>
+                    <template if:true={data.responseDate}>
+                        <div class="sir-meta">
+                            <span class="sir-meta__label">回答日</span>
+                            <span class="sir-meta__value">{responseDateLabel}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- === Request from BPS === -->
+            <div class="sir-card">
+                <div class="sir-card__head">
+                    <h3 class="sir-card__title">BPS側からの調査依頼内容</h3>
+                    <span class="sir-card__sub">読み取り専用</span>
+                </div>
+                <div class="sir-card__body">
+                    <div class="sir-grid">
+                        <div class="sir-field">
+                            <span class="sir-field__label">対象部品</span>
+                            <span class="sir-field__value">{partLabel}</span>
+                        </div>
+                    </div>
+                    <div class="sir-field sir-field--wide">
+                        <span class="sir-field__label">調査依頼内容</span>
+                        <p class="sir-field__long">{data.requestDetail}</p>
+                    </div>
+                    <template if:true={data.impactRange}>
+                        <div class="sir-field sir-field--wide">
+                            <span class="sir-field__label">発生範囲・影響</span>
+                            <p class="sir-field__long">{data.impactRange}</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- === Response (editable/readonly) === -->
+            <div class="sir-card sir-card--response">
+                <div class="sir-card__head">
+                    <h3 class="sir-card__title">サプライヤー回答</h3>
+                    <template if:true={isSubmitted}>
+                        <span class="sir-badge sir-badge--ok">提出済</span>
+                    </template>
+                </div>
+                <div class="sir-card__body">
+                    <!-- Editable form -->
+                    <template if:true={isEditable}>
+                        <div class="sir-form">
+                            <div class="sir-form__row">
+                                <lightning-combobox
+                                    label="原因区分"
+                                    data-field="causeCategory"
+                                    value={form.causeCategory}
+                                    options={causeCategoryOptions}
+                                    onchange={handleFieldChange}
+                                    required
+                                    class="sir-input">
+                                </lightning-combobox>
+                            </div>
+                            <lightning-textarea
+                                label="根本原因（サプライヤー特定）"
+                                data-field="rootCause"
+                                value={form.rootCause}
+                                onchange={handleFieldChange}
+                                required
+                                class="sir-input sir-textarea">
+                            </lightning-textarea>
+                            <lightning-textarea
+                                label="対策内容"
+                                data-field="actionTaken"
+                                value={form.actionTaken}
+                                onchange={handleFieldChange}
+                                required
+                                class="sir-input sir-textarea">
+                            </lightning-textarea>
+                            <lightning-textarea
+                                label="再発防止策"
+                                data-field="recurrencePrevention"
+                                value={form.recurrencePrevention}
+                                onchange={handleFieldChange}
+                                required
+                                class="sir-input sir-textarea">
+                            </lightning-textarea>
+                            <lightning-textarea
+                                label="回答サマリー（任意）"
+                                data-field="responseDetail"
+                                value={form.responseDetail}
+                                onchange={handleFieldChange}
+                                class="sir-input sir-textarea sir-textarea--short">
+                            </lightning-textarea>
+                            <lightning-input-rich-text
+                                label="証拠資料・添付メモ"
+                                data-field="evidenceAttachments"
+                                value={form.evidenceAttachments}
+                                onchange={handleFieldChange}
+                                class="sir-input">
+                            </lightning-input-rich-text>
+
+                            <div class="sir-form__actions">
+                                <button class="sir-btn sir-btn--secondary" onclick={handleSaveDraft} disabled={isSubmitting}>
+                                    下書き保存
+                                </button>
+                                <button class="sir-btn sir-btn--primary" onclick={openSubmitConfirm} disabled={isSubmitting}>
+                                    <template if:true={isSubmitting}>
+                                        <lightning-spinner alternative-text="処理中" size="x-small"></lightning-spinner>
+                                    </template>
+                                    <template if:false={isSubmitting}>回答を提出</template>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Read-only response -->
+                    <template if:false={isEditable}>
+                        <template if:true={isSubmitted}>
+                            <div class="sir-readonly">
+                                <div class="sir-field">
+                                    <span class="sir-field__label">原因区分</span>
+                                    <span class="sir-field__value">{data.causeCategory}</span>
+                                </div>
+                                <div class="sir-field">
+                                    <span class="sir-field__label">根本原因</span>
+                                    <p class="sir-field__long">{data.rootCause}</p>
+                                </div>
+                                <div class="sir-field">
+                                    <span class="sir-field__label">対策内容</span>
+                                    <p class="sir-field__long">{data.actionTaken}</p>
+                                </div>
+                                <div class="sir-field">
+                                    <span class="sir-field__label">再発防止策</span>
+                                    <p class="sir-field__long">{data.recurrencePrevention}</p>
+                                </div>
+                                <template if:true={data.responseDetail}>
+                                    <div class="sir-field">
+                                        <span class="sir-field__label">回答サマリー</span>
+                                        <p class="sir-field__long">{data.responseDetail}</p>
+                                    </div>
+                                </template>
+                                <p class="sir-locked-note">
+                                    <lightning-icon icon-name="utility:lock" size="xx-small"></lightning-icon>
+                                    回答は提出済みのため編集できません。BPS側で検証中です。
+                                </p>
+                            </div>
+                        </template>
+                        <template if:false={isSubmitted}>
+                            <p class="sir-empty">このステータスでは回答入力が開放されていません。</p>
+                        </template>
+                    </template>
+                </div>
+            </div>
+
+            <!-- === Verification (if any) === -->
+            <template if:true={hasVerification}>
+                <div class="sir-card">
+                    <div class="sir-card__head">
+                        <h3 class="sir-card__title">BPSによる検証結果</h3>
+                        <template if:true={data.verificationDate}>
+                            <span class="sir-card__sub">検証日 {verificationDateLabel}</span>
+                        </template>
+                    </div>
+                    <div class="sir-card__body">
+                        <p class="sir-field__long">{data.verificationResult}</p>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+        <!-- Submit confirm modal -->
+        <template if:true={showSubmitConfirm}>
+            <div class="sir-modal">
+                <div class="sir-modal__backdrop" onclick={closeSubmitConfirm}></div>
+                <div class="sir-modal__content">
+                    <div class="sir-modal__head">
+                        <h3>回答提出の確認</h3>
+                    </div>
+                    <div class="sir-modal__body">
+                        <p class="sir-modal__text">調査 <strong>{data.name}</strong> の回答を提出します。</p>
+                        <p class="sir-modal__text">提出後は編集できなくなり、BPS側の検証が開始されます。よろしいですか？</p>
+                    </div>
+                    <div class="sir-modal__foot">
+                        <button class="sir-btn sir-btn--secondary" onclick={closeSubmitConfirm} disabled={isSubmitting}>
+                            キャンセル
+                        </button>
+                        <button class="sir-btn sir-btn--primary" onclick={handleSubmit} disabled={isSubmitting}>
+                            <template if:true={isSubmitting}>
+                                <lightning-spinner alternative-text="提出中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSubmitting}>提出する</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

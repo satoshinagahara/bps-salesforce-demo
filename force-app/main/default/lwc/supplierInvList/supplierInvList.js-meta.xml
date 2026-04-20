@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>サプライヤー品質調査一覧</masterLabel>
+    <description>自社に届いている品質調査の一覧と回答フォーム（ビュー切替内包）。Experience Cloudポータル用。</description>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__HomePage</target>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__HomePage">
+            <property name="accountId" type="String" label="サプライヤーAccount Id (デモ用)"/>
+        </targetConfig>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="accountId" type="String" label="サプライヤーAccount Id"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

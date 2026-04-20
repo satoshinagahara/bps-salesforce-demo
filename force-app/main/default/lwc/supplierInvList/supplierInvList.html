@@ -1,0 +1,85 @@
+<template>
+    <div class="sil-root">
+        <template if:true={isLoading}>
+            <div class="sil-loading">
+                <lightning-spinner alternative-text="読み込み中..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={error}>
+            <div class="sil-error">
+                <lightning-icon icon-name="utility:warning" size="small" class="sil-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- 回答モード -->
+        <template lwc:if={isRespondMode}>
+            <div class="sil-inline-detail">
+                <button class="sil-back-btn" onclick={handleBackToList}>
+                    <lightning-icon icon-name="utility:back" size="x-small" alternative-text="戻る"></lightning-icon>
+                    <span>一覧に戻る</span>
+                </button>
+                <c-supplier-investigation-response investigation-id={selectedInvestigationId} account-id={targetAccountId}></c-supplier-investigation-response>
+            </div>
+        </template>
+
+        <!-- リストモード -->
+        <template lwc:if={isListMode}>
+            <template if:true={data}>
+                <header class="sil-header">
+                    <div>
+                        <h1 class="sil-header__title">品質調査</h1>
+                        <p class="sil-header__sub">発注元からの品質に関する調査依頼 一覧と回答</p>
+                    </div>
+                    <div class="sil-header__count">{totalLabel}</div>
+                </header>
+
+                <div class="sil-filter">
+                    <template for:each={filterButtons} for:item="f">
+                        <button key={f.key} class={f.btnClass}
+                                data-filter={f.key}
+                                onclick={handleFilterClick}>
+                            {f.label} <span class="sil-filter__count">{f.count}</span>
+                        </button>
+                    </template>
+                </div>
+
+                <template if:true={hasItems}>
+                    <div class="sil-list">
+                        <template for:each={investigationRows} for:item="inv">
+                            <div key={inv.investigationId} class="sil-card"
+                                 data-investigation-id={inv.investigationId}
+                                 onclick={handleInvestigationClick}
+                                 role="button"
+                                 tabindex="0">
+                                <div class="sil-card__head">
+                                    <div class="sil-card__title-row">
+                                        <span class="sil-card__name">{inv.name}</span>
+                                        <span class={inv.statusBadgeClass}>{inv.status}</span>
+                                        <span class={inv.severityBadgeClass}>{inv.severity}</span>
+                                    </div>
+                                    <p class="sil-card__subject">{inv.subject}</p>
+                                </div>
+                                <div class="sil-card__meta-grid">
+                                    <div class="sil-card__meta">
+                                        <span class="sil-card__meta-label">回答期限</span>
+                                        <span class={inv.dueClass}>{inv.dueLabel} {inv.daysLabel}</span>
+                                    </div>
+                                </div>
+                                <span class="sil-card__chevron">›</span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={hasItems}>
+                    <div class="sil-empty">
+                        <lightning-icon icon-name="utility:info_alt" size="medium"></lightning-icon>
+                        <p>該当する品質調査はありません</p>
+                    </div>
+                </template>
+            </template>
+        </template>
+    </div>
+</template>

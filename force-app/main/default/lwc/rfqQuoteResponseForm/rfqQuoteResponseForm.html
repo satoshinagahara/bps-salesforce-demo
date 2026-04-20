@@ -1,0 +1,254 @@
+<template>
+    <div class="rqf-root">
+        <template if:true={isLoading}>
+            <div class="rqf-loading">
+                <lightning-spinner alternative-text="読み込み中..." size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={error}>
+            <div class="rqf-error">
+                <lightning-icon icon-name="utility:warning" size="x-small" class="rqf-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <template if:true={detail}>
+            <!-- ヘッダ -->
+            <header class="rqf-header">
+                <div class="rqf-header__top">
+                    <span class="rqf-header__tag">見積依頼</span>
+                    <span class="rqf-header__name">{detail.rfqName}</span>
+                    <template if:true={hasQuote}>
+                        <span class={statusBadgeClass}>{detail.quoteStatus}</span>
+                    </template>
+                </div>
+                <h2 class="rqf-header__title">{detail.title}</h2>
+                <div class="rqf-header__meta">
+                    <div class="rqf-meta">
+                        <span class="rqf-meta__label">カテゴリ</span>
+                        <span class="rqf-meta__value">{detail.category}</span>
+                    </div>
+                    <div class="rqf-meta">
+                        <span class="rqf-meta__label">回答期限</span>
+                        <span class={dueLabelClass}>{dueLabel}</span>
+                    </div>
+                    <div class="rqf-meta">
+                        <span class="rqf-meta__label">RFQ状態</span>
+                        <span class="rqf-meta__value">{detail.rfqStatus}</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 依頼内容 -->
+            <section class="rqf-card">
+                <div class="rqf-card__head">
+                    <h3 class="rqf-card__title">依頼内容</h3>
+                </div>
+                <div class="rqf-card__body">
+                    <div class="rqf-grid">
+                        <div class="rqf-field">
+                            <span class="rqf-field__label">品番</span>
+                            <span class="rqf-field__value">{detail.partNumber}</span>
+                        </div>
+                        <div class="rqf-field">
+                            <span class="rqf-field__label">必要数量</span>
+                            <span class="rqf-field__value">{formattedRequiredQuantity}</span>
+                        </div>
+                        <div class="rqf-field">
+                            <span class="rqf-field__label">目標単価</span>
+                            <span class="rqf-field__value">{formattedTargetPrice}</span>
+                        </div>
+                        <template if:true={detail.bomPartName}>
+                            <div class="rqf-field">
+                                <span class="rqf-field__label">対象部品名</span>
+                                <span class="rqf-field__value">{detail.bomPartName}</span>
+                            </div>
+                        </template>
+                    </div>
+                    <template if:true={detail.partSpec}>
+                        <div class="rqf-field rqf-field--wide">
+                            <span class="rqf-field__label">仕様</span>
+                            <p class="rqf-field__long">{detail.partSpec}</p>
+                        </div>
+                    </template>
+                    <template if:true={detail.notes}>
+                        <div class="rqf-field rqf-field--wide">
+                            <span class="rqf-field__label">備考（購買側）</span>
+                            <p class="rqf-field__long">{detail.notes}</p>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <!-- 見積回答 -->
+            <section class="rqf-card rqf-card--response">
+                <div class="rqf-card__head">
+                    <h3 class="rqf-card__title">貴社の見積回答</h3>
+                    <template if:true={hasQuote}>
+                        <span class="rqf-card__sub">最終提出日: {responseDateLabel}</span>
+                    </template>
+                </div>
+                <div class="rqf-card__body">
+                    <!-- Quote未作成（該当なし） -->
+                    <template if:false={hasQuote}>
+                        <p class="rqf-empty">このRFQは貴社に送付されていません。</p>
+                    </template>
+
+                    <!-- 編集可能 -->
+                    <template if:true={isEditable}>
+                        <div class="rqf-form">
+                            <div class="rqf-form__row">
+                                <div class="rqf-form__cell">
+                                    <lightning-combobox
+                                        class="rqf-input"
+                                        label="製造拠点"
+                                        value={formSiteId}
+                                        options={siteOptions}
+                                        placeholder="選択してください"
+                                        required
+                                        onchange={handleSiteChange}>
+                                    </lightning-combobox>
+                                </div>
+                                <div class="rqf-form__cell">
+                                    <lightning-input
+                                        class="rqf-input"
+                                        type="number"
+                                        label="提示単価 (円)"
+                                        value={formUnitPrice}
+                                        required
+                                        formatter="currency"
+                                        step="0.01"
+                                        onchange={handleUnitPriceChange}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                            <div class="rqf-form__row">
+                                <div class="rqf-form__cell">
+                                    <lightning-input
+                                        class="rqf-input"
+                                        type="number"
+                                        label="最小発注数量 (MOQ)"
+                                        value={formMoq}
+                                        onchange={handleMoqChange}>
+                                    </lightning-input>
+                                </div>
+                                <div class="rqf-form__cell">
+                                    <lightning-input
+                                        class="rqf-input"
+                                        type="number"
+                                        label="リードタイム (日)"
+                                        value={formLeadTime}
+                                        onchange={handleLeadTimeChange}>
+                                    </lightning-input>
+                                </div>
+                                <div class="rqf-form__cell">
+                                    <lightning-input
+                                        class="rqf-input"
+                                        type="date"
+                                        label="見積有効期限"
+                                        value={formValidUntil}
+                                        onchange={handleValidUntilChange}>
+                                    </lightning-input>
+                                </div>
+                            </div>
+                            <div class="rqf-form__row">
+                                <div class="rqf-form__cell rqf-form__cell--full">
+                                    <lightning-textarea
+                                        class="rqf-input"
+                                        label="備考（自由記述）"
+                                        value={formNotes}
+                                        onchange={handleNotesChange}>
+                                    </lightning-textarea>
+                                </div>
+                            </div>
+                            <div class="rqf-form__actions">
+                                <button
+                                    type="button"
+                                    class="rqf-btn rqf-btn--secondary"
+                                    disabled={isSubmitting}
+                                    onclick={openDeclineDialog}>
+                                    辞退する
+                                </button>
+                                <button
+                                    type="button"
+                                    class="rqf-btn rqf-btn--primary"
+                                    disabled={isSubmitting}
+                                    onclick={handleSubmit}>
+                                    <template if:true={isSubmitting}>
+                                        <lightning-spinner size="x-small" alternative-text="送信中"></lightning-spinner>
+                                    </template>
+                                    <template if:false={isSubmitting}>
+                                        見積を提出する
+                                    </template>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- 確定済み（読み取り専用） -->
+                    <template if:true={isClosed}>
+                        <div class="rqf-readonly">
+                            <div class="rqf-grid">
+                                <div class="rqf-field">
+                                    <span class="rqf-field__label">製造拠点</span>
+                                    <span class="rqf-field__value">{detail.quoteManufacturingSiteName}</span>
+                                </div>
+                                <div class="rqf-field">
+                                    <span class="rqf-field__label">提示単価</span>
+                                    <span class="rqf-field__value">{displayUnitPrice}</span>
+                                </div>
+                                <div class="rqf-field">
+                                    <span class="rqf-field__label">MOQ</span>
+                                    <span class="rqf-field__value">{displayMoq}</span>
+                                </div>
+                                <div class="rqf-field">
+                                    <span class="rqf-field__label">リードタイム</span>
+                                    <span class="rqf-field__value">{displayLeadTime}</span>
+                                </div>
+                                <div class="rqf-field">
+                                    <span class="rqf-field__label">見積有効期限</span>
+                                    <span class="rqf-field__value">{displayValidUntil}</span>
+                                </div>
+                            </div>
+                            <template if:true={detail.quoteNotes}>
+                                <div class="rqf-field rqf-field--wide">
+                                    <span class="rqf-field__label">備考</span>
+                                    <p class="rqf-field__long">{detail.quoteNotes}</p>
+                                </div>
+                            </template>
+                            <p class="rqf-locked-note">
+                                <lightning-icon icon-name="utility:lock" size="x-small"></lightning-icon>
+                                このRFQは確定済みのため編集できません。
+                            </p>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <!-- 辞退ダイアログ -->
+            <template if:true={showDeclineDialog}>
+                <section role="dialog" class="rqf-modal">
+                    <div class="rqf-modal__backdrop" onclick={closeDeclineDialog}></div>
+                    <div class="rqf-modal__content">
+                        <header class="rqf-modal__head">
+                            <h3>見積を辞退する</h3>
+                        </header>
+                        <div class="rqf-modal__body">
+                            <p class="rqf-modal__text">このRFQへの見積を辞退します。辞退理由を任意で入力してください。</p>
+                            <lightning-textarea
+                                label="辞退理由"
+                                value={declineNotes}
+                                onchange={handleDeclineNotesChange}>
+                            </lightning-textarea>
+                        </div>
+                        <footer class="rqf-modal__foot">
+                            <button type="button" class="rqf-btn rqf-btn--secondary" onclick={closeDeclineDialog}>キャンセル</button>
+                            <button type="button" class="rqf-btn rqf-btn--danger" disabled={isSubmitting} onclick={handleDeclineConfirm}>辞退を確定する</button>
+                        </footer>
+                    </div>
+                </section>
+            </template>
+        </template>
+    </div>
+</template>

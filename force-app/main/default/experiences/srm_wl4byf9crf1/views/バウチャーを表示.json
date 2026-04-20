@@ -1,0 +1,121 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:dynamicLayout",
+  "dataProviders" : [ ],
+  "id" : "7152a7df-d708-4886-b046-b1b0d5831bad",
+  "label" : "バウチャーを表示",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : {
+        "background" : "background: rgba(0,0,0,0)",
+        "backgroundOverlay" : "rgba(0,0,0,0.5)",
+        "contentAreaWidth" : 100,
+        "sectionConfig" : {
+          "UUID" : "93756fb4-20c5-45e5-9a68-bee66e430345",
+          "columns" : [ {
+            "UUID" : "81469954-1910-4e0e-97b2-b49bcbcb57f9",
+            "columnKey" : "col1",
+            "columnName" : "Referrals Column",
+            "columnWidth" : "6",
+            "seedComponents" : [ {
+              "attributes" : {
+                "filterName" : "All_Referrals",
+                "layout" : "COMPACT",
+                "pageSize" : "5",
+                "scope" : "Referral",
+                "sfdc:identifier" : "forceCommunity_objectHome_referrals"
+              },
+              "fqn" : "forceCommunity:objectHome"
+            } ]
+          }, {
+            "UUID" : "6bde5363-420d-4fd3-a9a8-431a5a9c7241",
+            "columnKey" : "col2",
+            "columnName" : "Vouchers Column",
+            "columnWidth" : "6",
+            "seedComponents" : [ {
+              "attributes" : {
+                "filterName" : "All_Vouchers",
+                "layout" : "COMPACT",
+                "pageSize" : "5",
+                "scope" : "Voucher",
+                "sfdc:identifier" : "forceCommunity_objectHome_vouchers"
+              },
+              "fqn" : "forceCommunity:objectHome"
+            } ]
+          } ]
+        },
+        "sectionHeight" : 32
+      },
+      "componentName" : "forceCommunity:section",
+      "id" : "93756fb4-20c5-45e5-9a68-bee66e430345",
+      "regions" : [ {
+        "components" : [ {
+          "componentAttributes" : {
+            "enableInlineEdit" : true,
+            "filterName" : "All_Referrals",
+            "layout" : "COMPACT",
+            "pageSize" : 5,
+            "scope" : "Referral",
+            "showActionBar" : true,
+            "showChartsPanel" : true,
+            "showDisplay" : "showall",
+            "showFilterPanel" : true,
+            "showImageIcon" : true,
+            "showManualRefreshButton" : true,
+            "showObjectName" : true,
+            "showPinnedList" : true,
+            "showSearchBar" : true
+          },
+          "componentName" : "forceCommunity:objectHome",
+          "id" : "25991cde-406d-4429-a543-b72497ac764e",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        } ],
+        "id" : "81469954-1910-4e0e-97b2-b49bcbcb57f9",
+        "regionLabel" : "Referrals Column",
+        "regionName" : "col1",
+        "renditionMap" : { },
+        "type" : "region"
+      }, {
+        "components" : [ {
+          "componentAttributes" : {
+            "enableInlineEdit" : true,
+            "filterName" : "All_Vouchers",
+            "layout" : "COMPACT",
+            "pageSize" : 5,
+            "scope" : "Voucher",
+            "showActionBar" : true,
+            "showChartsPanel" : true,
+            "showDisplay" : "showall",
+            "showFilterPanel" : true,
+            "showImageIcon" : true,
+            "showManualRefreshButton" : true,
+            "showObjectName" : true,
+            "showPinnedList" : true,
+            "showSearchBar" : true
+          },
+          "componentName" : "forceCommunity:objectHome",
+          "id" : "bdc5359e-c16b-4f05-97c6-830271ab98e1",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        } ],
+        "id" : "6bde5363-420d-4fd3-a9a8-431a5a9c7241",
+        "regionLabel" : "Vouchers Column",
+        "regionName" : "col2",
+        "renditionMap" : { },
+        "type" : "region"
+      } ],
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "5a5aca67-eb39-4395-9aa8-c978b76eb7bf",
+    "regionName" : "content",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "voucher-list"
+}

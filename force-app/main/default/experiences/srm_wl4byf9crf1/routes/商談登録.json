@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "b1378340-4dbc-4a02-8775-79bcdd4073f5",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "View_DealRegistration_Flow",
+  "id" : "3bf4f978-2b6a-46fd-9674-67f856647795",
+  "label" : "商談登録",
+  "routeType" : "deal-registration-flow",
+  "type" : "route",
+  "urlPrefix" : "deal-registration-flow"
+}

@@ -1,0 +1,73 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:dynamicLayout",
+  "dataProviders" : [ ],
+  "id" : "d873c825-e810-4cdf-92c1-b99acd8e9806",
+  "label" : "ホーム",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : {
+        "background" : "background: rgba(0,0,0,0)",
+        "backgroundOverlay" : "rgba(0,0,0,0.5)",
+        "contentAreaWidth" : 100,
+        "sectionConfig" : {
+          "UUID" : "a1b2c3d4-0000-0000-0000-000000000001",
+          "columns" : [ {
+            "UUID" : "a1b2c3d4-0000-0000-0000-000000000002",
+            "columnKey" : "col1",
+            "columnName" : "Full Width",
+            "columnWidth" : "12",
+            "seedComponents" : [ {
+              "attributes" : {
+                "sfdc:identifier" : "c_supplierPortalHome_main"
+              },
+              "fqn" : "c:supplierPortalHome"
+            } ]
+          } ]
+        },
+        "sectionHeight" : 32
+      },
+      "componentName" : "forceCommunity:section",
+      "id" : "a1b2c3d4-0000-0000-0000-000000000001",
+      "regions" : [ {
+        "components" : [ {
+          "componentAttributes" : { },
+          "componentName" : "c:supplierPortalHome",
+          "id" : "a1b2c3d4-0000-0000-0000-000000000003",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        } ],
+        "id" : "a1b2c3d4-0000-0000-0000-000000000002",
+        "regionLabel" : "Full Width",
+        "regionName" : "col1",
+        "renditionMap" : { },
+        "type" : "region"
+      } ],
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "7edd7c39-adce-44df-8f08-1e9ce590bd31",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customHeadTags" : "",
+        "description" : "SRMサプライヤーポータル ホーム",
+        "title" : "ホーム | SRMポータル"
+      },
+      "componentName" : "forceCommunity:seoAssistant",
+      "id" : "527d76a5-17df-41ae-8ab3-ed0c1ffd8533",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "173d69d3-e4c1-43cb-a9eb-4072b4b84ba8",
+    "regionName" : "sfdcHiddenRegion",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Home",
+  "type" : "view",
+  "viewType" : "home"
+}

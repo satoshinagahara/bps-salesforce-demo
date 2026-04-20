@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>サプライヤーポータルアクセス</label>
+    <description>サプライヤーポータル(Experience Cloud)で必要な最小限のオブジェクト・フィールド権限。</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <license>Partner Community</license>
+
+    <!-- ===== Apex Class Access ===== -->
+    <classAccesses>
+        <apexClass>SupplierPortalController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+
+    <!-- ===== Object: RFQ__c (Read + Update for status sync if needed) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>RFQ__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: RFQ_Quote__c (Read + Edit for response) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>RFQ_Quote__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: Supplier_Capacity__c (Full CRUD) ===== -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Supplier_Capacity__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: Supplier_Investigation__c (Read + Edit) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Supplier_Investigation__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: Supplier_Certification__c (Full CRUD) ===== -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Supplier_Certification__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: Manufacturing_Site__c (Full CRUD) ===== -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Manufacturing_Site__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: BOM_Part__c (Read only — 部品情報参照) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>BOM_Part__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: BOM_Line__c (Read only — BOM_SubComponentの親) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>BOM_Line__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: BOM_Header__c (Read only — BOM_Lineの親) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>BOM_Header__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: BOM_SubComponent__c (Read only — BOM_Partの親) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>BOM_SubComponent__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Object: Corrective_Action__c (Read only — SIの親) ===== -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Corrective_Action__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ===== Field Permissions ===== -->
+    <!-- RFQ__c -->
+    <fieldPermissions><field>RFQ__c.Due_Date__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.Category__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.Required_Quantity__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.Target_Unit_Price__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.Part_Number__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.Part_Spec__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.BOM_Part__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ__c.Notes__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+
+    <!-- RFQ_Quote__c -->
+    <fieldPermissions><field>RFQ_Quote__c.Supplier__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Unit_Price__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.MOQ__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Lead_Time_Days__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Valid_Until__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Notes__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Manufacturing_Site__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Response_Date__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>RFQ_Quote__c.Score__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+
+    <!-- Supplier_Capacity__c -->
+    <fieldPermissions><field>Supplier_Capacity__c.Part_Name__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Capacity__c.Effective_From__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Capacity__c.Effective_To__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Capacity__c.Notes__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+
+    <!-- Supplier_Investigation__c -->
+    <fieldPermissions><field>Supplier_Investigation__c.Supplier__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.BOM_Part__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Severity__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Request_Date__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Response_Due_Date__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Response_Date__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Request_Detail__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Impact_Range__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Supplier_Contact__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Cause_Category__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Root_Cause_by_Supplier__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Action_Taken__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Recurrence_Prevention__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Response_Detail__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Evidence_Attachments__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Verification_Date__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Investigation__c.Verification_Result__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+
+    <!-- Supplier_Certification__c -->
+    <fieldPermissions><field>Supplier_Certification__c.Issuing_Body__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Certification__c.Issue_Date__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Certification__c.Last_Surveillance_Date__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Certification__c.Next_Surveillance_Date__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Certification__c.Scope__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Supplier_Certification__c.Notes__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+
+    <!-- Manufacturing_Site__c -->
+    <fieldPermissions><field>Manufacturing_Site__c.Supplier__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Manufacturing_Site__c.Prefecture__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Manufacturing_Site__c.Address__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Manufacturing_Site__c.Latitude__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Manufacturing_Site__c.Longitude__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>Manufacturing_Site__c.Description__c</field><editable>true</editable><readable>true</readable></fieldPermissions>
+
+    <!-- BOM_Part__c (read only) -->
+    <fieldPermissions><field>BOM_Part__c.Part_Number__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>BOM_Part__c.Part_Name__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>BOM_Part__c.Supplier__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+    <fieldPermissions><field>BOM_Part__c.Manufacturing_Site__c</field><editable>false</editable><readable>true</readable></fieldPermissions>
+</PermissionSet>

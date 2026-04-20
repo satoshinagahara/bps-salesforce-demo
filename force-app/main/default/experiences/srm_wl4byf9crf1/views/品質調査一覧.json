@@ -1,0 +1,23 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "686e0620-0282-4c64-8191-71fb4ca0b173",
+  "label" : "品質調査一覧",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : { },
+      "componentName" : "c:supplierInvList",
+      "id" : "d64e05d4-eb89-411b-bbc3-e30cc7d09fec",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "80bfd0a2-6d07-4d7b-b373-f2172a943cec",
+    "regionName" : "content",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "case-list"
+}

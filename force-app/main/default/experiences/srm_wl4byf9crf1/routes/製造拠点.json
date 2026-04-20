@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "e85cb3d2-d589-4682-87a5-f8568c86705d",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "Sites",
+  "id" : "e9e10626-462f-4d9b-8f30-d0e61f711ba8",
+  "label" : "製造拠点",
+  "routeType" : "mdf",
+  "type" : "route",
+  "urlPrefix" : "sites"
+}

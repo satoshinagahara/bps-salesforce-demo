@@ -18,6 +18,7 @@
 - **Product2はMD親になれない**: BOM_Header__cのProduct__cはLookup(SetNull)で実装
 - **子リレーション名はdescribeで確認必須**: 命名規則から推測せず `sf sobject describe` で確認
 - **数式フィールド**: Percent型は小数返却（75%→0.75）
+- **Task/EventのカスタムフィールドはActivityに定義する**: `objects/Task/fields/*.field-meta.xml` や `objects/Event/fields/*.field-meta.xml` を直接作るとデプロイエラー（"エンティティのエミュレーションまたは ID: 制限つき選択リスト項目の値が不適切: Event"）。Task/EventはActivityの派生のため、`force-app/main/default/objects/Activity/fields/MyField__c.field-meta.xml` に作成すればTask/Event両方で共有される。権限セットの `<field>` 参照も `Activity.MyField__c` で指定する（Task.MyField__c / Event.MyField__c は不可）。検証日: 2026-04-19
 
 ## Apex / API
 - **ConnectApi temperatureはApexでのみ設定可能**: `additionalConfig.temperature`で指定。推奨値: 分析=0.2, メール=0.4, クイズ=0.7
@@ -25,6 +26,14 @@
 - **Knowledge__kav SOSLにはLanguage WHERE必須**: orgデフォルト`en_US`なら`AND Language = 'en_US'`を付ける
 - **SOSLはDraft記事を検索しない**: SOQL or Apex内マッチングが必要
 - **Prompt TemplateはデプロイだけではActivateされない**: Prompt Builder UIで手動Activate必要
+- **sf data import bulk はCRLF CSVを要求**: Python `csv.DictWriter` で生成したCSVを `sf data import bulk --sobject Xxx --file xxx.csv` に渡すと、"ClientInputError : LineEnding is invalid on user data. Current LineEnding setting is LF" でbulk jobが失敗する。`--line-ending LF` を明示しても同じエラー（Bulk API 2.0側がCRLF前提の模様）。`--line-ending CRLF` を指定すれば通る。Python csv.DictWriter は `newline=""` 指定でも lineterminator 既定 `\r\n` なので実ファイルは元々CRLFであり、このフラグで整合する。関連: `lh360/scripts/seed_focal_data.py`, `lh360/scripts/shift_demo_dates.py`。検証日: 2026-04-19
+
+## ローカルLLM / mlx-lm
+
+- **mlx-lm server の `MLX_STRIP_TOOLS` 既定値に注意**: `/Users/satoshi/claude/gemma4-install/scripts/start_server.sh` の既定 `MLX_STRIP_TOOLS=1` は Jan等のUIが常時送信する tools パラメータを剥ぎ取る対策。Agent Loop で tool calling を使う場合は `MLX_STRIP_TOOLS=0` で再起動必須
+  - 症状: tools を渡しても `finish_reason=stop` で自然言語応答（コードブロック等）が返る
+  - 解決: `MLX_STRIP_TOOLS=0 MLX_MODEL=... bash start_server.sh`
+- **Gemma 4 26B A4B (mlx-community/gemma-4-26b-a4b-it-4bit) の tool calling 実測 (M5 Mac)**: STRIP_TOOLS=0 で OpenAI互換 `tool_calls` 構造を完全サポート、並列 tool_calls も自発発行可。実測 ~30 tok/s（4bit量子化）。日本語プロンプト・日本語引数・SOQL生成精度良好
 
 ## Agentforce
 
@@ -35,3 +44,50 @@
 - **Agentforce入力のID解決**: Agent LLMはCA名（CA-0000）を渡すことがある。Name検索→ID変換のフォールバックをApex側で実装済み
 - **同一セッション内のAction再実行問題**: Agent LLMが過去の出力を使い回す場合がある。Instructionsに「毎回必ず実行」と明示して対策（詳細は `agentforce-architecture-guide.md` セクション4参照）
 - **分析系プロンプトは「事実のみ」スタイル**: 「提案は含めない」を明示する運用にしている
+
+## Experience Cloud (Partner Central Enhanced)
+
+ExperienceBundle にカスタムページを追加する際の制約（検証日: 2026-04-20, SRMポータル Wave 2）。
+
+### routeType の制約
+- **テンプレートが構造的に要求する routeType がある**: `enablement-program-link`, `enablement-program-video` 等。これらの route を完全削除するとデプロイエラー（「サイトにはルート種別 X のルートが必要です」）。消すなら最小限のスタブ route を残す
+- **URL アドレス可能な routeType は限られる**: `enablement-program-*` 系は `urlPrefix` 単独では NavigationMenuItem から到達不可（recordId 必須のドリルダウン詳細ページ扱い）。「URL パスのサイトにページが見つかりません」エラーになる
+- **乗っ取り先として動作確認済の routeType**: `quote-list`, `case-list`, `jointbusinessplan-list`, `voucher-list`, `mdf`。これらは独自 LWC に差し替えても URL 経由で到達可能
+- **`routeType` はホワイトリスト制**: 任意値（例: `rfq-response-custom`）はデプロイ時の validation で弾かれる
+- **`enablement-program-list` は pageAccess=UseParent 必須**、他の `enablement-program-*` は pageAccess を持てない
+
+### routes / views の整合性
+- **1:1 対応が必須**: route の `activeViewId` と view の `id` が一致、route の `routeType` と view の `viewType` が一致
+- **孤立 view はデプロイエラー**: 「ビューに対応するルートがありません」。route 削除時は view も同時削除する
+
+### NavigationMenuItem の運用
+- **ページが site に publish されてから作成する**: `sf community publish` 未実行だと「URL パスのサイトにページが見つかりません」エラー
+- **Position はステータス内で一意**: 既存 Draft/Live と衝突する場合は逆順（大→小）でシフトする
+- **Publish で Draft → Live 昇格**: `sf community publish` 実行で Draft アイテムが自動的に Live にコピーされる
+
+### Aura 系テンプレートの挙動
+- **URL クエリパラメータが LWC に届かないことがある**: `window.location.search` 直読みフォールバックで回避不可（LWC 自体が instantiate されないため）。**ビュー切替パターン**（単一 LWC 内で `viewMode` state で画面遷移）で回避するのが確実
+
+## Hosted MCP Server (External Client App 連携)
+
+Salesforce Hosted MCP Server（`api.salesforce.com/platform/mcp/v1/...`）を外部MCPクライアント（Claude Desktop等）から利用する際の設定ポイント。
+
+### External Client App (ECA) 側設定
+- **JWTベースアクセストークンは ON 必須**: `api.salesforce.com/platform/mcp/*` エンドポイントはPlatform API Gatewayでステートレス検証するため、Opaque tokenでは認証エラー（`Authorization with the MCP server failed`, 参照ID `ofid_xxxx`）になる。**セキュリティ → 「指名ユーザーの JSON Web トークン (JWT) ベースのアクセストークンを発行」を ON**
+- **PKCE 必須**: 「サポートされる認証フローに PKCE 拡張を要求」を ON
+- **Web サーバーフローの秘密は OFF**: PKCEで代替するため Secret不要
+- **必須 OAuth Scope**: `api`, `refresh_token, offline_access`, `mcp_api`, `sfap_api`
+  - `mcp_api` が無いとMCPサーバーエンドポイントへのアクセスが拒否される
+- **Callback URL (Claude Desktop)**: `https://claude.ai/api/mcp/auth_callback`
+- **Flow**: 「認証コードおよびログイン情報フローを有効化」のみ ON
+- **Policies**: 許可されているユーザー = `すべてのユーザーは自己承認可能`、IP緩和を設定
+- **反映タイムラグ**: 設定変更後 2-10分 の反映時間あり。保存直後のエラーは時間を置いて再試行
+
+### Claude Desktop側設定
+- Custom Connector 追加時、Server URL と OAuth Client ID（= ECAのConsumer Key）を指定
+- Consumer Secretは不要（PKCE使用のため）
+- 失敗時は**既存接続を切断してから再試行**（キャッシュされた認証情報が残るため）
+
+### 権限セットの罠
+- `C2CMcpServicePermSet` は **Cloud Integration User ライセンス専用**（サーバー間C2C連携用）。Claude Desktop等のユーザーOAuthフローには無関係。割り当てようとするとライセンスミスマッチエラー
+- ユーザー側OAuthフローでは追加の権限セット不要（`mcp_api` scopeのみで可）

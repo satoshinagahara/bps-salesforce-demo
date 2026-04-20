@@ -1,0 +1,75 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:dynamicLayout",
+  "dataProviders" : [ ],
+  "id" : "0ee0254c-4bac-42c7-a036-d4717049aba1",
+  "label" : "共同ビジネス計画を表示",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : {
+        "background" : "background: rgba(0,0,0,0)",
+        "backgroundOverlay" : "rgba(0,0,0,0.5)",
+        "contentAreaWidth" : 100,
+        "sectionConfig" : {
+          "UUID" : "b316d6ac-28cf-4c51-983a-10bb6ca13f77",
+          "columns" : [ {
+            "UUID" : "e0706c1d-ed45-4edc-99fd-aac51dcebd3d",
+            "columnKey" : "col1",
+            "columnName" : "Joint Business Plan List Column",
+            "columnWidth" : "12",
+            "seedComponents" : [ {
+              "attributes" : {
+                "filterName" : "All_JointBusinessPlans",
+                "scope" : "AccountPlan",
+                "sfdc:identifier" : "forceCommunity_objectHome"
+              },
+              "fqn" : "forceCommunity:objectHome"
+            } ]
+          } ]
+        },
+        "sectionHeight" : 32
+      },
+      "componentName" : "forceCommunity:section",
+      "id" : "b316d6ac-28cf-4c51-983a-10bb6ca13f77",
+      "regions" : [ {
+        "components" : [ {
+          "componentAttributes" : {
+            "enableInlineEdit" : true,
+            "filterName" : "All_JointBusinessPlans",
+            "layout" : "FULL",
+            "pageSize" : 25,
+            "scope" : "AccountPlan",
+            "showActionBar" : true,
+            "showChartsPanel" : true,
+            "showDisplay" : "showall",
+            "showFilterPanel" : true,
+            "showImageIcon" : true,
+            "showManualRefreshButton" : true,
+            "showObjectName" : true,
+            "showPinnedList" : true,
+            "showSearchBar" : true
+          },
+          "componentName" : "forceCommunity:objectHome",
+          "id" : "72942aef-0181-4b81-847f-b46c74fe25e6",
+          "renderPriority" : "NEUTRAL",
+          "renditionMap" : { },
+          "type" : "component"
+        } ],
+        "id" : "e0706c1d-ed45-4edc-99fd-aac51dcebd3d",
+        "regionLabel" : "Joint Business Plan List Column",
+        "regionName" : "col1",
+        "renditionMap" : { },
+        "type" : "region"
+      } ],
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "54dd0c4e-f716-4032-8ee3-12ca86555884",
+    "regionName" : "content",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "jointbusinessplan-list"
+}

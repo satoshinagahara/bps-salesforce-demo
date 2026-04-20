@@ -1,0 +1,240 @@
+<template>
+    <div class="msm-root">
+        <template if:true={error}>
+            <div class="msm-error">
+                <lightning-icon icon-name="utility:error" size="x-small" class="msm-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <template if:true={isLoading}>
+            <div class="msm-loading">
+                <lightning-spinner alternative-text="読込中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={data}>
+            <!-- Header -->
+            <div class="msm-header">
+                <div class="msm-header__top">
+                    <span class="msm-header__tag">MANUFACTURING SITES</span>
+                    <h2 class="msm-header__title">製造拠点</h2>
+                </div>
+                <div class="msm-header__summary">
+                    <div class="msm-stat">
+                        <span class="msm-stat__value">{data.totalCount}</span>
+                        <span class="msm-stat__label">拠点数</span>
+                    </div>
+                    <div class="msm-stat msm-stat--own">
+                        <span class="msm-stat__value">{data.ownCount}</span>
+                        <span class="msm-stat__label">自社拠点</span>
+                    </div>
+                    <div class="msm-stat msm-stat--sub">
+                        <span class="msm-stat__value">{data.subcontractorCount}</span>
+                        <span class="msm-stat__label">協力会社</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="msm-toolbar">
+                <span class="msm-toolbar__hint">地図上のピンをクリックすると拠点詳細が表示されます。</span>
+                <button class="msm-btn msm-btn--primary" onclick={openNewModal}>
+                    ＋ 拠点を追加
+                </button>
+            </div>
+
+            <!-- Map -->
+            <template if:true={hasMap}>
+                <div class="msm-map-card">
+                    <lightning-map
+                        map-markers={mapMarkers}
+                        zoom-level="5"
+                        list-view="hidden">
+                    </lightning-map>
+                </div>
+            </template>
+
+            <!-- Cards -->
+            <template if:true={hasItems}>
+                <div class="msm-grid">
+                    <template for:each={displayItems} for:item="item">
+                        <div key={item.id} class={item.cardClass}>
+                            <div class="msm-card__head">
+                                <div class="msm-card__title-wrap">
+                                    <h3 class="msm-card__title">{item.name}</h3>
+                                    <span class={item.badgeClass}>{item.badgeLabel}</span>
+                                </div>
+                            </div>
+                            <div class="msm-card__body">
+                                <template if:true={item.prefecture}>
+                                    <div class="msm-row">
+                                        <lightning-icon icon-name="utility:location" size="xx-small"></lightning-icon>
+                                        <span class="msm-row__text">{item.prefecture}</span>
+                                    </div>
+                                </template>
+                                <template if:true={item.address}>
+                                    <div class="msm-row msm-row--address">
+                                        <span class="msm-row__text">{item.address}</span>
+                                    </div>
+                                </template>
+                                <template if:true={item.description}>
+                                    <p class="msm-desc">{item.description}</p>
+                                </template>
+                                <div class="msm-meta">
+                                    <div class="msm-meta__item">
+                                        <span class="msm-meta__label">座標</span>
+                                        <span class="msm-meta__value">{item.coordLabel}</span>
+                                    </div>
+                                    <div class="msm-meta__item">
+                                        <span class="msm-meta__label">キャパシティ登録</span>
+                                        <span class="msm-meta__value">{item.capacityLabel}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="msm-card__foot">
+                                <button
+                                    class="msm-link-btn"
+                                    data-item-id={item.id}
+                                    onclick={openEditModal}>
+                                    編集
+                                </button>
+                                <button
+                                    class="msm-link-btn msm-link-btn--danger"
+                                    data-item-id={item.id}
+                                    onclick={openDeleteConfirm}>
+                                    削除
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template if:false={hasItems}>
+                <div class="msm-empty">
+                    <p>製造拠点がまだ登録されていません。</p>
+                    <button class="msm-btn msm-btn--primary" onclick={openNewModal}>
+                        ＋ 最初の拠点を追加
+                    </button>
+                </div>
+            </template>
+        </template>
+
+        <!-- Edit Modal -->
+        <template if:true={showEditModal}>
+            <div class="msm-modal">
+                <div class="msm-modal__backdrop" onclick={closeModal}></div>
+                <div class="msm-modal__content">
+                    <div class="msm-modal__head">
+                        <h3>{modalTitle}</h3>
+                    </div>
+                    <div class="msm-modal__body">
+                        <div class="msm-form">
+                            <lightning-input
+                                type="text"
+                                label="拠点名"
+                                data-field="name"
+                                value={editForm.name}
+                                onchange={handleFieldChange}
+                                required
+                                class="msm-input">
+                            </lightning-input>
+                            <lightning-input
+                                type="checkbox"
+                                label="自社拠点（チェック無=協力会社の拠点）"
+                                data-field="isOwnSite"
+                                checked={editForm.isOwnSite}
+                                onchange={handleFieldChange}
+                                class="msm-input">
+                            </lightning-input>
+                            <div class="msm-form__row">
+                                <lightning-input
+                                    type="text"
+                                    label="都道府県"
+                                    data-field="prefecture"
+                                    value={editForm.prefecture}
+                                    onchange={handleFieldChange}
+                                    class="msm-input">
+                                </lightning-input>
+                            </div>
+                            <lightning-input
+                                type="text"
+                                label="住所"
+                                data-field="address"
+                                value={editForm.address}
+                                onchange={handleFieldChange}
+                                class="msm-input">
+                            </lightning-input>
+                            <div class="msm-form__row">
+                                <lightning-input
+                                    type="number"
+                                    label="緯度(Latitude)"
+                                    step="0.0001"
+                                    data-field="latitude"
+                                    value={editForm.latitude}
+                                    onchange={handleFieldChange}
+                                    class="msm-input">
+                                </lightning-input>
+                                <lightning-input
+                                    type="number"
+                                    label="経度(Longitude)"
+                                    step="0.0001"
+                                    data-field="longitude"
+                                    value={editForm.longitude}
+                                    onchange={handleFieldChange}
+                                    class="msm-input">
+                                </lightning-input>
+                            </div>
+                            <lightning-textarea
+                                label="拠点説明"
+                                data-field="description"
+                                value={editForm.description}
+                                onchange={handleFieldChange}
+                                class="msm-input">
+                            </lightning-textarea>
+                        </div>
+                    </div>
+                    <div class="msm-modal__foot">
+                        <button class="msm-btn msm-btn--secondary" onclick={closeModal} disabled={isSaving}>
+                            キャンセル
+                        </button>
+                        <button class="msm-btn msm-btn--primary" onclick={handleSave} disabled={isSaving}>
+                            <template if:true={isSaving}>
+                                <lightning-spinner alternative-text="保存中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSaving}>保存</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Delete Confirm -->
+        <template if:true={showDeleteConfirm}>
+            <div class="msm-modal">
+                <div class="msm-modal__backdrop" onclick={closeDeleteConfirm}></div>
+                <div class="msm-modal__content msm-modal__content--sm">
+                    <div class="msm-modal__head">
+                        <h3>削除の確認</h3>
+                    </div>
+                    <div class="msm-modal__body">
+                        <p class="msm-modal__text">「{deleteTargetLabel}」を削除します。</p>
+                        <p class="msm-modal__text">キャパシティ情報が紐づく拠点は削除できません。</p>
+                    </div>
+                    <div class="msm-modal__foot">
+                        <button class="msm-btn msm-btn--secondary" onclick={closeDeleteConfirm} disabled={isSaving}>
+                            キャンセル
+                        </button>
+                        <button class="msm-btn msm-btn--danger" onclick={handleDeleteConfirm} disabled={isSaving}>
+                            <template if:true={isSaving}>
+                                <lightning-spinner alternative-text="処理中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSaving}>削除</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

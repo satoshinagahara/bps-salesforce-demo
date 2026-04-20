@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "0acdbc91-d5d1-411f-9d7c-cf716186de89",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ "allow-in-static-site" ],
+  "devName" : "Service_Not_Available",
+  "id" : "6a3f8f63-311d-4816-93b1-f1a8dd8c4563",
+  "label" : "サービスは利用できません",
+  "routeType" : "service-not-available",
+  "type" : "route",
+  "urlPrefix" : "service-not-available"
+}

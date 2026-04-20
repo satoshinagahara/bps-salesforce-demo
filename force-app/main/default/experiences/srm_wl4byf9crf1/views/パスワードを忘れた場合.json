@@ -1,0 +1,69 @@
+{
+  "appPageId" : "1bc5658e-c0da-4104-9202-0686a9bb46c1",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "4f83e722-ee5a-431b-a411-2593f6de13da",
+  "label" : "パスワードを忘れた場合",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : {
+        "richTextValue" : "<div style=\"text-align: center;\"><span style=\"font-size:22px\">PASSWORD RESET</span></div>"
+      },
+      "componentName" : "forceCommunity:richTextInline",
+      "id" : "8f2c3c36-dad0-4bdd-90ae-4e394b957a7a",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    }, {
+      "componentAttributes" : {
+        "richTextValue" : "<div style=\"text-align: center;\">To reset your password, we'll need your username.<br/> We'll send password reset instructions to the email address associated with your account.</div>"
+      },
+      "componentName" : "forceCommunity:richTextInline",
+      "id" : "0bcfff60-30cb-4113-b310-8514b192f9f3",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    }, {
+      "componentAttributes" : {
+        "checkEmailUrl" : "./CheckPasswordResetEmail",
+        "submitButtonLabel" : "Reset Password",
+        "usernameLabel" : "Username"
+      },
+      "componentName" : "salesforceIdentity:forgotPassword2",
+      "id" : "279311e6-5088-41e7-92de-70300ca694f7",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    }, {
+      "componentAttributes" : {
+        "richTextValue" : "<div style=\"text-align: center;\"><a href=\"./\">Cancel</a></div>"
+      },
+      "componentName" : "forceCommunity:richTextInline",
+      "id" : "b2cc4404-5e3f-4ff1-adbd-c7a1a0e55b59",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "87010acf-373f-4864-b024-b79f34ada6fe",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customHeadTags" : "",
+        "description" : "",
+        "title" : "パスワードを忘れた場合"
+      },
+      "componentName" : "forceCommunity:seoAssistant",
+      "id" : "8696ff74-7745-466d-864e-9388bc25e9a1",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "b710feb3-6b39-4ff8-acec-4b450e386de1",
+    "regionName" : "sfdcHiddenRegion",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Login",
+  "type" : "view",
+  "viewType" : "forgot-password"
+}

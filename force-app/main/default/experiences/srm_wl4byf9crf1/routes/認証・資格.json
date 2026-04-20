@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "5738cbec-c6f3-4af2-8f88-69e81066123c",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "Certifications",
+  "id" : "50cc6f11-13f8-4148-84a0-dda27416913c",
+  "label" : "認証・資格",
+  "routeType" : "voucher-list",
+  "type" : "route",
+  "urlPrefix" : "certifications"
+}

@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "fe345cf2-1198-4c86-b306-4e300a74a3ba",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "Enablement_Program_List",
+  "id" : "7c53140a-e956-42f9-99c0-6a4ea188ee79",
+  "label" : "イネーブルメントプログラム",
+  "routeType" : "list-0Qo",
+  "type" : "route",
+  "urlPrefix" : "enablementprogram"
+}

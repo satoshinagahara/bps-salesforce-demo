@@ -1,0 +1,39 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "89d46075-fd7d-42e9-83ab-ddfd19ebaf10",
+  "label" : "アカウントプランの目的関連リスト",
+  "regions" : [ {
+    "id" : "7b2b927c-a3bb-4eff-ad6a-27b658d7ee0c",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customTitle" : "",
+        "parentRecordId" : "{!recordId}",
+        "relatedListName" : "{!relationshipApiName}",
+        "showBreadCrumbs" : true,
+        "showCustomTitle" : false,
+        "showManualRefreshButton" : true,
+        "showRowNumbers" : true
+      },
+      "componentName" : "forceCommunity:relatedList",
+      "id" : "041f9577-8af5-4762-bec3-1b62a8151430",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "64ddbe3e-8f82-4cc3-a22f-69eaebd5c4fc",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "4fec888e-60d0-40c9-a8b5-72ba449160e5",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "relatedlist-1FA"
+}

@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "8139ea2e-effc-4a59-acda-e19ed61bfa97",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "list_1FA",
+  "id" : "f7fafcd4-e65f-4906-9dd8-35debaad1081",
+  "label" : "アカウントプランの目的リスト",
+  "routeType" : "list-1FA",
+  "type" : "route",
+  "urlPrefix" : "accountplanobjective"
+}

@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "620ba424-b878-4772-b4a2-57df8e876f2f",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "Account_Management",
+  "id" : "537ee88a-8669-498d-bbe8-5d9b2fa8d770",
+  "label" : "取引先管理",
+  "routeType" : "account-management",
+  "type" : "route",
+  "urlPrefix" : "account-management"
+}

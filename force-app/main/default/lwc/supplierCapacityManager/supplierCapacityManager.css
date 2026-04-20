@@ -1,0 +1,413 @@
+:host {
+    --bps-bg: #FAFAFA;
+    --bps-card-bg: #FFFFFF;
+    --bps-text: #2D2D2D;
+    --bps-text-sub: #555555;
+    --bps-text-muted: #888888;
+    --bps-border: #E5E5E5;
+    --bps-border-light: #F0F0F0;
+    --bps-accent: #D21D24;
+    --bps-accent-hover: #A61319;
+    --bps-accent-bg-soft: #FBEAEB;
+    --bps-accent-bg-mid: #F2C0C2;
+    --bps-ok: #4B8A48;
+
+    display: block;
+    background: var(--bps-bg);
+    color: var(--bps-text);
+    font-family: 'Salesforce Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.scm-root {
+    padding: 1.25rem;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.scm-loading {
+    padding: 2rem;
+    text-align: center;
+}
+
+.scm-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    background: var(--bps-accent-bg-soft);
+    border-left: 3px solid var(--bps-accent);
+    color: var(--bps-accent-hover);
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.scm-error__icon {
+    --sds-c-icon-color-foreground-default: var(--bps-accent);
+}
+
+/* === Header === */
+.scm-header {
+    padding: 0 0 1rem 0;
+    border-bottom: 1px solid var(--bps-border);
+    margin-bottom: 1rem;
+}
+
+.scm-header__top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.375rem;
+}
+
+.scm-header__tag {
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+    color: var(--bps-accent);
+    background: var(--bps-accent-bg-soft);
+    padding: 0.1875rem 0.625rem;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.scm-header__title {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--bps-text);
+    margin: 0;
+}
+
+.scm-header__desc {
+    font-size: 0.8125rem;
+    color: var(--bps-text-muted);
+    margin: 0;
+}
+
+/* === Tabs === */
+.scm-tabs {
+    display: flex;
+    gap: 0.375rem;
+    border-bottom: 1px solid var(--bps-border);
+    margin-bottom: 1rem;
+    overflow-x: auto;
+}
+
+.scm-tab {
+    font-family: inherit;
+    font-size: 0.875rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.625rem 1rem;
+    color: var(--bps-text-sub);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.scm-tab:hover {
+    color: var(--bps-text);
+    background: var(--bps-border-light);
+}
+
+.scm-tab--active {
+    color: var(--bps-accent);
+    border-bottom-color: var(--bps-accent);
+    font-weight: 600;
+}
+
+.scm-tab__name {
+    font-size: 0.875rem;
+}
+
+.scm-tab__count {
+    font-size: 0.6875rem;
+    background: var(--bps-border-light);
+    color: var(--bps-text-sub);
+    padding: 0.0625rem 0.4375rem;
+    border-radius: 10px;
+    min-width: 1.25rem;
+    text-align: center;
+}
+
+.scm-tab--active .scm-tab__count {
+    background: var(--bps-accent-bg-soft);
+    color: var(--bps-accent);
+}
+
+/* === Summary === */
+.scm-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.875rem;
+    padding: 0 0.25rem;
+}
+
+.scm-summary__left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.scm-summary__main {
+    font-size: 0.875rem;
+    color: var(--bps-text-sub);
+    font-weight: 500;
+}
+
+/* === Table === */
+.scm-card {
+    background: var(--bps-card-bg);
+    border: 1px solid var(--bps-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.scm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.scm-table thead th {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--bps-text-muted);
+    letter-spacing: 0.02em;
+    text-align: left;
+    padding: 0.625rem 0.875rem;
+    background: var(--bps-border-light);
+    border-bottom: 1px solid var(--bps-border);
+}
+
+.scm-table tbody td {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid var(--bps-border-light);
+    color: var(--bps-text);
+    vertical-align: middle;
+}
+
+.scm-row:hover {
+    background: #FCFCFC;
+}
+
+.scm-row--warn {
+    background: var(--bps-accent-bg-soft);
+}
+
+.scm-row--warn:hover {
+    background: #F7DEDF;
+}
+
+.scm-cell-strong {
+    font-weight: 600;
+    color: var(--bps-text);
+}
+
+.scm-cell-muted {
+    color: var(--bps-text-muted);
+    font-size: 0.75rem;
+}
+
+.scm-col-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+.scm-col-actions {
+    text-align: right;
+    white-space: nowrap;
+    width: 7.5rem;
+}
+
+.scm-inline-warn {
+    display: inline-block;
+    margin-left: 0.375rem;
+    font-size: 0.6875rem;
+    color: var(--bps-accent);
+    font-weight: 600;
+}
+
+/* === Link buttons === */
+.scm-link-btn {
+    background: transparent;
+    border: none;
+    color: var(--bps-text-sub);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+}
+
+.scm-link-btn:hover {
+    background: var(--bps-border-light);
+    color: var(--bps-text);
+}
+
+.scm-link-btn--danger:hover {
+    background: var(--bps-accent-bg-soft);
+    color: var(--bps-accent-hover);
+}
+
+/* === Buttons === */
+.scm-btn {
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    min-width: 100px;
+}
+
+.scm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.scm-btn--primary {
+    background: var(--bps-accent);
+    color: #FFFFFF;
+}
+
+.scm-btn--primary:hover:not(:disabled) {
+    background: var(--bps-accent-hover);
+}
+
+.scm-btn--secondary {
+    background: #FFFFFF;
+    color: var(--bps-text-sub);
+    border: 1px solid var(--bps-border);
+}
+
+.scm-btn--secondary:hover:not(:disabled) {
+    background: var(--bps-border-light);
+}
+
+.scm-btn--danger {
+    background: var(--bps-accent);
+    color: #FFFFFF;
+}
+
+.scm-btn--danger:hover:not(:disabled) {
+    background: var(--bps-accent-hover);
+}
+
+/* === Badge === */
+.scm-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
+}
+
+.scm-badge--warn {
+    background: var(--bps-accent-bg-soft);
+    color: var(--bps-accent-hover);
+}
+
+/* === Empty === */
+.scm-empty {
+    background: var(--bps-card-bg);
+    border: 1px dashed var(--bps-border);
+    border-radius: 8px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--bps-text-muted);
+    font-size: 0.875rem;
+}
+
+.scm-empty p {
+    margin: 0 0 1rem 0;
+}
+
+/* === Modal === */
+.scm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scm-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(30, 30, 30, 0.4);
+}
+
+.scm-modal__content {
+    position: relative;
+    background: var(--bps-card-bg);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 560px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.scm-modal__content--sm {
+    max-width: 420px;
+}
+
+.scm-modal__head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--bps-border);
+}
+
+.scm-modal__head h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--bps-text);
+}
+
+.scm-modal__body {
+    padding: 1rem 1.25rem;
+}
+
+.scm-modal__text {
+    font-size: 0.875rem;
+    color: var(--bps-text-sub);
+    margin: 0 0 0.5rem 0;
+}
+
+.scm-modal__foot {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid var(--bps-border-light);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    background: var(--bps-bg);
+}
+
+/* === Form === */
+.scm-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.scm-form__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.875rem;
+}
+
+.scm-input {
+    --slds-c-input-color-border-focus: var(--bps-accent);
+    --slds-c-input-shadow-focus: 0 0 0 1px var(--bps-accent);
+    --slds-c-textarea-color-border-focus: var(--bps-accent);
+    --slds-c-textarea-shadow-focus: 0 0 0 1px var(--bps-accent);
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>サプライヤー調査回答</masterLabel>
+    <description>サプライヤー側が調査依頼に対して原因・対策・再発防止を回答するフォーム。</description>
+    <targets>
+        <target>lightning__RecordPage</target>
+        <target>lightning__AppPage</target>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property name="accountId" type="String" label="サプライヤーAccount Id (デモ用)"
+                      description="Experience Cloudではログインユーザーから自動解決。本org内Record Page配置時はデモ用に指定してください。"/>
+            <objects>
+                <object>Supplier_Investigation__c</object>
+            </objects>
+        </targetConfig>
+        <targetConfig targets="lightning__AppPage">
+            <property name="investigationId" type="String" label="調査Id (デモ用)"/>
+            <property name="accountId" type="String" label="サプライヤーAccount Id (デモ用)"/>
+        </targetConfig>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="investigationId" type="String" label="調査Id"/>
+            <property name="accountId" type="String" label="サプライヤーAccount Id"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

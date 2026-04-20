@@ -1,0 +1,228 @@
+<template>
+    <div class="scm-root">
+        <!-- Error -->
+        <template if:true={error}>
+            <div class="scm-error">
+                <lightning-icon icon-name="utility:error" size="x-small" class="scm-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div class="scm-loading">
+                <lightning-spinner alternative-text="読込中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Main -->
+        <template if:true={hasSites}>
+            <!-- Header -->
+            <div class="scm-header">
+                <div class="scm-header__top">
+                    <span class="scm-header__tag">CAPACITY MANAGEMENT</span>
+                    <h2 class="scm-header__title">拠点別 月産能力</h2>
+                </div>
+                <p class="scm-header__desc">拠点ごとの月産能力を登録・更新し、発注計画の精度向上に役立てます。</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="scm-tabs">
+                <template for:each={siteTabs} for:item="tab">
+                    <button
+                        key={tab.siteId}
+                        class={tab.tabClass}
+                        data-site-id={tab.siteId}
+                        onclick={handleTabClick}>
+                        <span class="scm-tab__name">{tab.siteName}</span>
+                        <span class="scm-tab__count">{tab.itemCount}</span>
+                    </button>
+                </template>
+            </div>
+
+            <!-- Summary -->
+            <div class="scm-summary">
+                <div class="scm-summary__left">
+                    <span class="scm-summary__main">{summaryLabel}</span>
+                    <template if:true={hasExpiring}>
+                        <span class="scm-badge scm-badge--warn">{expiringLabel}</span>
+                    </template>
+                </div>
+                <button class="scm-btn scm-btn--primary" onclick={openNewModal}>
+                    ＋ 新規追加
+                </button>
+            </div>
+
+            <!-- Table -->
+            <template if:true={hasItems}>
+                <div class="scm-card">
+                    <table class="scm-table">
+                        <thead>
+                            <tr>
+                                <th>品番</th>
+                                <th>品名</th>
+                                <th class="scm-col-num">月産能力</th>
+                                <th>適用開始</th>
+                                <th>適用終了</th>
+                                <th>最終更新</th>
+                                <th class="scm-col-actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={selectedItems} for:item="item">
+                                <tr key={item.id} class={item.rowClass}>
+                                    <td class="scm-cell-strong">{item.partNumber}</td>
+                                    <td>{item.partName}</td>
+                                    <td class="scm-col-num">{item.monthlyCapacityLabel}</td>
+                                    <td>{item.effectiveFromLabel}</td>
+                                    <td>
+                                        {item.effectiveToLabel}
+                                        <template if:true={item.isExpiringSoon}>
+                                            <span class="scm-inline-warn">期限間近</span>
+                                        </template>
+                                    </td>
+                                    <td class="scm-cell-muted">{item.lastModifiedLabel}</td>
+                                    <td class="scm-col-actions">
+                                        <button
+                                            class="scm-link-btn"
+                                            data-item-id={item.id}
+                                            onclick={openEditModal}
+                                            title="編集">
+                                            編集
+                                        </button>
+                                        <button
+                                            class="scm-link-btn scm-link-btn--danger"
+                                            data-item-id={item.id}
+                                            data-item-part={item.partNumber}
+                                            onclick={openDeleteConfirm}
+                                            title="削除">
+                                            削除
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
+            <template if:false={hasItems}>
+                <div class="scm-empty">
+                    <p>この拠点にはまだキャパシティが登録されていません。</p>
+                    <button class="scm-btn scm-btn--primary" onclick={openNewModal}>
+                        ＋ 新規追加
+                    </button>
+                </div>
+            </template>
+        </template>
+
+        <!-- Edit Modal -->
+        <template if:true={showEditModal}>
+            <div class="scm-modal">
+                <div class="scm-modal__backdrop" onclick={closeModal}></div>
+                <div class="scm-modal__content">
+                    <div class="scm-modal__head">
+                        <h3>{modalTitle}</h3>
+                    </div>
+                    <div class="scm-modal__body">
+                        <div class="scm-form">
+                            <div class="scm-form__row">
+                                <lightning-input
+                                    type="text"
+                                    label="品番"
+                                    data-field="partNumber"
+                                    value={editForm.partNumber}
+                                    onchange={handleFieldChange}
+                                    required
+                                    class="scm-input">
+                                </lightning-input>
+                                <lightning-input
+                                    type="text"
+                                    label="品名"
+                                    data-field="partName"
+                                    value={editForm.partName}
+                                    onchange={handleFieldChange}
+                                    class="scm-input">
+                                </lightning-input>
+                            </div>
+                            <div class="scm-form__row">
+                                <lightning-input
+                                    type="number"
+                                    label="月産能力(個/月)"
+                                    data-field="monthlyCapacity"
+                                    value={editForm.monthlyCapacity}
+                                    onchange={handleFieldChange}
+                                    required
+                                    class="scm-input">
+                                </lightning-input>
+                            </div>
+                            <div class="scm-form__row">
+                                <lightning-input
+                                    type="date"
+                                    label="適用開始日"
+                                    data-field="effectiveFrom"
+                                    value={editForm.effectiveFrom}
+                                    onchange={handleFieldChange}
+                                    class="scm-input">
+                                </lightning-input>
+                                <lightning-input
+                                    type="date"
+                                    label="適用終了日"
+                                    data-field="effectiveTo"
+                                    value={editForm.effectiveTo}
+                                    onchange={handleFieldChange}
+                                    class="scm-input">
+                                </lightning-input>
+                            </div>
+                            <lightning-textarea
+                                label="備考"
+                                data-field="notes"
+                                value={editForm.notes}
+                                onchange={handleFieldChange}
+                                class="scm-input">
+                            </lightning-textarea>
+                        </div>
+                    </div>
+                    <div class="scm-modal__foot">
+                        <button class="scm-btn scm-btn--secondary" onclick={closeModal} disabled={isSaving}>
+                            キャンセル
+                        </button>
+                        <button class="scm-btn scm-btn--primary" onclick={handleSave} disabled={isSaving}>
+                            <template if:true={isSaving}>
+                                <lightning-spinner alternative-text="保存中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSaving}>保存</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Delete Confirm -->
+        <template if:true={showDeleteConfirm}>
+            <div class="scm-modal">
+                <div class="scm-modal__backdrop" onclick={closeDeleteConfirm}></div>
+                <div class="scm-modal__content scm-modal__content--sm">
+                    <div class="scm-modal__head">
+                        <h3>削除の確認</h3>
+                    </div>
+                    <div class="scm-modal__body">
+                        <p class="scm-modal__text">品番「{deleteTargetPart}」のキャパシティ情報を削除します。</p>
+                        <p class="scm-modal__text">この操作は取り消せません。よろしいですか？</p>
+                    </div>
+                    <div class="scm-modal__foot">
+                        <button class="scm-btn scm-btn--secondary" onclick={closeDeleteConfirm} disabled={isSaving}>
+                            キャンセル
+                        </button>
+                        <button class="scm-btn scm-btn--danger" onclick={handleDeleteConfirm} disabled={isSaving}>
+                            <template if:true={isSaving}>
+                                <lightning-spinner alternative-text="処理中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSaving}>削除</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

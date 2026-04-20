@@ -1,0 +1,23 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "5ecd538a-e143-4c12-b326-d2e12777cf9e",
+  "label" : "生産キャパシティ",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : { },
+      "componentName" : "c:supplierCapacityManager",
+      "id" : "29f46ea8-1df3-4084-afca-02f41c735fa0",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "5636ec1c-de11-4331-95cc-b876a6fb8292",
+    "regionName" : "content",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "jointbusinessplan-list"
+}

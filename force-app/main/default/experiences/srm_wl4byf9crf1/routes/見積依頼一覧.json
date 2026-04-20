@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "01cd8ef6-60e1-4ffa-80ec-bb9e763aa117",
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "configurationTags" : [ ],
+  "devName" : "RfqList",
+  "id" : "0a7b1972-e3d0-48ff-82c8-bf87b2341c12",
+  "label" : "見積依頼一覧",
+  "routeType" : "quote-list",
+  "type" : "route",
+  "urlPrefix" : "rfq-list"
+}

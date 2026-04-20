@@ -1,0 +1,254 @@
+<template>
+    <div class="scl-root">
+        <template if:true={error}>
+            <div class="scl-error">
+                <lightning-icon icon-name="utility:error" size="x-small" class="scl-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <template if:true={isLoading}>
+            <div class="scl-loading">
+                <lightning-spinner alternative-text="読込中" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={data}>
+            <!-- Header -->
+            <div class="scl-header">
+                <div class="scl-header__top">
+                    <span class="scl-header__tag">CERTIFICATIONS</span>
+                    <h2 class="scl-header__title">品質・コンプライアンス認証</h2>
+                </div>
+                <div class="scl-header__summary">
+                    <div class="scl-stat">
+                        <span class="scl-stat__value">{summary.totalCount}</span>
+                        <span class="scl-stat__label">全体</span>
+                    </div>
+                    <div class="scl-stat scl-stat--ok">
+                        <span class="scl-stat__value">{summary.validCount}</span>
+                        <span class="scl-stat__label">有効</span>
+                    </div>
+                    <div class="scl-stat scl-stat--warn">
+                        <span class="scl-stat__value">{summary.expiringCount}</span>
+                        <span class="scl-stat__label">期限間近</span>
+                    </div>
+                    <div class="scl-stat scl-stat--critical">
+                        <span class="scl-stat__value">{summary.expiredCount}</span>
+                        <span class="scl-stat__label">期限切れ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter + Add -->
+            <div class="scl-toolbar">
+                <div class="scl-filters">
+                    <template for:each={filters} for:item="f">
+                        <button
+                            key={f.key}
+                            class={f.cssClass}
+                            data-key={f.key}
+                            onclick={handleFilterClick}>
+                            {f.label}
+                            <span class="scl-filter__count">{f.count}</span>
+                        </button>
+                    </template>
+                </div>
+                <button class="scl-btn scl-btn--primary" onclick={openNewModal}>
+                    ＋ 認証を追加
+                </button>
+            </div>
+
+            <!-- Card grid -->
+            <template if:true={hasFilteredItems}>
+                <div class="scl-grid">
+                    <template for:each={filteredItems} for:item="item">
+                        <div key={item.id} class={item.cardClass}>
+                            <div class="scl-card__head">
+                                <div class={item.typeIconClass}>{item.certType}</div>
+                                <span class={item.badgeClass}>{item.badgeLabel}</span>
+                            </div>
+                            <div class="scl-card__body">
+                                <div class="scl-card__name">{item.name}</div>
+                                <div class="scl-card__issuer">発行: {item.issuingBody}</div>
+
+                                <div class="scl-card__meta">
+                                    <div class="scl-meta">
+                                        <span class="scl-meta__label">発行日</span>
+                                        <span class="scl-meta__value">{item.issueDateLabel}</span>
+                                    </div>
+                                    <div class="scl-meta">
+                                        <span class="scl-meta__label">有効期限</span>
+                                        <span class="scl-meta__value">{item.expiryDateLabel}</span>
+                                    </div>
+                                </div>
+
+                                <div class={item.countdownClass}>{item.countdownLabel}</div>
+
+                                <template if:true={item.nextSurveillanceDate}>
+                                    <div class="scl-survey">
+                                        <lightning-icon icon-name="utility:event" size="xx-small"></lightning-icon>
+                                        <span>次回サーベイランス {item.nextSurveyLabel}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="scl-card__foot">
+                                <button
+                                    class="scl-link-btn"
+                                    data-item-id={item.id}
+                                    onclick={openEditModal}>
+                                    編集
+                                </button>
+                                <button
+                                    class="scl-link-btn scl-link-btn--danger"
+                                    data-item-id={item.id}
+                                    onclick={openDeleteConfirm}>
+                                    削除
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template if:false={hasFilteredItems}>
+                <div class="scl-empty">
+                    <p>該当する認証はありません。</p>
+                </div>
+            </template>
+        </template>
+
+        <!-- Edit Modal -->
+        <template if:true={showEditModal}>
+            <div class="scl-modal">
+                <div class="scl-modal__backdrop" onclick={closeModal}></div>
+                <div class="scl-modal__content">
+                    <div class="scl-modal__head">
+                        <h3>{modalTitle}</h3>
+                    </div>
+                    <div class="scl-modal__body">
+                        <div class="scl-form">
+                            <div class="scl-form__row">
+                                <lightning-combobox
+                                    label="認証種別"
+                                    data-field="certType"
+                                    value={editForm.certType}
+                                    options={certTypeOptions}
+                                    onchange={handleFieldChange}
+                                    required
+                                    class="scl-input">
+                                </lightning-combobox>
+                                <lightning-combobox
+                                    label="ステータス"
+                                    data-field="status"
+                                    value={editForm.status}
+                                    options={statusOptions}
+                                    onchange={handleFieldChange}
+                                    class="scl-input">
+                                </lightning-combobox>
+                            </div>
+                            <lightning-input
+                                type="text"
+                                label="認証機関"
+                                data-field="issuingBody"
+                                value={editForm.issuingBody}
+                                onchange={handleFieldChange}
+                                required
+                                class="scl-input">
+                            </lightning-input>
+                            <div class="scl-form__row">
+                                <lightning-input
+                                    type="date"
+                                    label="発行日"
+                                    data-field="issueDate"
+                                    value={editForm.issueDate}
+                                    onchange={handleFieldChange}
+                                    class="scl-input">
+                                </lightning-input>
+                                <lightning-input
+                                    type="date"
+                                    label="有効期限"
+                                    data-field="expiryDate"
+                                    value={editForm.expiryDate}
+                                    onchange={handleFieldChange}
+                                    required
+                                    class="scl-input">
+                                </lightning-input>
+                            </div>
+                            <div class="scl-form__row">
+                                <lightning-input
+                                    type="date"
+                                    label="最終サーベイランス日"
+                                    data-field="lastSurveillanceDate"
+                                    value={editForm.lastSurveillanceDate}
+                                    onchange={handleFieldChange}
+                                    class="scl-input">
+                                </lightning-input>
+                                <lightning-input
+                                    type="date"
+                                    label="次回サーベイランス予定日"
+                                    data-field="nextSurveillanceDate"
+                                    value={editForm.nextSurveillanceDate}
+                                    onchange={handleFieldChange}
+                                    class="scl-input">
+                                </lightning-input>
+                            </div>
+                            <lightning-textarea
+                                label="認証範囲"
+                                data-field="scope"
+                                value={editForm.scope}
+                                onchange={handleFieldChange}
+                                class="scl-input">
+                            </lightning-textarea>
+                            <lightning-textarea
+                                label="備考"
+                                data-field="notes"
+                                value={editForm.notes}
+                                onchange={handleFieldChange}
+                                class="scl-input">
+                            </lightning-textarea>
+                        </div>
+                    </div>
+                    <div class="scl-modal__foot">
+                        <button class="scl-btn scl-btn--secondary" onclick={closeModal} disabled={isSaving}>
+                            キャンセル
+                        </button>
+                        <button class="scl-btn scl-btn--primary" onclick={handleSave} disabled={isSaving}>
+                            <template if:true={isSaving}>
+                                <lightning-spinner alternative-text="保存中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSaving}>保存</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Delete Confirm -->
+        <template if:true={showDeleteConfirm}>
+            <div class="scl-modal">
+                <div class="scl-modal__backdrop" onclick={closeDeleteConfirm}></div>
+                <div class="scl-modal__content scl-modal__content--sm">
+                    <div class="scl-modal__head">
+                        <h3>削除の確認</h3>
+                    </div>
+                    <div class="scl-modal__body">
+                        <p class="scl-modal__text">「{deleteTargetLabel}」を削除します。</p>
+                        <p class="scl-modal__text">この操作は取り消せません。よろしいですか？</p>
+                    </div>
+                    <div class="scl-modal__foot">
+                        <button class="scl-btn scl-btn--secondary" onclick={closeDeleteConfirm} disabled={isSaving}>
+                            キャンセル
+                        </button>
+                        <button class="scl-btn scl-btn--danger" onclick={handleDeleteConfirm} disabled={isSaving}>
+                            <template if:true={isSaving}>
+                                <lightning-spinner alternative-text="処理中" size="x-small"></lightning-spinner>
+                            </template>
+                            <template if:false={isSaving}>削除</template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,23 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "01cd8ef6-60e1-4ffa-80ec-bb9e763aa117",
+  "label" : "見積依頼一覧",
+  "regions" : [ {
+    "components" : [ {
+      "componentAttributes" : { },
+      "componentName" : "c:supplierRfqList",
+      "id" : "74222b0d-adc7-4552-8e6b-c2472a5f4c86",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "933aa9d7-be3e-4bf3-99d2-6dbaba26bdf8",
+    "regionName" : "content",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "quote-list"
+}

@@ -1,0 +1,39 @@
+{
+  "appPageId" : "796524e9-ffaa-4dde-ae5c-f9d6d6618a64",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "c13100da-a90f-4f44-92b2-0d16d0874277",
+  "label" : "[イネーブルメントプログラム] 関連リスト",
+  "regions" : [ {
+    "id" : "21a5c6e0-bd18-4ed2-96bd-1a8729756ec5",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customTitle" : "",
+        "parentRecordId" : "{!recordId}",
+        "relatedListName" : "{!relationshipApiName}",
+        "showBreadCrumbs" : true,
+        "showCustomTitle" : false,
+        "showManualRefreshButton" : true,
+        "showRowNumbers" : true
+      },
+      "componentName" : "forceCommunity:relatedList",
+      "id" : "9de9c53d-9814-4235-bccf-6611c3588987",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "eaf25af5-8e86-4e9b-b4e6-0019f50128bc",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "3f860dbc-238a-4387-9da9-bdc5de8e88d0",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "relatedlist-0Qo"
+}

@@ -1,0 +1,149 @@
+<template>
+    <div class="spc-root">
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div class="spc-loading">
+                <lightning-spinner alternative-text="読み込み中..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Error -->
+        <template if:true={error}>
+            <div class="spc-error">
+                <lightning-icon icon-name="utility:warning" size="small" class="spc-error__icon"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <template if:true={dashboard}>
+            <!-- ヘッダ -->
+            <header class="spc-header">
+                <div class="spc-header__left">
+                    <p class="spc-header__greeting">{greeting}</p>
+                    <h1 class="spc-header__name">{supplierName} 様</h1>
+                </div>
+                <div class="spc-header__right">
+                    <p class="spc-header__date">{todayLabel}</p>
+                    <p class="spc-header__subtitle">サプライヤーポータル</p>
+                </div>
+            </header>
+
+            <!-- アクションKPIカード -->
+            <section class="spc-section">
+                <h2 class="spc-section__title">アクションが必要な項目</h2>
+                <div class="spc-kpi-grid">
+                    <template for:each={kpiCards} for:item="kpi">
+                        <div key={kpi.key} class={kpi.cardClass}
+                             data-destination={kpi.destination}
+                             onclick={handleKpiClick}
+                             role="button"
+                             tabindex="0">
+                            <div class="spc-kpi__head">
+                                <lightning-icon icon-name={kpi.icon} size="x-small" class="spc-kpi__icon"></lightning-icon>
+                                <p class="spc-kpi__label">{kpi.label}</p>
+                            </div>
+                            <div class="spc-kpi__value-row">
+                                <span class="spc-kpi__value">{kpi.value}</span>
+                                <span class="spc-kpi__unit">{kpi.unit}</span>
+                            </div>
+                            <p class="spc-kpi__sub">{kpi.sub}</p>
+                            <span class="spc-kpi__chevron">›</span>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <!-- 進行状況 2カラム -->
+            <section class="spc-section spc-grid-2col">
+                <!-- RFQ進行 -->
+                <div class="spc-card">
+                    <div class="spc-card__head">
+                        <h3 class="spc-card__title">RFQ 進行状況</h3>
+                        <span class="spc-card__sub">合計 {rfqChartData.total} 件</span>
+                    </div>
+                    <div class="spc-card__body">
+                        <template if:true={rfqChartData.total}>
+                            <template for:each={rfqChartData.items} for:item="item">
+                                <div key={item.label} class="spc-bar">
+                                    <span class="spc-bar__label">{item.label}</span>
+                                    <div class="spc-bar__track">
+                                        <div class="spc-bar__fill" style={item.barStyle}></div>
+                                    </div>
+                                    <span class="spc-bar__count">{item.count}</span>
+                                </div>
+                            </template>
+                        </template>
+                        <template if:false={rfqChartData.total}>
+                            <p class="spc-empty">RFQはまだありません</p>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 調査状況 -->
+                <div class="spc-card">
+                    <div class="spc-card__head">
+                        <h3 class="spc-card__title">品質調査 対応状況</h3>
+                        <span class="spc-card__sub">合計 {investigationChartData.total} 件</span>
+                    </div>
+                    <div class="spc-card__body">
+                        <template if:true={investigationChartData.total}>
+                            <template for:each={investigationChartData.items} for:item="item">
+                                <div key={item.label} class="spc-bar">
+                                    <span class="spc-bar__label">{item.label}</span>
+                                    <div class="spc-bar__track">
+                                        <div class="spc-bar__fill" style={item.barStyle}></div>
+                                    </div>
+                                    <span class="spc-bar__count">{item.count}</span>
+                                </div>
+                            </template>
+                        </template>
+                        <template if:false={investigationChartData.total}>
+                            <p class="spc-empty">対応中の調査はありません</p>
+                        </template>
+                    </div>
+                </div>
+            </section>
+
+            <!-- キャパシティサマリー -->
+            <section class="spc-section">
+                <div class="spc-card spc-card--clickable" onclick={handleCapacityCardClick} role="button" tabindex="0">
+                    <div class="spc-card__head">
+                        <h3 class="spc-card__title">製造拠点キャパシティ</h3>
+                        <span class="spc-card__sub">拠点別の月産能力と有効期限 ›</span>
+                    </div>
+                    <div class="spc-card__body">
+                        <template if:true={hasCapacity}>
+                            <div class="spc-capacity-list">
+                                <template for:each={capacityRows} for:item="cap">
+                                    <div key={cap.siteId} class="spc-capacity">
+                                        <div class="spc-capacity__head">
+                                            <span class="spc-capacity__site">{cap.siteName}</span>
+                                            <span class="spc-capacity__pref">{cap.prefecture}</span>
+                                        </div>
+                                        <div class="spc-capacity__body">
+                                            <div class="spc-capacity__metric">
+                                                <span class="spc-capacity__metric-label">月産合計</span>
+                                                <span class="spc-capacity__metric-value">{cap.totalLabel}</span>
+                                            </div>
+                                            <div class="spc-capacity__metric">
+                                                <span class="spc-capacity__metric-label">品目数</span>
+                                                <span class="spc-capacity__metric-value">{cap.capacityEntryCount}</span>
+                                            </div>
+                                            <div class="spc-capacity__metric">
+                                                <span class="spc-capacity__metric-label">最短有効期限</span>
+                                                <span class={cap.expiryClass}>{cap.expiryLabel}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        <template if:false={hasCapacity}>
+                            <p class="spc-empty">登録された製造拠点がありません</p>
+                        </template>
+                    </div>
+                </div>
+            </section>
+        </template>
+    </div>
+</template>
