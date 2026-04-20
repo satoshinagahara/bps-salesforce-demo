@@ -97,3 +97,82 @@ sf community publish --target-org $TARGET_ORG --name "SRMポータル"
 
 - Wave 1 で残っていた壊れた `/rfq-response` `/investigation-response` ページは Wave 2 で **完全除去済**
 - テンプレートが要求する `enablement-program-*` スタブルートは残置（2 本、害なし）
+
+## 6. ヘッダー / フッター HTML（Experience Builder 貼付用）
+
+Experience Builder の「リッチコンテンツエディタ」に HTML モードで貼り付ける想定。LWC で既に構築済のダッシュボードと重複しない情報として、**ヘッダーはサポート窓口** を常時可視化し、**フッターは規約/問い合わせ動線** を全ページ共通で提供する。
+
+### 6.1 ヘッダー（ホームのみ、高さ ~200px）
+
+- 背景: Experience Cloud 標準の `/sfsites/assets/Images/PrmEnhancedBanner/PrmEnhancedBanner.png`
+- 左右グラデーションの白オーバーレイでテキスト可読性確保
+- 下端に BPS 赤 4px アクセント
+- 右側にサポート窓口カード（角丸 14px、白背景＋赤影）
+
+```html
+<div style="position:relative;width:100%;min-height:200px;overflow:hidden;font-family:'Hiragino Sans','Noto Sans JP',sans-serif;border-bottom:4px solid #D21D24;box-sizing:border-box;">
+
+  <img src="/sfsites/assets/Images/PrmEnhancedBanner/PrmEnhancedBanner.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;" />
+
+  <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0.75) 0%,rgba(255,255,255,0.55) 45%,rgba(255,255,255,0.25) 100%);z-index:2;"></div>
+
+  <div style="position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:1.75rem 2.5rem;gap:2rem;flex-wrap:wrap;min-height:200px;box-sizing:border-box;">
+
+    <div style="flex:1 1 320px;min-width:280px;">
+      <div style="display:inline-block;padding:0.2rem 0.7rem;background:#D21D24;color:#FFFFFF;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;border-radius:2px;margin-bottom:0.7rem;">SUPPLIER PORTAL</div>
+      <h1 style="margin:0 0 0.45rem 0;font-size:1.65rem;font-weight:700;color:#2D2D2D;line-height:1.3;text-shadow:0 1px 2px rgba(255,255,255,0.6);">サプライヤーポータルへようこそ</h1>
+      <p style="margin:0;font-size:0.92rem;color:#444444;line-height:1.5;text-shadow:0 1px 2px rgba(255,255,255,0.6);">日々のご対応ありがとうございます。見積依頼・品質調査への対応状況はダッシュボードからご確認ください。</p>
+    </div>
+
+    <div style="flex:0 0 auto;min-width:260px;background:#FFFFFF;border:1px solid #F2C0C2;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 4px 12px rgba(210,29,36,0.15);">
+      <div style="font-size:0.72rem;font-weight:700;color:#D21D24;letter-spacing:0.08em;margin-bottom:0.5rem;">BPS サプライヤーサポート窓口</div>
+      <div style="display:flex;flex-direction:column;gap:0.3rem;font-size:0.85rem;color:#2D2D2D;line-height:1.4;">
+        <div><span style="color:#888;display:inline-block;width:3.5em;">TEL</span><span style="font-weight:600;">03-0000-0000</span></div>
+        <div><span style="color:#888;display:inline-block;width:3.5em;">Mail</span><a href="mailto:supplier-support@bps.example.com" style="color:#A61319;text-decoration:none;font-weight:600;">supplier-support@bps.example.com</a></div>
+        <div style="color:#888;font-size:0.78rem;margin-top:0.15rem;">受付時間: 平日 9:00–17:30</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+```
+
+### 6.2 フッター（全ページ共通）
+
+- 上端に BPS 赤 2px アクセント
+- 左: サービス名＋著作権表記
+- 右: 規約/プライバシー/FAQ/問い合わせリンク（規約系は `href="#"` プレースホルダ、実運用で差し替え）
+- 下端に黒帯でバージョン・最終更新日
+
+```html
+<div style="width:100%;border-top:2px solid #D21D24;background:#FAFAFA;font-family:'Hiragino Sans','Noto Sans JP',sans-serif;color:#555555;box-sizing:border-box;">
+  <div style="max-width:1400px;margin:0 auto;padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <span style="font-size:0.82rem;color:#2D2D2D;font-weight:600;">BPS Supplier Portal</span>
+      <span style="font-size:0.75rem;color:#888;">© 2026 BPS Corporation. All rights reserved.</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:1.5rem;font-size:0.8rem;flex-wrap:wrap;">
+      <a href="#" style="color:#555555;text-decoration:none;">利用規約</a>
+      <span style="color:#E5E5E5;">|</span>
+      <a href="#" style="color:#555555;text-decoration:none;">プライバシーポリシー</a>
+      <span style="color:#E5E5E5;">|</span>
+      <a href="#" style="color:#555555;text-decoration:none;">ヘルプ / FAQ</a>
+      <span style="color:#E5E5E5;">|</span>
+      <a href="mailto:supplier-support@bps.example.com" style="color:#A61319;text-decoration:none;font-weight:600;">お問い合わせ</a>
+    </div>
+
+  </div>
+
+  <div style="background:#2D2D2D;color:#999;font-size:0.7rem;padding:0.5rem 2rem;text-align:center;letter-spacing:0.03em;">
+    Portal Version 2.0　|　最終更新: 2026-04-20
+  </div>
+</div>
+```
+
+### 6.3 配置手順
+
+1. Experience Builder > ホームページ > **リッチコンテンツエディタ** をヘッダー領域にドラッグ → HTML モード → ヘッダー HTML 貼付
+2. テンプレート/テーマの Footer 領域（全ページ共通）にリッチコンテンツエディタを配置 → フッター HTML 貼付
+3. `sf community publish` で反映
