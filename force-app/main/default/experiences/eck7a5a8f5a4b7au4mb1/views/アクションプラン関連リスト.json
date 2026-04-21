@@ -1,0 +1,39 @@
+{
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "0b50aa27-294c-4831-ac4b-b2ff89cf35ea",
+  "label" : "アクションプラン関連リスト",
+  "regions" : [ {
+    "id" : "95228d30-bf7f-44c7-9b7a-0f6ce218e902",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customTitle" : "",
+        "parentRecordId" : "{!recordId}",
+        "relatedListName" : "{!relationshipApiName}",
+        "showBreadCrumbs" : true,
+        "showCustomTitle" : false,
+        "showManualRefreshButton" : true,
+        "showRowNumbers" : true
+      },
+      "componentName" : "forceCommunity:relatedList",
+      "id" : "66ad79ee-263f-40c2-b59c-c96d2d289931",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "11f88b87-f4af-4980-b777-7cf4a73f538b",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "10b813a0-fd4d-4c74-8122-413828795af1",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "relatedlist-07r"
+}

@@ -1,0 +1,33 @@
+{
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "1f65b4ae-8156-4fc3-ab12-7fa8ff00210b",
+  "label" : "Quip ドキュメント関連リスト",
+  "regions" : [ {
+    "id" : "ddbb155b-294f-4568-93c5-1909d85c41df",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "parentRecordId" : "{!recordId}"
+      },
+      "componentName" : "forceCommunity:relatedQuipItemsView",
+      "id" : "5496201e-96fe-4211-98da-7a8adaf8b998",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "fd83382b-7827-42a0-9a34-dca322deca22",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "2e7ea600-443f-4cf6-9f00-978e6b321cab",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "extrelated-quip"
+}

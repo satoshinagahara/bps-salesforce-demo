@@ -1,0 +1,12 @@
+{
+  "activeViewId" : "1f65b4ae-8156-4fc3-ab12-7fa8ff00210b",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "extrelated_quip",
+  "id" : "15792c6f-7360-4377-a998-5292d5b0bff0",
+  "label" : "Quip ドキュメント関連リスト",
+  "pageAccess" : "UseParent",
+  "routeType" : "extrelated-quip",
+  "type" : "route",
+  "urlPrefix" : "quip"
+}

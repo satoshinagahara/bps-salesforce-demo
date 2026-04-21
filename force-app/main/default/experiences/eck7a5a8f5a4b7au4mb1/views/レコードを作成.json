@@ -1,0 +1,34 @@
+{
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "75729349-0b20-48ff-bd4b-c755c7d510bd",
+  "label" : "レコードを作成",
+  "regions" : [ {
+    "id" : "0f78e283-171f-4714-8bdb-2953797a9676",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "actionApiName" : "{!actionApiName}",
+        "isMicrobatch" : false
+      },
+      "componentName" : "forceCommunity:createRecordForm",
+      "id" : "09da27d3-8d24-4f61-8e69-d5f543925d22",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "3fdc96ec-e779-4d22-9a19-db50f42bb308",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "7fd9fe1a-28c0-49c2-8264-60f6414f9038",
+    "regionName" : "footer",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "createrecord"
+}

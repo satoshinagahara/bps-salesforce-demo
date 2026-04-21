@@ -1,0 +1,67 @@
+{
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "componentName" : "siteforce:sldsTwoCol84Layout",
+  "dataProviders" : [ ],
+  "id" : "d46338ca-def2-4f72-9033-5d5af0fd0153",
+  "label" : "トピックの詳細",
+  "regions" : [ {
+    "id" : "e1a9fbff-0585-4014-8cb4-0e43415eff3b",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "articleListPageSize" : 10,
+        "showTitle" : true,
+        "title" : "Articles",
+        "topicId" : "{!recordId}"
+      },
+      "componentName" : "selfService:topicRelatedArticle",
+      "id" : "6a352d3a-03f1-4c0b-afbd-1c95083728b6",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "4b0cfbc2-811d-4a36-a92d-dcb9d7347127",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "showTopicsMetric" : true,
+        "title" : "Related Topics",
+        "topicId" : "{!recordId}"
+      },
+      "componentName" : "forceCommunity:relatedTopics",
+      "id" : "37c1753a-a440-44b6-92fb-4699e47933a4",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "db676e9c-8e41-4f49-88b3-63bb0444d0f0",
+    "regionName" : "sidebar",
+    "type" : "region"
+  }, {
+    "id" : "2e38264f-ae01-4ee7-8bdf-a1501cbf8c83",
+    "regionName" : "footer",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customHeadTags" : "",
+        "description" : "{!Record.Description}",
+        "title" : "{!Record._Title}"
+      },
+      "componentName" : "forceCommunity:seoAssistant",
+      "id" : "c74d31b2-0077-4c1d-8233-18def6258472",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "9839d6e3-abc1-42bd-aa89-6e1747ac0bb5",
+    "regionName" : "sfdcHiddenRegion",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "topic"
+}

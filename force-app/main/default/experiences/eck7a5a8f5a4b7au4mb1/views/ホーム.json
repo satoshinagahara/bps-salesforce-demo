@@ -1,0 +1,66 @@
+{
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "cfd1197a-cd11-4f32-bd90-4fff36270509",
+  "label" : "ホーム",
+  "regions" : [ {
+    "id" : "5cca1483-5aaf-41f8-b58a-93bc67811e1b",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "bannerBackgroundColor" : "",
+        "bannerPosition" : "top",
+        "bannerSizePercent" : 35,
+        "borderRadius" : 20,
+        "boxShadow" : true,
+        "haveBanner" : false,
+        "iconBackgroundColor" : "rgb(255,255,255)",
+        "iconSize" : "medium",
+        "noImageColor" : "rgb(116,116,116)",
+        "overlay" : "rgba(0,0,0,0.01)",
+        "templateType" : "default",
+        "tileMenuEditor" : "Default_Navigation14",
+        "titleColor" : "",
+        "titleFontSize" : "medium",
+        "titleHorizontalAlign" : "center"
+      },
+      "componentName" : "community_navigation:tileMenu",
+      "id" : "134feddc-3f98-4fdc-ba73-c4f3e65f7f5c",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "fd2e946b-1eee-423a-9883-3b989d37011a",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "70bcc184-184c-44f4-b3ac-0f1cd694c154",
+    "regionName" : "sidebar",
+    "type" : "region"
+  }, {
+    "id" : "eecd7d95-5678-4b87-9bba-6fdfaa957749",
+    "regionName" : "footer",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customHeadTags" : "",
+        "description" : "",
+        "title" : "ホーム"
+      },
+      "componentName" : "forceCommunity:seoAssistant",
+      "id" : "9d374d72-5e3b-491f-8038-0221a84fd3b0",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "d9771aeb-81ff-43c3-8415-ea2e65a8e6b1",
+    "regionName" : "sfdcHiddenRegion",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Home",
+  "type" : "view",
+  "viewType" : "home"
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Demo_Seed__c</fullName>
+    <label>デモ用シードデータ</label>
+    <description>lh360デモ用に投入したシードデータ識別フラグ。shift_demo_dates.pyによる日付一括シフト対象。</description>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+</CustomField>

@@ -1,0 +1,12 @@
+{
+  "activeViewId" : "05cdb5f7-3213-44ca-9a43-3cfbafff0f5b",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "Top_Articles",
+  "id" : "54091ccb-014b-41f1-a829-17957b5e3787",
+  "label" : "上位の記事",
+  "pageAccess" : "UseParent",
+  "routeType" : "top-articles",
+  "type" : "route",
+  "urlPrefix" : "toparticles"
+}

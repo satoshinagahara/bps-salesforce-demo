@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "d3f3a1d8-e7eb-4595-a274-492f99d55e10",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "Article_Detail",
+  "id" : "e6a9daa2-b53a-4d66-8b7d-4298a81c0bb1",
+  "label" : "記事の詳細",
+  "routeType" : "article",
+  "type" : "route",
+  "urlPrefix" : "article"
+}

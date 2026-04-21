@@ -1,0 +1,12 @@
+{
+  "activeViewId" : "b1701a88-a781-486d-9f5a-b8fd81a2336f",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "Contact_Support",
+  "id" : "1a18b1a0-302e-4258-ba58-d3ab233c3acf",
+  "label" : "Salesforce に問い合わせる",
+  "pageAccess" : "UseParent",
+  "routeType" : "contactsupport",
+  "type" : "route",
+  "urlPrefix" : "contactsupport"
+}

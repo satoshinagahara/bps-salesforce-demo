@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [],
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "/tmp",
+      "/Users/satoshi/.local/share/uv/tools/mlx-lm/lib/python3.11/site-packages/mlx_lm",
+      "/Users/satoshi"
+    ]
+  },
+  "enabledPlugins": {
+    "aws-serverless@agent-plugins-for-aws": true,
+    "deploy-on-aws@agent-plugins-for-aws": true
+  },
+  "extraKnownMarketplaces": {
+    "agent-plugins-for-aws": {
+      "source": {
+        "source": "github",
+        "repo": "awslabs/agent-plugins"
+      }
+    }
+  },
+  "model": "claude-opus-4-7"
+}

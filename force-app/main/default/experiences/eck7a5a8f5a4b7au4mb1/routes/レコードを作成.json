@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "75729349-0b20-48ff-bd4b-c755c7d510bd",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "Create_Record",
+  "id" : "d6096797-82ef-4f43-9bc0-481f2d43d80a",
+  "label" : "レコードを作成",
+  "routeType" : "createrecord",
+  "type" : "route",
+  "urlPrefix" : "createrecord"
+}

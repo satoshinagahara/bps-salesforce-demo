@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Focal_Account__c</fullName>
+    <label>注力アカウント</label>
+    <description>SAEが戦略的に注力する主要アカウント。lh360大型案件追跡ユースケースで週次レポートの対象。</description>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+</CustomField>

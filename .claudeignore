@@ -1,0 +1,16 @@
+# Claude Codeのコンテキスト読み込み対象から除外するパス
+# 2026-04-18 追加: トークン消費削減のため、確実に不要なもののみ登録
+# 詳細: docs/reference/disabled-mcp-backup/README.md 参照
+
+# Node.js依存
+node_modules/
+
+# Salesforce CLI キャッシュ/生成物
+.sf/
+.sfdx/
+
+# ログ
+*.log
+
+# 静的リソースのバイナリ（必要時はこの行を一時的にコメントアウト）
+force-app/main/default/staticresources/**/*.zip

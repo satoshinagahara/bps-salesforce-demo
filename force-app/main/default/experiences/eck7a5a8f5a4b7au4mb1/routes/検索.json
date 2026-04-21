@@ -1,0 +1,12 @@
+{
+  "activeViewId" : "163c0e73-2902-4f94-b865-590334ae2d64",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "Search",
+  "id" : "10508c60-9112-4947-9d8e-76b421bc4da6",
+  "label" : "検索",
+  "pageAccess" : "UseParent",
+  "routeType" : "global-search",
+  "type" : "route",
+  "urlPrefix" : "global-search"
+}

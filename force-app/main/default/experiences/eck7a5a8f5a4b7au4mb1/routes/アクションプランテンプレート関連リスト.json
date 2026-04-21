@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "4f1ab319-c597-44e8-a2d5-65411551f698",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "relatedlist_0PR",
+  "id" : "4ac3e54d-42d8-4aa2-b55d-53e989e89e0c",
+  "label" : "アクションプランテンプレート関連リスト",
+  "routeType" : "relatedlist-0PR",
+  "type" : "route",
+  "urlPrefix" : "actionplantemplate"
+}

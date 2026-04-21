@@ -1,0 +1,11 @@
+{
+  "activeViewId" : "e7a75be4-351b-460d-90cd-235c90bd6c7b",
+  "appPageId" : "bf4186b6-abfe-48c3-8ccc-9e175703cb56",
+  "configurationTags" : [ ],
+  "devName" : "Record_Detail",
+  "id" : "58ccb009-d0de-4cf0-b920-1989077b47f4",
+  "label" : "レコードの詳細",
+  "routeType" : "detail",
+  "type" : "route",
+  "urlPrefix" : "detail"
+}
