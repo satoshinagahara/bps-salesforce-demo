@@ -133,4 +133,5 @@ Phase C 以降は Phase A/B 完了後に再評価。
 - **Phase D (β catalog 外部系 task 具体化)**: ログ蓄積後に判断
 - **Phase E (Escalate synthesis_hint 強化)**: 必要性まだ不明
 
-lh360 本線側: UI 大改修 + ユーザからの追加トピック 1 件が保留中。
+lh360 本線側: UI 大改修が保留中 (Stage 3 overflow と合流予定)。
+※ 以前「保留中」としていた「セマンティックレイヤー」(SF メタ情報を Planner に持たせる) トピックは Phase A (`sf_semantic_layer.yaml` + `gw_semantic_layer.yaml`) で実装完了済。

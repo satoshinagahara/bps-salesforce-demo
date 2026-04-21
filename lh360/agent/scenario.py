@@ -23,7 +23,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .atomic import AtomicExecutor
+from .atomic import AtomicExecutor, load_field_dict
 from .escalate import EscalateExecutor
 from .loop import (
     AgentConfig,
@@ -160,7 +160,8 @@ async def main():
         catalog = load_catalog()
         semantic_layer = load_semantic_layer()
         workspace_semantic_layer = load_workspace_semantic_layer()
-        atomic_exec = AtomicExecutor(mcp_manager=mgr)
+        field_dict = load_field_dict()
+        atomic_exec = AtomicExecutor(mcp_manager=mgr, field_dict=field_dict)
         try:
             escalate_exec = EscalateExecutor()
             escalate_info = f" escalate={escalate_exec.cfg.model}"

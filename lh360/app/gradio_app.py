@@ -30,7 +30,7 @@ from agent.loop import (
     EvToolCallResult,
     EvToolCallStart,
 )
-from agent.atomic import AtomicExecutor
+from agent.atomic import AtomicExecutor, load_field_dict
 from agent.escalate import EscalateExecutor
 from agent.mcp_manager import MCPManager, MCPServerSpec
 from planner import (
@@ -241,7 +241,7 @@ async def _ensure_initialized():
             # atomic を出さないので常に full に流れる → AtomicExecutor は不要)
             atomic_executor = None
             if planner_llm is not None:
-                atomic_executor = AtomicExecutor(mcp_manager=_mgr)
+                atomic_executor = AtomicExecutor(mcp_manager=_mgr, field_dict=load_field_dict())
                 logger.info(
                     f"[atomic] AtomicExecutor enabled "
                     f"(max_turns={atomic_executor._loop.cfg.max_turns})"

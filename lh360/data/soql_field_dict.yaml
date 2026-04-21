@@ -1,0 +1,86 @@
+# Executor (Gemma) が SOQL を組み立てる際に参照するフィールド名辞書。
+#
+# 目的と位置付け:
+#   sf_semantic_layer.yaml = 業務意味辞書 → Planner (Sonnet) が「何を取るか」を判断するために使う
+#   soql_field_dict.yaml   = 技術名辞書   → Executor (Gemma) が「どう取るか」を正確に書くために使う
+#
+# 収録基準:
+#   - Gemma 4 が hallucinate しやすいカスタムオブジェクトのフィールド名・リレーション名
+#   - 「このフィールドは存在しない」という禁止情報も収録（誤りを潰すために重要）
+#   - 標準オブジェクト (Account/Contact/Opportunity/Task 等) は SOQL 仕様が広く知られているため省略
+#
+# メンテ方針:
+#   - テスト実行で SOQL エラーが出たカスタムオブジェクト/フィールドを随時追加する
+#   - Executor の system prompt に注入されるため分量に注意（長くなりすぎない）
+#   - Planner の semantic_layer とは独立してメンテする
+
+version: "2026-04-21"
+
+objects:
+  - api_name: Meeting_Record__c
+    label: 面談記録
+    correct_fields:
+      - {name: Meeting_Date__c,    type: Date,          note: 面談日。ActivityDate__c は存在しない}
+      - {name: Meeting_Type__c,    type: Picklist,      note: 面談種別}
+      - {name: Summary__c,         type: LongTextArea,  note: 面談サマリ（主要フィールド）}
+      - {name: Transcript__c,      type: LongTextArea,  note: 文字起こし（長いので必要な時だけ）}
+      - {name: Participants__c,    type: TextArea,      note: 参加者リスト}
+      - {name: Opportunity__c,     type: Lookup,        note: 親 Opportunity への Lookup。WhatId は存在しない}
+      - {name: Account__c,         type: Lookup,        note: 親 Account への Lookup。AccountId は存在しない}
+    wrong_fields:
+      - {name: ActivityDate__c,    correct: Meeting_Date__c}
+      - {name: WhatId,             correct: Opportunity__c}
+      - {name: AccountId,          correct: Account__c}
+    soql_recipes:
+      by_opportunity: >-
+        SELECT Id, Meeting_Date__c, Meeting_Type__c, Summary__c
+        FROM Meeting_Record__c
+        WHERE Opportunity__c = '<OppId>'
+        ORDER BY Meeting_Date__c DESC LIMIT 5
+      by_account: >-
+        SELECT Id, Meeting_Date__c, Meeting_Type__c, Summary__c, Opportunity__r.Name
+        FROM Meeting_Record__c
+        WHERE Account__c = '<AccountId>'
+        ORDER BY Meeting_Date__c DESC LIMIT 5
+
+  - api_name: Opportunity_Summary__c
+    label: 商談サマリカード
+    correct_fields:
+      - {name: Opportunity__c,           type: Lookup,        note: 親 Opportunity への Lookup}
+      - {name: Deal_Narrative__c,        type: LongTextArea,  note: 商談ストーリー}
+      - {name: Customer_Challenge__c,    type: LongTextArea,  note: 顧客課題}
+      - {name: Our_Value_Proposition__c, type: LongTextArea,  note: 提案価値}
+      - {name: Key_Stakeholders__c,      type: LongTextArea,  note: 主要関係者}
+      - {name: Key_Risks__c,             type: LongTextArea,  note: 主要リスク}
+      - {name: Competitive_Situation__c, type: Picklist}
+      - {name: Engagement_Depth__c,      type: Picklist}
+      - {name: Confidence_Score__c,      type: Number,        note: サマリ信頼度（0-1）}
+    wrong_fields:
+      - {name: Deal_Narrative__c on Opportunity,     note: これは Opportunity_Summary__c のフィールド。Opportunity 直フィールドではない}
+      - {name: Opportunity_Summary__c.field on JOIN, note: JOIN での参照不可。別クエリで取得すること}
+    soql_recipes:
+      by_opportunity: >-
+        SELECT Id, Deal_Narrative__c, Customer_Challenge__c, Key_Risks__c, Confidence_Score__c
+        FROM Opportunity_Summary__c
+        WHERE Opportunity__c = '<OppId>'
+        ORDER BY CreatedDate DESC LIMIT 1
+
+  - api_name: Proposal_Context__c
+    label: 提案書コンテキスト
+    correct_fields:
+      - {name: Opportunity__c,       type: MasterDetail,  note: 親 Opportunity（MasterDetail）}
+      - {name: Extracted_Text__c,    type: LongTextArea,  note: 抽出本文}
+      - {name: Extraction_Status__c, type: Picklist,      note: 完了のもののみ参照すること}
+      - {name: File_Name__c,         type: Text}
+    soql_recipes:
+      by_opportunity: >-
+        SELECT Id, Extracted_Text__c, File_Name__c
+        FROM Proposal_Context__c
+        WHERE Opportunity__c = '<OppId>' AND Extraction_Status__c = '完了'
+        ORDER BY CreatedDate DESC LIMIT 1
+
+soql_general_rules:
+  - "カスタム Lookup の子→親参照: `Opportunity__r.Name` のように `__c` → `__r` に変えて使う"
+  - "親→子のサブクエリより、子側の WHERE Opportunity__c = 'Id' の別クエリの方が安全で確実"
+  - "日付フィールドのフィルタは引用符なし: `Meeting_Date__c >= 2026-04-01` (DATE リテラル)"
+  - "Task の What/Who は polymorphic。`WhatId LIKE '%xxx%'` は使えない（id フィールドに LIKE 不可）"

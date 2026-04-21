@@ -37,6 +37,9 @@ google_workspace:
         - 下書きを作ったあと「送信しました」と誤報告しない (送信 API は無い)
         - Contact.Email が空のレコードは事前に除外
         - 敬称は Contact.Salutation__c もしくは役職から判断 (デフォルトは「様」)
+        - メール宛先を Web 検索・fetch で探すことは禁止。個人のメールアドレスは
+          必ず Salesforce の Contact.Email から取得する。brave や fetch は個人連絡先の
+          取得には使わない
 
   calendar_tools:
     - name: calendar_list_events
@@ -47,9 +50,14 @@ google_workspace:
           → 現在時刻ベースなら time MCP で get_current_time → 加算して渡す
         - calendar_id: "primary" がデフォルト (ユーザ本人のカレンダー)
         - max_results: デフォルト 50
+        - **「来週」の計算**: 「来週」= 翌週の月曜日 00:00:00 〜 日曜日 23:59:59。
+          例: 今日が水曜(2026-04-22)なら来週月曜=4/27、日曜=5/3。
+          time で現在日時を取得し、(7 - weekday) を加算して翌月曜を算出してから渡すこと。
+          「今日から7日以内」や「今週末まで」は "来週" とは異なる。
       common_mistakes:
         - date-only 形式 ("2026-05-12") は通らない。必ず RFC3339 で時刻+オフセット
         - JST は "+09:00" を明示 (Z だと UTC 扱いで 9 時間ズレる)
+        - 「来週」を「今日から7日後まで」と計算しない。翌週月曜〜日曜の範囲で渡す
 
     - name: calendar_check_availability
       when_to_use: |

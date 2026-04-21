@@ -22,6 +22,8 @@ import os
 from pathlib import Path
 from typing import AsyncIterator
 
+import yaml
+
 from .loop import AgentConfig, AgentLoop, Event
 from .mcp_manager import MCPManager
 
@@ -98,6 +100,10 @@ ATOMIC_SYSTEM_PROMPT = """\
 - **Task の polymorphic lookup は `What`/`Who`**。Task には `Opportunity.Name` のような
   直接リレーションはない。関連レコード名を取りたい場合は `What.Name` (親: Account/Opportunity/Case 等)、
   `Who.Name` (Contact/Lead) を使う。例: `SELECT Id, Subject, ActivityDate, What.Name, Who.Name FROM Task`。
+- **Task の WhatId/WhoId への IN 句は使えない** (polymorphic lookup の制約)。複数 ID で絞る場合は
+  `WHERE WhatId = 'id1'` を個別に実行するか、Account/Opportunity 側のレコード ID を 1 つに絞ってから
+  クエリする。`WhatId IN (SELECT Id FROM ...)` のサブクエリ形式も同様に使えない。
+- **Task の ORDER BY は `ActivityDate`**（単数形）。`ActivityDATES` 等のタイポに注意。
 - **OpportunityContactRole に IsPrimary 列はない**。Primary Contact を取りたい場合は
   `SELECT ContactId FROM OpportunityContactRole WHERE OpportunityId=... AND Role='Decision Maker'`
   などロール名で絞るか、`SELECT Primary_Contact__c FROM Opportunity WHERE ...` (カスタム項目) を使う。
@@ -136,6 +142,7 @@ class AtomicExecutor:
         max_turns: int | None = None,
         system_prompt: str | None = None,
         base_cfg: AgentConfig | None = None,
+        field_dict: dict | None = None,
     ):
         cfg = base_cfg or AgentConfig()
         # atomic 用に max_turns を上書き (env > arg > 3)
@@ -154,10 +161,13 @@ class AtomicExecutor:
             timeout_sec=cfg.timeout_sec,
             retry_temperatures=cfg.retry_temperatures,
         )
+        base_prompt = system_prompt or _load_atomic_system_prompt()
+        if field_dict:
+            base_prompt = base_prompt + "\n\n" + _format_field_dict_section(field_dict)
         self._loop = AgentLoop(
             mcp_manager=mcp_manager,
             cfg=cfg,
-            system_prompt=system_prompt or _load_atomic_system_prompt(),
+            system_prompt=base_prompt,
         )
 
     async def run(
@@ -210,3 +220,82 @@ def _load_atomic_system_prompt() -> str:
     if p.exists():
         return p.read_text(encoding="utf-8")
     return ATOMIC_SYSTEM_PROMPT
+
+
+_DEFAULT_FIELD_DICT_PATH = Path(__file__).resolve().parents[1] / "data" / "soql_field_dict.yaml"
+
+
+def load_field_dict(path: Path | str | None = None) -> dict:
+    """SOQL フィールド名辞書を読み込む。
+
+    path 省略時は data/soql_field_dict.yaml を使う。
+    ファイルが存在しない場合は空 dict を返す（辞書なしで動くフォールバック）。
+    """
+    target = Path(path) if path else _DEFAULT_FIELD_DICT_PATH
+    if not target.exists():
+        logger.warning(f"[field_dict] not found: {target} — Executor runs without field dict")
+        return {}
+    try:
+        data = yaml.safe_load(target.read_text(encoding="utf-8")) or {}
+        logger.info(
+            f"[field_dict] loaded {target.name} "
+            f"v={data.get('version','?')} "
+            f"objects={len(data.get('objects', []))}"
+        )
+        return data
+    except Exception as e:
+        logger.warning(f"[field_dict] failed to load {target}: {e}")
+        return {}
+
+
+def _format_field_dict_section(field_dict: dict) -> str:
+    """field_dict を Executor の system prompt に注入するテキストに変換する。
+
+    分量を最小限に抑えるため、correct_fields / wrong_fields / soql_recipes のみ抽出する。
+    """
+    objects = field_dict.get("objects", [])
+    general_rules = field_dict.get("soql_general_rules", [])
+    if not objects and not general_rules:
+        return ""
+
+    lines = ["## カスタムオブジェクト SOQL リファレンス",
+             "",
+             "以下はこの org 固有のカスタムオブジェクトの**正確なフィールド名**と",
+             "**SOQL パターン**。SOQL を書く際は必ずこのリファレンスに従うこと。",
+             ""]
+
+    for obj in objects:
+        api_name = obj.get("api_name", "")
+        label = obj.get("label", "")
+        lines.append(f"### {api_name}（{label}）")
+
+        correct = obj.get("correct_fields", [])
+        if correct:
+            lines.append("**正しいフィールド名:**")
+            for f in correct:
+                note = f"  # {f['note']}" if f.get("note") else ""
+                lines.append(f"- `{f['name']}` ({f.get('type', '')}){note}")
+
+        wrong = obj.get("wrong_fields", [])
+        if wrong:
+            lines.append("**使ってはいけないフィールド名（存在しない）:**")
+            for f in wrong:
+                correct_name = f.get("correct", "")
+                note = f.get("note", "")
+                hint = f" → 正しくは `{correct_name}`" if correct_name else f" # {note}" if note else ""
+                lines.append(f"- ~~`{f['name']}`~~{hint}")
+
+        recipes = obj.get("soql_recipes", {})
+        if recipes:
+            lines.append("**SOQL パターン:**")
+            for key, sql in recipes.items():
+                lines.append(f"```sql\n-- {key}\n{sql.strip()}\n```")
+
+        lines.append("")
+
+    if general_rules:
+        lines.append("### 共通ルール")
+        for rule in general_rules:
+            lines.append(f"- {rule}")
+
+    return "\n".join(lines)
