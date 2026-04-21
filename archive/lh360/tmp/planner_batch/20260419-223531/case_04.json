@@ -1,0 +1,40 @@
+{
+  "id": 4,
+  "prompt": "今日のアポイント一覧と関連する商談を教えて",
+  "hint": "B pattern / atomic or 2-step",
+  "raw_plan": {
+    "user_intent": "今日のカレンダー上のアポイント一覧を取得し、それぞれに関連する SFDC 商談情報を合わせて提示する",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e2-3-a",
+        "task_description": "今日のカレンダーイベント（アポイント）を全件取得し、イベント名・時刻・参加者・説明を一覧化する。現在時刻を取得してから今日の開始〜終了時刻の範囲でカレンダーを検索すること。",
+        "context": {},
+        "available_tools": [
+          "time__get_current_time",
+          "gw__calendar_list_events"
+        ],
+        "success_criteria": "今日の全アポイントのイベント名・開始時刻・参加者リストが揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "full",
+        "elementary_id": "e7-3-b",
+        "task_description": "以下は今日のカレンダーアポイント一覧（s1 の結果）。各アポイントのイベント名・参加者情報（会社名・氏名）をもとに、SFDC の Opportunity および Account を検索し、関連する商談（Opp ID・Name・Stage・Amount・CloseDate）を特定して各アポイントと紐付けて報告する。参加者のメールアドレスや会社名を手がかりに Contact → Account → Opportunity の順で検索すること。",
+        "context": {
+          "depends_on_s1": "today_appointments"
+        },
+        "available_tools": null,
+        "success_criteria": "各アポイントに対して関連 Opp（または「該当なし」）が紐付いた一覧が揃っている",
+        "depends_on": [
+          "s1"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1 のアポイント一覧を時系列順に並べ、各アポイントの下に s2 で特定した関連商談情報（Opp Name・Stage・Amount・CloseDate）をセットで表示する。関連商談が見つからない場合は「関連商談なし」と明記する。"
+  },
+  "warnings": []
+}

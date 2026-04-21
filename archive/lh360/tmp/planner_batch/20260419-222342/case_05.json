@@ -1,0 +1,54 @@
+{
+  "id": 5,
+  "prompt": "今四半期の優先商談トップ3とそれぞれの担当者の連絡先を教えて",
+  "hint": "複数step連結 (例 3 と同じ形)",
+  "raw_plan": {
+    "user_intent": "今四半期の優先商談トップ3を特定し、それぞれの担当取引先責任者の連絡先を返す",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-5-a",
+        "task_description": "Salesforce から今四半期（当該会計年度Q）の自担当 Opportunity を取得し、金額×確度（Amount × Probability）の積が高い順にトップ3を抽出する。結果として Opp ID・Name・Amount・Probability・StageName を列挙すること。現在の日付を考慮して当四半期の CloseDate 範囲を SOQL の WHERE 句に設定すること。",
+        "context": {
+          "sort_key": "Amount * Probability DESC",
+          "limit": 3,
+          "fields": [
+            "Id",
+            "Name",
+            "Amount",
+            "Probability",
+            "StageName",
+            "CloseDate"
+          ]
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query",
+          "time__get_current_time"
+        ],
+        "success_criteria": "今四半期の Opp トップ3の Id・Name・Amount・Probability・StageName が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": null,
+        "task_description": "s1 で取得した Opp ID 3件それぞれに紐づく取引先責任者（Contact）を Salesforce から取得する。OpportunityContactRole オブジェクトを使い、各 Opp に関連する Contact の Name・Email・Phone・Title を取得して報告すること。Opp ID は context の opp_ids に格納されている。",
+        "context": {
+          "opp_ids": "__s1_output_opp_ids__"
+        },
+        "available_tools": [
+          "sf__run_soql_query"
+        ],
+        "success_criteria": "トップ3の Opp それぞれについて関連 Contact の Name・Email・Phone・Title が揃っている",
+        "depends_on": [
+          "s1"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1 のトップ3商談一覧（Name・Amount・Probability・Stage）と s2 の担当者連絡先（Name・Email・Phone・Title）を Opp 単位でセットにして提示する"
+  },
+  "warnings": []
+}

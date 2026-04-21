@@ -1,0 +1,32 @@
+[
+  {
+    "id": 7,
+    "prompt": "直近の商談にフォローアップメールを下書きしておいて",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "full"
+    ],
+    "elementary_ids": [
+      null
+    ],
+    "warnings": []
+  },
+  {
+    "id": 9,
+    "prompt": "今月の活動サマリをレポートにして",
+    "classification": "complex",
+    "n_steps": 3,
+    "modes": [
+      "atomic",
+      "atomic",
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e7-6-a",
+      "e7-6-b",
+      "e7-3-a"
+    ],
+    "warnings": []
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "id": 6,
+  "prompt": "なんか最近ご無沙汰な顧客いない？",
+  "hint": "曖昧 → elementary_id=null or 文脈解決要",
+  "raw_plan": {
+    "user_intent": "最近コンタクトが途絶えている（ご無沙汰な）顧客アカウントや商談を特定してほしい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-1-a",
+        "task_description": "SFDCの自担当OpportunityおよびAccountのうちActivityが長期間ない（最終Activity日やLast Modified Dateが古い）ものをリストアップする。具体的には以下を調べること: (1) 自分の担当Opportunityのうち、Last Activity Dateが30日以上前でStageがClosedでないもの、(2) 自分の担当Accountのうち、Last Activity Dateが60日以上前のもの。それぞれ上位10件程度を「アカウント名 / 最終Activity日 / ステージまたはステータス」の形式で列挙する。",
+        "context": {
+          "lookback_days_opp": 30,
+          "lookback_days_account": 60,
+          "limit": 10,
+          "exclude_stages": [
+            "Closed Won",
+            "Closed Lost"
+          ]
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query",
+          "sf__list_all_orgs",
+          "time__get_current_time"
+        ],
+        "success_criteria": "ご無沙汰なOpportunityおよびAccountが少なくとも合計1件以上リストアップされ、アカウント名・最終Activity日が示されている",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

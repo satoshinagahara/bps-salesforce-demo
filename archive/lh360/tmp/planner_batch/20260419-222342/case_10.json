@@ -1,0 +1,33 @@
+{
+  "id": 10,
+  "prompt": "来週の火曜日 14 時から 1 時間、中村部長と打ち合わせをセットしたい",
+  "hint": "C pattern / calendar 書き込み",
+  "raw_plan": {
+    "user_intent": "来週火曜日14時から1時間、中村部長との打ち合わせをカレンダーに設定したい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e2-3-e",
+        "task_description": "来週の火曜日14:00〜15:00に中村部長との打ち合わせをカレンダーに登録する。まず現在時刻を取得して来週火曜日の日付を確定し、その後カレンダーに予定を作成すること。イベントタイトルは「中村部長 打ち合わせ」、時間は14:00〜15:00（1時間）とする。タイムゾーンはAsia/Tokyoを使用する。",
+        "context": {
+          "attendee_name": "中村部長",
+          "duration_minutes": 60,
+          "start_time_local": "来週火曜日 14:00",
+          "timezone": "Asia/Tokyo",
+          "event_title": "中村部長 打ち合わせ"
+        },
+        "available_tools": [
+          "time__get_current_time",
+          "gw__calendar_check_availability",
+          "gw__calendar_create_event"
+        ],
+        "success_criteria": "来週火曜日14:00〜15:00に打ち合わせ予定がカレンダーに登録され、イベントIDまたは確認情報が返される",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

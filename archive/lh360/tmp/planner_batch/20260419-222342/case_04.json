@@ -1,0 +1,48 @@
+{
+  "id": 4,
+  "prompt": "今日のアポイント一覧と関連する商談を教えて",
+  "hint": "B pattern / atomic or 2-step",
+  "raw_plan": {
+    "user_intent": "今日のカレンダー上のアポイント一覧を取得し、それぞれに関連するSFDCの商談情報を紐付けて提示する",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": null,
+        "task_description": "今日（ローカル時刻の0:00〜23:59）のGoogleカレンダーの予定を全件取得し、件名・開始時刻・終了時刻・参加者・説明欄を一覧化する。まず現在時刻を取得して今日の日付を確定すること。",
+        "context": {
+          "target_date": "today",
+          "timezone": "Asia/Tokyo"
+        },
+        "available_tools": [
+          "time__get_current_time",
+          "gw__calendar_list_events"
+        ],
+        "success_criteria": "今日の予定が0件以上取得でき、各予定の件名・時刻・参加者情報が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": "e2-4-b",
+        "task_description": "s1で取得した今日のアポイント一覧（件名・参加者メールアドレス・会社名を含む）をもとに、SFDCのOpportunityおよびActivityレコードを検索し、各アポイントに関連する商談（Opp ID・Name・Stage・Amount・CloseDate）を紐付けて一覧化する。参加者のメールアドレスやアカウント名をキーにSOQLで検索すること。s1の結果から得られたアポイント件名リスト: {{s1.event_titles}}、参加者メールリスト: {{s1.attendee_emails}}",
+        "context": {
+          "depends_on_s1": "event_titles, attendee_emails, account_names",
+          "search_hint": "ContactのEmailまたはAccountNameでOpportunityを検索する"
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query",
+          "sf__list_all_orgs"
+        ],
+        "success_criteria": "各アポイントに対し、関連するOpportunity（またはなければその旨）が紐付けられた一覧が得られる",
+        "depends_on": [
+          "s1"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1のアポイント一覧とs2の商談情報をアポイント単位で束ねて、時刻順に「予定名・時刻・参加者 → 関連商談（Stage/Amount/CloseDate）」の形式で提示する。関連商談が見つからない予定はその旨を明記する。"
+  },
+  "warnings": []
+}

@@ -1,0 +1,83 @@
+{
+  "id": 9,
+  "prompt": "今月の活動サマリをレポートにして",
+  "hint": "A or C / レポート形式",
+  "raw_plan": {
+    "user_intent": "今月の営業活動サマリをレポート形式にまとめてほしい",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-6-a",
+        "task_description": "今月（当月1日〜本日）の月次KPIを集計する。具体的には booking（受注金額）・pipeline（パイプライン合計）・stage分布・Closed Won件数・Closed Lost件数を自担当のOpportunityから集計して報告する。",
+        "context": {
+          "period": "current_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "当月のbooking・pipeline合計・stage分布・Closed Won/Lost件数と金額が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": "e7-5-b",
+        "task_description": "今月（当月1日〜本日）の自担当Opportunityの前月末時点からの差分を抽出する。新規作成Opp・ステージ変化・失注・受注などの動きを一覧化して報告する。",
+        "context": {
+          "period": "current_month",
+          "comparison_point": "last_month_end"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "新規Opp・ステージ変化・Closed Won/Lost の差分一覧が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s3",
+        "mode": "atomic",
+        "elementary_id": "e7-3-a",
+        "task_description": "今月（当月1日〜本日）に記録された自担当のActivity（訪問・電話・メール・会議等）の件数と主要な活動内容を集計・整理して報告する。",
+        "context": {
+          "period": "current_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "当月のActivity件数（種別ごと）と主要活動の概要が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s4",
+        "mode": "atomic",
+        "elementary_id": "e7-6-d",
+        "task_description": "以下のs1〜s3の集計結果を元に、今月の活動サマリを月次レポート形式にまとめたドラフトを生成する。\n\n【レポート構成】\n1. 今月のKPIサマリ（booking・pipeline・Closed Won/Lost）\n2. 主要な動き（新規Opp・ステージ変化・失注）\n3. 活動実績（Activity件数・主要訪問先）\n4. 来月に向けた注目案件・アクション\n\ns1の結果: {{s1_result}}\ns2の結果: {{s2_result}}\ns3の結果: {{s3_result}}",
+        "context": {
+          "depends_on_s1": "kpi_summary",
+          "depends_on_s2": "pipeline_diff",
+          "depends_on_s3": "activity_summary",
+          "period": "current_month"
+        },
+        "available_tools": [
+          "time__get_current_time"
+        ],
+        "success_criteria": "月次レポートのドラフトが4セクション構成で生成されている",
+        "depends_on": [
+          "s1",
+          "s2",
+          "s3"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1のKPI集計・s2のパイプライン差分・s3のActivity実績をs4で統合し、月次レポートドラフトとしてユーザに提示する。s4の出力をそのまま最終回答とする。"
+  },
+  "warnings": []
+}

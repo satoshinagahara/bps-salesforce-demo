@@ -1,0 +1,23 @@
+{
+  "id": 8,
+  "prompt": "この顧客の戦略的価値を評価してほしい",
+  "hint": "F pattern / α-5 未稼働なので full にフォールバック想定",
+  "raw_plan": {
+    "user_intent": "特定顧客の戦略的価値を評価してほしいが、対象顧客が明示されていない",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "ユーザに「どの顧客の戦略的価値を評価するか」を確認する。対象顧客名またはSalesforce Account ID を教えてもらうよう聞き返す。",
+        "context": {},
+        "available_tools": null,
+        "success_criteria": "対象顧客を特定するための問い返しメッセージをユーザに提示できている",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

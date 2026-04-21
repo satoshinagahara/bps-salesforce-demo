@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "prompt": "こんにちは",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "full"
+    ],
+    "elementary_ids": [
+      null
+    ],
+    "warnings": []
+  },
+  {
+    "id": 2,
+    "prompt": "今週のパイプライン状況を集計して",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e7-5-a"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 3,
+    "prompt": "今担当している取引先を一覧で見せて",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e1-4-a"
+    ],
+    "warnings": []
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "id": 5,
+  "prompt": "今四半期の優先商談トップ3とそれぞれの担当者の連絡先を教えて",
+  "hint": "複数step連結 (例 3 と同じ形)",
+  "raw_plan": {
+    "user_intent": "今四半期の優先 Opportunity トップ3を特定し、それぞれの担当 Contact の連絡先を返す",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-5-a",
+        "task_description": "今四半期（当該会計四半期の開始日〜終了日）の自担当 Opportunity を SFDC から取得し、金額（Amount）× 確度（Probability）の期待値が高い順にトップ3を抽出する。各 Opp の Id, Name, Amount, Probability, StageName, CloseDate を含めること。",
+        "context": {
+          "sort_key": "Amount * Probability DESC",
+          "limit": 3
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query",
+          "sf__list_all_orgs"
+        ],
+        "success_criteria": "Opp ID / Name / Amount / Probability / Stage / CloseDate の3件が揃う",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "以下の Opportunity ID 3件（s1 の結果から取得）それぞれに紐付く Primary Contact の Name, Email, Phone, Title を SFDC から取得する。OpportunityContactRole または Contact オブジェクトを通じて検索すること。Opp ID は s1 の出力結果を参照すること。",
+        "context": {
+          "depends_on_s1": "opp_ids"
+        },
+        "available_tools": null,
+        "success_criteria": "3件の Opp それぞれについて Contact の Name / Email / Phone / Title が揃う",
+        "depends_on": [
+          "s1"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1 のトップ3 Opp 一覧（金額・確度・ステージ・クローズ日）と s2 の担当 Contact 連絡先を Opp 単位で束ねて提示する"
+  },
+  "warnings": []
+}

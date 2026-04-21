@@ -1,0 +1,26 @@
+{
+  "id": 3,
+  "prompt": "今担当している取引先を一覧で見せて",
+  "hint": "A pattern / atomic",
+  "raw_plan": {
+    "user_intent": "自分が担当している取引先（Account）の一覧を確認したい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e1-4-a",
+        "task_description": "Salesforce から現在ログイン中のユーザが担当している取引先（Account）の一覧を取得し、Account名・業種・所在地・Owner情報などの主要項目を整形して報告する。まず sf__get_username でログインユーザを特定し、そのユーザが OwnerId として紐付いている Account レコードを sf__run_soql_query で取得すること。",
+        "context": {},
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query"
+        ],
+        "success_criteria": "自担当 Account の Name・Industry・BillingCity・Phone 等の主要フィールドを含む一覧が返される",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

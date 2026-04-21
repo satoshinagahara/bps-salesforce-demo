@@ -1,0 +1,36 @@
+{
+  "id": 2,
+  "prompt": "今週のパイプライン状況を集計して",
+  "hint": "A pattern / atomic / e7-5-a 近辺",
+  "raw_plan": {
+    "user_intent": "自担当の今週時点のパイプライン状況（stage分布・合計金額・期待値）を集計して報告してほしい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-5-a",
+        "task_description": "Salesforceから自担当のOpportunityを取得し、stage分布・合計金額・期待値（Amount × Probability）を集計して報告する。ログイン中のユーザを基準に自担当Oppを絞り込むこと。",
+        "context": {
+          "aggregation_target": "自担当Opportunity（OwnerId = 実行ユーザ）",
+          "metrics": [
+            "stage分布（件数）",
+            "stage別合計金額（Amount）",
+            "stage別期待値（Amount × Probability / 100）",
+            "全体合計金額",
+            "全体期待値合計"
+          ]
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query",
+          "sf__list_all_orgs"
+        ],
+        "success_criteria": "stage ごとの件数・合計金額・期待値の一覧、および全体サマリが揃っている",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

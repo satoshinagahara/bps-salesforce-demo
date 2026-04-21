@@ -1,0 +1,23 @@
+{
+  "id": 8,
+  "prompt": "この顧客の戦略的価値を評価してほしい",
+  "hint": "F pattern / α-5 未稼働なので full にフォールバック想定",
+  "raw_plan": {
+    "user_intent": "特定顧客の戦略的価値（機会度・カバー率・競合状況等）を多角的に評価してほしい",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "ユーザが「この顧客」と指しているが、具体的な顧客名・Account ID が会話から特定できない。まず Salesforce から自担当の Account 一覧を取得し、どの顧客を指しているか確認するための候補リストを提示する。",
+        "context": {},
+        "available_tools": null,
+        "success_criteria": "自担当 Account の候補リスト（Account ID・Name）が提示され、ユーザが対象顧客を特定できる状態になる",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": "対象顧客が特定された後、e1-4-a（現行契約・納入実績棚卸し）、e1-4-b（事業セグメント全体像と自社カバー率突合）、e1-7-b（競合状況）、e1-9-b（KPI集計）などを組み合わせた戦略的価値評価プランを次ターンで構築する"
+  },
+  "warnings": []
+}

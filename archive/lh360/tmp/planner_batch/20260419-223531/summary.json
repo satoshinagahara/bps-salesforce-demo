@@ -1,0 +1,140 @@
+[
+  {
+    "id": 1,
+    "prompt": "こんにちは",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "full"
+    ],
+    "elementary_ids": [
+      null
+    ],
+    "warnings": []
+  },
+  {
+    "id": 2,
+    "prompt": "今週のパイプライン状況を集計して",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e7-5-a"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 3,
+    "prompt": "今担当している取引先を一覧で見せて",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e1-4-a"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 4,
+    "prompt": "今日のアポイント一覧と関連する商談を教えて",
+    "classification": "complex",
+    "n_steps": 2,
+    "modes": [
+      "atomic",
+      "full"
+    ],
+    "elementary_ids": [
+      "e2-3-a",
+      "e7-3-b"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 5,
+    "prompt": "今四半期の優先商談トップ3とそれぞれの担当者の連絡先を教えて",
+    "classification": "complex",
+    "n_steps": 2,
+    "modes": [
+      "atomic",
+      "full"
+    ],
+    "elementary_ids": [
+      "e7-5-a",
+      null
+    ],
+    "warnings": []
+  },
+  {
+    "id": 6,
+    "prompt": "なんか最近ご無沙汰な顧客いない？",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e7-1-a"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 7,
+    "prompt": "直近の商談にフォローアップメールを下書きしておいて",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "full"
+    ],
+    "elementary_ids": [
+      null
+    ],
+    "warnings": []
+  },
+  {
+    "id": 8,
+    "prompt": "この顧客の戦略的価値を評価してほしい",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "full"
+    ],
+    "elementary_ids": [
+      null
+    ],
+    "warnings": []
+  },
+  {
+    "id": 9,
+    "prompt": "今月の活動サマリをレポートにして",
+    "classification": "complex",
+    "n_steps": 3,
+    "modes": [
+      "atomic",
+      "atomic",
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e7-6-a",
+      "e7-6-b",
+      "e7-6-d"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 10,
+    "prompt": "来週の火曜日 14 時から 1 時間、中村部長と打ち合わせをセットしたい",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e2-3-e"
+    ],
+    "warnings": []
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "id": 1,
+  "prompt": "こんにちは",
+  "hint": "trivial / 1-step full / elementary_id=null",
+  "raw_plan": {
+    "user_intent": "ユーザからの挨拶に返答する",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "ユーザに自然な挨拶を返す。lh360 はシニア・アカウント担当営業の業務支援 AI であることを簡潔に伝えてもよい。",
+        "context": {},
+        "available_tools": null,
+        "success_criteria": "短く自然な挨拶が返せていること",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

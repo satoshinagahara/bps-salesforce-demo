@@ -1,0 +1,34 @@
+{
+  "id": 2,
+  "prompt": "今週のパイプライン状況を集計して",
+  "hint": "A pattern / atomic / e7-5-a 近辺",
+  "raw_plan": {
+    "user_intent": "今週時点の自担当パイプライン（stage分布・合計金額・期待値）を集計して報告してほしい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-5-a",
+        "task_description": "自担当の Opportunity を SFDC から取得し、stage ごとの件数・合計金額・期待値（Amount × Probability）を集計して一覧形式で報告する。対象は CloseDate が今週（月曜〜日曜）内、または現在 Open 状態の全 Opp とする。",
+        "context": {
+          "report_scope": "自担当（現ログインユーザ）の Open Opportunity",
+          "aggregation": [
+            "stage別件数",
+            "stage別合計Amount",
+            "stage別合計期待値(Amount×Probability/100)"
+          ],
+          "note": "CloseDate の絞り込みが難しい場合は全Open Oppを対象にstage分布を出すこと"
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query"
+        ],
+        "success_criteria": "stage ごとの件数・合計金額・期待値の一覧が出力されている",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

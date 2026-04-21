@@ -1,0 +1,30 @@
+{
+  "id": 6,
+  "prompt": "なんか最近ご無沙汰な顧客いない？",
+  "hint": "曖昧 → elementary_id=null or 文脈解決要",
+  "raw_plan": {
+    "user_intent": "最近アクティビティが登録されていないご無沙汰な顧客（Account）を洗い出してほしい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-1-a",
+        "task_description": "自担当の Salesforce Account／Opportunity を対象に、直近 30 日間 Activity（Task・Event・CallLog 等）が一切登録されていない Account をリストアップする。Account Name、最終 Activity 日、担当者名、関連 Opp のステージを含めて一覧化すること。",
+        "context": {
+          "lookback_threshold_days": 30,
+          "rank_by": "last_activity_date asc",
+          "note": "『ご無沙汰』は『30 日以上 Activity 未登録』と解釈"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username"
+        ],
+        "success_criteria": "30 日以上 Activity のない Account 一覧（Account Name・最終 Activity 日・関連 Opp Stage）が取得できる",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": "『ご無沙汰』は『30 日以上 Activity 未登録』と解釈して集計した旨を断ったうえで結果を提示し、異なる基準（例: 60 日）を希望する場合は追加指示するよう案内する"
+  },
+  "warnings": []
+}

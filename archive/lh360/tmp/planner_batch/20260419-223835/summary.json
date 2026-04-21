@@ -1,0 +1,19 @@
+[
+  {
+    "id": 0,
+    "prompt": "Account ID 001xx123 の戦略的価値を評価してほしい",
+    "classification": "complex",
+    "n_steps": 3,
+    "modes": [
+      "atomic",
+      "atomic",
+      "full"
+    ],
+    "elementary_ids": [
+      "e1-4-a",
+      "e1-4-b",
+      "e1-4-c"
+    ],
+    "warnings": []
+  }
+]

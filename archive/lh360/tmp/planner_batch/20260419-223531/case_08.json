@@ -1,0 +1,23 @@
+{
+  "id": 8,
+  "prompt": "この顧客の戦略的価値を評価してほしい",
+  "hint": "F pattern / α-5 未稼働なので full にフォールバック想定",
+  "raw_plan": {
+    "user_intent": "特定顧客の戦略的価値を評価してほしいが、対象顧客が特定されていない",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "ユーザから「この顧客の戦略的価値を評価してほしい」という依頼を受けたが、対象顧客が特定されていない。まず評価対象の顧客名またはSFDC Account IDをユーザに確認する。顧客が特定できた場合は、SFDCから当該AccountのID・名称・業種・既存契約・納入実績・パイプライン・売上情報を収集し、戦略的価値（現在の取引規模、成長ポテンシャル、自社カバー率、関係性の深さ）を整理して提示する。",
+        "context": {},
+        "available_tools": null,
+        "success_criteria": "対象顧客が不明な場合はユーザへの確認メッセージを返す。対象顧客が判明した場合は、SFDC情報に基づく戦略的価値の整理結果を提示する。",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

@@ -1,0 +1,67 @@
+{
+  "id": 9,
+  "prompt": "今月の活動サマリをレポートにして",
+  "hint": "A or C / レポート形式",
+  "raw_plan": {
+    "user_intent": "今月の活動サマリ（KPI・前月差分・Activityなど）をレポート形式にまとめてほしい",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-6-a",
+        "task_description": "今月の月次KPIを集計する。booking・revenue・margin・pipelineの集計値を取得して一覧化する。",
+        "context": {
+          "period": "current_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username"
+        ],
+        "success_criteria": "今月のbooking・revenue・margin・pipelineの集計値が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": "e7-6-b",
+        "task_description": "今月のForecast vs Actual比較と前月との差異分析を行う。s1で得たKPI集計値と先月実績をSFDCから取得して差分を抽出する。",
+        "context": {
+          "period": "current_month",
+          "compare_period": "last_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username"
+        ],
+        "success_criteria": "Forecast vs Actual比較表と前月差分が揃っている",
+        "depends_on": [
+          "s1"
+        ]
+      },
+      {
+        "step_id": "s3",
+        "mode": "atomic",
+        "elementary_id": "e7-6-d",
+        "task_description": "s1のKPI集計結果とs2のForecast vs Actual差異分析を元に、今月の月次活動サマリレポートのドラフトを生成する。セクション構成: (1)KPIサマリ (2)Forecast vs Actual (3)前月差分ハイライト (4)所感・次月アクション",
+        "context": {
+          "period": "current_month",
+          "kpi_data": "s1の結果を参照",
+          "forecast_actual_data": "s2の結果を参照"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "4セクション構成の月次レポートドラフトが生成されている",
+        "depends_on": [
+          "s1",
+          "s2"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1のKPI集計、s2のForecast vs Actual差異分析を統合し、s3で生成した4セクション構成のレポートドラフトをそのままユーザに提示する"
+  },
+  "warnings": []
+}

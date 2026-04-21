@@ -1,0 +1,88 @@
+{
+  "id": 7,
+  "prompt": "直近の商談にフォローアップメールを下書きしておいて",
+  "hint": "C pattern / draft 系 / どの商談か文脈不足",
+  "raw_plan": {
+    "user_intent": "直近の商談（Opportunity）に対してフォローアップメールの下書きを作成する",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-5-a",
+        "task_description": "自担当の Salesforce Opportunity の中から、最近 Activity が記録されたもの、または last modified date が新しいものを上位 3〜5 件抽出し、Opp ID・Name・Stage・取引先名・直近 Activity 概要を列挙する。",
+        "context": {
+          "sort_by": "LastModifiedDate DESC",
+          "limit": 5
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query",
+          "sf__list_all_orgs"
+        ],
+        "success_criteria": "Opp ID / Name / Stage / Account Name / LastModifiedDate の一覧が 1〜5 件得られる",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": "e7-3-a",
+        "task_description": "s1 で取得した直近商談（最上位 1 件、または最も直近に更新された Opp）に紐付く Activity（Task / Event / メモ）を SFDC から取得し、その内容を要約する。対象 Opp の ID は s1 の結果から特定すること。",
+        "context": {
+          "depends_on_s1": "top_opp_id",
+          "activity_types": [
+            "Task",
+            "Event",
+            "EmailMessage"
+          ],
+          "limit": 5
+        },
+        "available_tools": [
+          "sf__run_soql_query"
+        ],
+        "success_criteria": "対象 Opp の直近 Activity 内容（日時・種別・概要）が得られる",
+        "depends_on": [
+          "s1"
+        ]
+      },
+      {
+        "step_id": "s3",
+        "mode": "atomic",
+        "elementary_id": "e2-7-b",
+        "task_description": "s1 で特定した直近商談の Primary Contact（名前・メールアドレス）を SFDC から取得する。対象 Opp ID は s1 の結果から特定すること。",
+        "context": {
+          "depends_on_s1": "top_opp_id"
+        },
+        "available_tools": [
+          "sf__run_soql_query"
+        ],
+        "success_criteria": "フォローアップメールの宛先となる Contact の Name と Email が得られる",
+        "depends_on": [
+          "s1"
+        ]
+      },
+      {
+        "step_id": "s4",
+        "mode": "atomic",
+        "elementary_id": "e2-7-c",
+        "task_description": "s2 で取得した直近 Activity 内容と s3 で取得した Contact 情報をもとに、フォローアップメールの Gmail 下書きを作成する。メール本文には、前回の商談・面談内容への言及、次のアクションの確認または提案、問い合わせ先の案内を含めること。件名は「【フォローアップ】{商談名または顧客名}」形式とする。送信はしない（下書き作成のみ）。",
+        "context": {
+          "depends_on_s2": "activity_summary",
+          "depends_on_s3": "contact_name_and_email",
+          "draft_only": true
+        },
+        "available_tools": [
+          "gw__gmail_create_draft",
+          "time__get_current_time"
+        ],
+        "success_criteria": "Gmail に下書きが作成され、draft ID または確認メッセージが返る",
+        "depends_on": [
+          "s2",
+          "s3"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1 で特定した直近商談の情報、s2 の Activity 要約、s3 の Contact 情報を組み合わせて s4 でメール下書きを作成。最終的に作成された下書きの件名・宛先・本文冒頭をユーザに提示する。"
+  },
+  "warnings": []
+}

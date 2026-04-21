@@ -1,0 +1,23 @@
+{
+  "id": 7,
+  "prompt": "直近の商談にフォローアップメールを下書きしておいて",
+  "hint": "C pattern / draft 系 / どの商談か文脈不足",
+  "raw_plan": {
+    "user_intent": "直近の商談（Opportunity）に対してフォローアップメールの Gmail 下書きを作成する",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "自担当の直近 Opportunity を 1 件特定し（最後に更新された or 直近 Activity のある Opp）、その Primary Contact の氏名・メールアドレスと直近 Activity の内容を SFDC から取得したうえで、前回のやり取りを踏まえた自然なフォローアップメールを Gmail に下書き作成する（送信はしない）",
+        "context": {},
+        "available_tools": null,
+        "success_criteria": "Gmail に下書きが 1 件作成され、件名・宛先・本文が揃っている",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

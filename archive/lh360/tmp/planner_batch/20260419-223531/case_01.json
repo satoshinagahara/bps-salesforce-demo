@@ -1,0 +1,23 @@
+{
+  "id": 1,
+  "prompt": "こんにちは",
+  "hint": "trivial / 1-step full / elementary_id=null",
+  "raw_plan": {
+    "user_intent": "ユーザからの挨拶に返答する",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "full",
+        "elementary_id": null,
+        "task_description": "ユーザに挨拶を返す。簡潔かつ丁寧に応答すること。",
+        "context": {},
+        "available_tools": null,
+        "success_criteria": "短い挨拶の返答が生成される",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

@@ -1,0 +1,64 @@
+{
+  "id": 9,
+  "prompt": "今月の活動サマリをレポートにして",
+  "hint": "A or C / レポート形式",
+  "raw_plan": {
+    "user_intent": "今月の活動実績（KPI・前月差分・パイプライン動向）をまとめた月次レポートを作成する",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-6-a",
+        "task_description": "今月の月次 KPI（booking・revenue・margin・pipeline 合計金額・stage 分布・件数）を SFDC から集計して報告する",
+        "context": {
+          "period": "current_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "今月の booking・revenue・pipeline 合計・stage ごとの件数と金額が揃っている",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": "e7-6-b",
+        "task_description": "今月の Forecast vs Actual を比較し、前月との差異を分析する。s1 の集計結果を前提に、前月同期間の数値も SFDC から取得して差分を算出する",
+        "context": {
+          "period": "current_month",
+          "compare_period": "previous_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "今月 vs 前月の KPI 差分（増減額・増減率）が算出されている",
+        "depends_on": [
+          "s1"
+        ]
+      },
+      {
+        "step_id": "s3",
+        "mode": "atomic",
+        "elementary_id": "e7-3-a",
+        "task_description": "今月の自担当 Activity（訪問・商談・メール等）を SFDC から集計し、件数・種別・関連 Opp を整理する",
+        "context": {
+          "period": "current_month"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username",
+          "time__get_current_time"
+        ],
+        "success_criteria": "今月の Activity 件数・種別内訳・主要関連 Opp の一覧が揃っている",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": "s1 の月次 KPI、s2 の Forecast vs Actual 差分分析、s3 の Activity 集計を4セクション構成（① 今月 KPI サマリ、② 前月比差分、③ Activity 実績、④ 所感・注目点）でレポートとして成形する"
+  },
+  "warnings": []
+}

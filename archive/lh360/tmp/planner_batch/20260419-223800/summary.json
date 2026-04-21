@@ -1,0 +1,28 @@
+[
+  {
+    "id": 6,
+    "prompt": "なんか最近ご無沙汰な顧客いない？",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "atomic"
+    ],
+    "elementary_ids": [
+      "e7-1-a"
+    ],
+    "warnings": []
+  },
+  {
+    "id": 8,
+    "prompt": "この顧客の戦略的価値を評価してほしい",
+    "classification": "trivial",
+    "n_steps": 1,
+    "modes": [
+      "full"
+    ],
+    "elementary_ids": [
+      null
+    ],
+    "warnings": []
+  }
+]

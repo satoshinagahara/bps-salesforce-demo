@@ -1,0 +1,33 @@
+{
+  "id": 6,
+  "prompt": "なんか最近ご無沙汰な顧客いない？",
+  "hint": "曖昧 → elementary_id=null or 文脈解決要",
+  "raw_plan": {
+    "user_intent": "最近アクティビティが少ない（ご無沙汰な）顧客アカウントや商談を洗い出してほしい",
+    "classification": "trivial",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e7-1-a",
+        "task_description": "自担当の Salesforce Opportunity および Account を対象に、最近 Activity（訪問・メール・電話等）が登録されていない、もしくは Opportunity の LastModifiedDate が古いレコードを抽出し、アカウント名・Opp 名・最終更新日・最終 Activity 日を一覧で報告する。目安として直近 30 日以上 Activity がないものをご無沙汰候補とする。",
+        "context": {
+          "lookback_threshold_days": 30,
+          "target_objects": [
+            "Account",
+            "Opportunity",
+            "Activity"
+          ]
+        },
+        "available_tools": [
+          "sf__get_username",
+          "sf__run_soql_query"
+        ],
+        "success_criteria": "30日以上アクティビティがない顧客・商談の一覧（アカウント名・Opp名・最終Activity日・最終更新日）が揃う",
+        "depends_on": []
+      }
+    ],
+    "synthesis_hint": ""
+  },
+  "warnings": []
+}

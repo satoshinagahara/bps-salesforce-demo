@@ -1,0 +1,62 @@
+{
+  "id": 0,
+  "prompt": "Account ID 001xx123 の戦略的価値を評価してほしい",
+  "hint": "(custom)",
+  "raw_plan": {
+    "user_intent": "Account ID 001xx123 の戦略的価値を総合的に評価してほしい",
+    "classification": "complex",
+    "steps": [
+      {
+        "step_id": "s1",
+        "mode": "atomic",
+        "elementary_id": "e1-4-a",
+        "task_description": "Account ID 001xx123 の現行契約・納入実績を SFDC から棚卸しして一覧化する。契約金額・商材・納入時期・保守状況を含めること。",
+        "context": {
+          "account_id": "001xx123"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username"
+        ],
+        "success_criteria": "契約・納入実績の一覧 (件数・金額・商材・期間) が揃う",
+        "depends_on": []
+      },
+      {
+        "step_id": "s2",
+        "mode": "atomic",
+        "elementary_id": "e1-4-b",
+        "task_description": "Account ID 001xx123 の顧客事業セグメント全体像と自社カバー率を突合する。SFDC の Opportunity・Contract・Asset 情報から、顧客の事業領域に対して自社がカバーできている領域・未カバー領域を整理すること。",
+        "context": {
+          "account_id": "001xx123"
+        },
+        "available_tools": [
+          "sf__run_soql_query",
+          "sf__get_username"
+        ],
+        "success_criteria": "顧客事業セグメントと自社カバー率の対比表が得られる",
+        "depends_on": [
+          "s1"
+        ]
+      },
+      {
+        "step_id": "s3",
+        "mode": "full",
+        "elementary_id": "e1-4-c",
+        "task_description": "以下の情報をもとに、Account ID 001xx123 の戦略的価値を評価し、未カバー領域の機会度・優先順位付けのドラフトを作成すること。\n\n評価軸の例:\n- 既存取引規模・成長性\n- 自社カバー率と未カバー機会の大きさ\n- 顧客事業の安定性・将来性\n- 関係性の深さ (キーマン接点・継続年数)\n\ns1 の結果 (契約・納入実績) および s2 の結果 (セグメントカバー率) を参照して総合評価を行うこと。",
+        "context": {
+          "account_id": "001xx123",
+          "depends_on_s1": "契約・納入実績",
+          "depends_on_s2": "セグメントカバー率"
+        },
+        "available_tools": null,
+        "success_criteria": "戦略的価値の総合評価と未カバー機会の優先順位付けドラフトが得られる",
+        "depends_on": [
+          "s1",
+          "s2"
+        ]
+      }
+    ],
+    "synthesis_hint": "s1 の実績データ・s2 のカバー率分析・s3 の戦略評価ドラフトを統合し、『現状の取引規模』『自社カバー率』『未カバー機会』『総合戦略的価値評価』の4セクション構成で提示する。F パターンを含むため最終判断はユーザ確認を促す注記を添える。"
+  },
+  "warnings": []
+}
