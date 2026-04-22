@@ -1,0 +1,2 @@
+2026-04-22T14:13:15Z [cutover-start] baseline → RAG / rollback_revision=00032-nuf
+2026-04-22T14:36:22Z [cutover-done] baseline → RAG success / scenario1=a47Ie000000g9LsIAI scenario2=a48Ie000001DTimIAG revision=00033-dad

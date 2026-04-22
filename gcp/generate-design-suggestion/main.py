@@ -282,11 +282,19 @@ def _handle_prompt(request):
 
 
 def _handle_equipment_alert(request):
-    """シナリオ2: IoT 設備異常イベント → Product Engineering Agent → SF書き戻し"""
-    from product_engineering_agent import run_agent
+    """シナリオ2: IoT 設備異常イベント → Product Engineering Agent → SF書き戻し
+    USE_RAG=true の場合は RAG版に委譲。
+    """
+    use_rag = os.environ.get("USE_RAG", "false").lower() == "true"
+    if use_rag:
+        from product_engineering_agent_rag import run_agent_rag as _run
+        variant = "rag"
+    else:
+        from product_engineering_agent import run_agent as _run
+        variant = "baseline"
 
     request_id = f"req_{uuid.uuid4().hex[:12]}"
-    log.info("[%s] received equipment alert", request_id)
+    log.info("[%s] received equipment alert (variant=%s)", request_id, variant)
 
     try:
         payload = request.get_json(silent=True) or {}
@@ -303,7 +311,7 @@ def _handle_equipment_alert(request):
         return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
 
     try:
-        result = run_agent(payload, sf_access_token, sf_instance_url, request_id, mode="equipment_alert")
+        result = _run(payload, sf_access_token, sf_instance_url, request_id, mode="equipment_alert")
     except Exception as e:
         log.exception("[%s] agent failed", request_id)
         return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
@@ -312,11 +320,19 @@ def _handle_equipment_alert(request):
 
 
 def _handle_design_suggestion_agent(request):
-    """シナリオ1（エージェント版）: 製品施策ID → Product Engineering Agent → SF書き戻し"""
-    from product_engineering_agent import run_agent
+    """シナリオ1（エージェント版）: 製品施策ID → Product Engineering Agent → SF書き戻し
+    USE_RAG=true の場合は RAG版 (product_engineering_agent_rag.run_agent_rag) に委譲。
+    """
+    use_rag = os.environ.get("USE_RAG", "false").lower() == "true"
+    if use_rag:
+        from product_engineering_agent_rag import run_agent_rag as _run
+        variant = "rag"
+    else:
+        from product_engineering_agent import run_agent as _run
+        variant = "baseline"
 
     request_id = f"req_{uuid.uuid4().hex[:12]}"
-    log.info("[%s] received design suggestion (agent)", request_id)
+    log.info("[%s] received design suggestion (variant=%s)", request_id, variant)
 
     try:
         payload = request.get_json(silent=True) or {}
@@ -333,9 +349,70 @@ def _handle_design_suggestion_agent(request):
         return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
 
     try:
-        result = run_agent(payload, sf_access_token, sf_instance_url, request_id, mode="design_suggestion")
+        result = _run(payload, sf_access_token, sf_instance_url, request_id, mode="design_suggestion")
     except Exception as e:
         log.exception("[%s] agent failed", request_id)
+        return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
+
+    return (json.dumps({**result, "requestId": request_id}, ensure_ascii=False), 200, _cors_headers())
+
+
+def _handle_design_suggestion_agent_rag(request):
+    """シナリオ1 RAG版: BigQuery Vector Search 経由で関連チャンクを取得し提案生成。
+    既存の /design-suggestion-agent と並走する検証用エンドポイント。"""
+    from product_engineering_agent_rag import run_agent_rag
+
+    request_id = f"req_{uuid.uuid4().hex[:12]}"
+    log.info("[%s] received design suggestion (rag)", request_id)
+
+    try:
+        payload = request.get_json(silent=True) or {}
+    except Exception:
+        return (json.dumps({"error": "invalid json"}), 400, _cors_headers())
+
+    if not payload.get("initiativeId"):
+        return (json.dumps({"error": "initiativeId required"}), 400, _cors_headers())
+
+    try:
+        sf_access_token, sf_instance_url = _get_sf_access_token()
+    except Exception as e:
+        log.exception("[%s] sf auth failed", request_id)
+        return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
+
+    try:
+        result = run_agent_rag(payload, sf_access_token, sf_instance_url, request_id, mode="design_suggestion")
+    except Exception as e:
+        log.exception("[%s] rag agent failed", request_id)
+        return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
+
+    return (json.dumps({**result, "requestId": request_id}, ensure_ascii=False), 200, _cors_headers())
+
+
+def _handle_equipment_alert_rag(request):
+    """シナリオ2 RAG版: BigQuery Vector Search 経由で関連仕様書を引き診断。並走用。"""
+    from product_engineering_agent_rag import run_agent_rag
+
+    request_id = f"req_{uuid.uuid4().hex[:12]}"
+    log.info("[%s] received equipment alert (rag)", request_id)
+
+    try:
+        payload = request.get_json(silent=True) or {}
+    except Exception:
+        return (json.dumps({"error": "invalid json"}), 400, _cors_headers())
+
+    if not payload.get("assetId"):
+        return (json.dumps({"error": "assetId required"}), 400, _cors_headers())
+
+    try:
+        sf_access_token, sf_instance_url = _get_sf_access_token()
+    except Exception as e:
+        log.exception("[%s] sf auth failed", request_id)
+        return (json.dumps({"error": f"sf auth: {e}"}), 500, _cors_headers())
+
+    try:
+        result = run_agent_rag(payload, sf_access_token, sf_instance_url, request_id, mode="equipment_alert")
+    except Exception as e:
+        log.exception("[%s] rag agent failed", request_id)
         return (json.dumps({"error": f"agent error: {e}", "requestId": request_id}), 500, _cors_headers())
 
     return (json.dumps({**result, "requestId": request_id}, ensure_ascii=False), 200, _cors_headers())
@@ -449,22 +526,43 @@ def _handle_dashboard_logs(request):
 
 
 def _list_recent_runs(limit: int = 30) -> list[dict]:
-    """GCS runs/ プレフィックスから直近のログJSONをN件取得。"""
+    """GCS runs/ および runs-rag/ プレフィックスから直近のログJSONをN件取得。
+
+    各 run の summary には保存時点で `variant` が入る（RAG版='rag'）。旧ログや既存版には
+    variant が無いので、本関数で補完（プレフィックスベースで baseline / rag を判定）。
+    """
     client = _get_storage_client()
     bucket = client.bucket(GCS_BUCKET)
-    # 直近3日分のprefixをなめる（高頻度運用でも十分）
     from datetime import timedelta
     today = datetime.now(timezone.utc).date()
-    prefixes = [(today - timedelta(days=i)).strftime("runs/%Y-%m-%d/") for i in range(3)]
-    blobs: list = []
-    for pfx in prefixes:
-        blobs.extend(list(client.list_blobs(bucket, prefix=pfx)))
-    # name（= ISO timestamp_request_id）で降順ソート → 先頭N件
-    blobs.sort(key=lambda b: b.name, reverse=True)
+    # 既存版 (runs/) と RAG版 (runs-rag/) の両方を直近3日分なめる
+    base_prefixes = [(today - timedelta(days=i)).strftime("%Y-%m-%d/") for i in range(3)]
+    prefixes: list[tuple[str, str]] = []
+    for p in base_prefixes:
+        prefixes.append(("baseline", f"runs/{p}"))
+        prefixes.append(("rag", f"runs-rag/{p}"))
+
+    blobs: list[tuple[str, object]] = []  # (variant_hint, blob)
+    for variant_hint, pfx in prefixes:
+        for b in client.list_blobs(bucket, prefix=pfx):
+            blobs.append((variant_hint, b))
+    # blob名は "runs/..." or "runs-rag/..." で始まるため、先頭prefixを除いた部分
+    # (= "YYYY-MM-DD/<ISO>_<request_id>.json") で時系列降順ソートする。
+    # 単純に name 全体でソートすると prefix 文字列比較 ('/' vs '-') で
+    # runs/ と runs-rag/ が混ざらず prefix単位の塊で表示されるバグが出る。
+    def _sort_key(b) -> str:
+        name = b.name
+        slash = name.find("/")
+        return name[slash + 1:] if slash >= 0 else name
+    blobs.sort(key=lambda x: _sort_key(x[1]), reverse=True)
+
     runs: list[dict] = []
-    for blob in blobs[:limit]:
+    for variant_hint, blob in blobs[:limit]:
         try:
             data = json.loads(blob.download_as_bytes().decode("utf-8"))
+            # summary 内に variant が無い場合はプレフィックス由来で補完
+            if not data.get("variant"):
+                data["variant"] = variant_hint
             runs.append(data)
         except Exception as e:
             log.warning("skip malformed run log %s: %s", blob.name, e)
@@ -493,6 +591,8 @@ def _aggregate_today(runs: list[dict]) -> dict:
     tool_calls = sum(int(r.get("tool_count", 0)) for r in todays)
     total_tokens = sum(int((r.get("token_usage") or {}).get("total", 0)) for r in todays)
     gemini_calls = sum(int((r.get("token_usage") or {}).get("gemini_calls", 0)) for r in todays)
+    rag_count = sum(1 for r in todays if r.get("variant") == "rag")
+    baseline_count = total - rag_count
     return {
         "count": total,
         "avg_elapsed": round(elapsed_sum / total, 2) if total else 0,
@@ -500,6 +600,8 @@ def _aggregate_today(runs: list[dict]) -> dict:
         "total_tool_calls": tool_calls,
         "total_tokens": total_tokens,
         "gemini_calls": gemini_calls,
+        "rag_count": rag_count,
+        "baseline_count": baseline_count,
     }
 
 
@@ -551,10 +653,12 @@ def _build_dashboard_html() -> str:
         # tool_history を詳細展開用 JSON にエンコード
         th_json = json.dumps(r.get("tool_history", []), ensure_ascii=False)
         request_id = r.get("request_id", "")
+        variant = r.get("variant") or "baseline"
+        variant_label = "RAG" if variant == "rag" else "BASE"
         rows_html.append(f"""
-<tr class="run-row" data-history='{_html_escape_attr(th_json)}'>
+<tr class="run-row" data-variant="{variant}" data-history='{_html_escape_attr(th_json)}'>
   <td class="c-time"><div class="t-date">{date_disp}</div><div class="t-time">{started_disp}</div></td>
-  <td class="c-mode">{mode_label}</td>
+  <td class="c-mode"><div class="mode-line">{mode_label}</div><span class="variant-badge variant-{variant}">{variant_label}</span></td>
   <td class="c-target"><code>{target}</code></td>
   <td class="c-elapsed">{elapsed}s</td>
   <td class="c-iter">{iterations}</td>
@@ -768,6 +872,28 @@ def _build_dashboard_html() -> str:
   .status-badge.warn {{ background: #fef3c7; color: #b45309; }}
   .status-badge.err {{ background: #fee2e2; color: #dc2626; }}
 
+  .variant-badge {{
+    display: inline-block;
+    padding: 2px 7px; border-radius: 3px;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }}
+  .variant-baseline {{ background: #e2e8f0; color: #475569; }}
+  .variant-rag {{ background: #c7d2fe; color: #4338ca; }}
+  .mode-line {{ line-height: 1.3; }}
+
+  .variant-filter {{
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #475569;
+    margin-right: 10px;
+  }}
+  .variant-filter select {{
+    padding: 4px 8px; font-size: 12px;
+    border: 1px solid #cbd5e1; border-radius: 4px;
+    background: white; cursor: pointer;
+  }}
+
   .footer {{
     margin-top: 20px; color: #94a3b8;
     font-size: 10px; text-align: center;
@@ -811,6 +937,21 @@ def _build_dashboard_html() -> str:
     <div class="stat-label">Today / Gemini Tokens</div>
     <div class="stat-value">{agg['total_tokens']:,}<span class="stat-unit">tok</span></div>
   </div>
+  <div class="stat">
+    <div class="stat-label">Today / Baseline · RAG</div>
+    <div class="stat-value" style="font-size:18px">{agg['baseline_count']}<span class="stat-unit">base</span> / {agg['rag_count']}<span class="stat-unit">rag</span></div>
+  </div>
+</div>
+
+<div style="margin: 10px 0 12px; display:flex; align-items:center; gap:12px;">
+  <label class="variant-filter">
+    Variant フィルタ:
+    <select id="variant-filter" onchange="filterVariant()">
+      <option value="all">All</option>
+      <option value="baseline">Baseline のみ</option>
+      <option value="rag">RAG のみ</option>
+    </select>
+  </label>
 </div>
 
 <table>
@@ -844,10 +985,25 @@ def _build_dashboard_html() -> str:
 </div>
 
 <div class="footer">
-  gs://{GCS_BUCKET}/runs/ から直近30件を表示 &nbsp;|&nbsp; Vertex AI {VERTEX_MODEL} &nbsp;|&nbsp; Region {VERTEX_LOCATION}
+  gs://{GCS_BUCKET}/runs/ および runs-rag/ から直近30件を表示 &nbsp;|&nbsp; Vertex AI {VERTEX_MODEL} &nbsp;|&nbsp; Region {VERTEX_LOCATION}
 </div>
 
 <script>
+// Variant フィルタ
+function filterVariant() {{
+  const sel = document.getElementById('variant-filter').value;
+  document.querySelectorAll('tr.run-row').forEach(row => {{
+    const v = row.getAttribute('data-variant') || 'baseline';
+    const show = (sel === 'all') || (sel === v);
+    row.style.display = show ? '' : 'none';
+    // 展開済みの詳細行も追従
+    const detail = row.nextElementSibling;
+    if (detail && detail.classList.contains('detail-row')) {{
+      detail.style.display = show ? '' : 'none';
+    }}
+  }});
+}}
+
 // 行クリックで tool_history を展開
 document.querySelectorAll('tr.run-row').forEach(row => {{
   row.addEventListener('click', () => {{
@@ -977,6 +1133,10 @@ def generate_design_suggestion(request):
     path = request.path.rstrip("/")
     if path.endswith("/prompt"):
         return _handle_prompt(request)
+    if path.endswith("/equipment-alert-rag"):
+        return _handle_equipment_alert_rag(request)
+    if path.endswith("/design-suggestion-agent-rag"):
+        return _handle_design_suggestion_agent_rag(request)
     if path.endswith("/equipment-alert"):
         return _handle_equipment_alert(request)
     if path.endswith("/design-suggestion-agent"):
@@ -1361,12 +1521,12 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
     <button class="btn" id="trigger-a1000" onclick="fireEvent('a1000')">⚠ 異常イベントを発火</button>
   </div>
 
-  <!-- 進捗ステップ表示 -->
+  <!-- 進捗ステップ表示 (RAG実装) -->
   <div class="progress-section" id="progress" style="display:none">
     <div class="progress-title">エージェント処理状況</div>
     <div class="progress-step" data-step="1">
       <span class="step-icon">⟳</span>
-      <span class="step-text">イベントを Pub/Sub 経由で Cloud Functions に送信中...</span>
+      <span class="step-text">IoTイベントを Cloud Functions に送信中...</span>
     </div>
     <div class="progress-step" data-step="2">
       <span class="step-icon">⟳</span>
@@ -1374,11 +1534,11 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
     <div class="progress-step" data-step="3">
       <span class="step-icon">⟳</span>
-      <span class="step-text">Cloud Storage から仕様書PDF・図面PNGを取得中</span>
+      <span class="step-text">BigQuery Vector Search で関連仕様書セクションを検索中</span>
     </div>
     <div class="progress-step" data-step="4">
       <span class="step-icon">⟳</span>
-      <span class="step-text">Vertex AI Gemini が仕様書と照合し業務的解釈を生成中...</span>
+      <span class="step-text">Vertex AI Gemini が検索結果と閾値超過を解釈し業務的診断を生成中...</span>
     </div>
     <div class="progress-step" data-step="5">
       <span class="step-icon">⟳</span>
@@ -1393,8 +1553,8 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <div class="pipeline">
-    Pub/Sub → Cloud Functions → <strong>Product Engineering Agent</strong>
-    <br>(Vertex AI Gemini Function Calling) → Salesforce
+    Cloud Functions → <strong>Product Engineering Agent</strong>
+    <br>(Vertex AI Gemini + BigQuery Vector Search) → Salesforce
   </div>
 
   <div class="status" id="status">待機中。シナリオを選んでイベントを発火してください。</div>

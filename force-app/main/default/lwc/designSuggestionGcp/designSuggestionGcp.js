@@ -2,11 +2,11 @@ import { LightningElement, api, wire } from 'lwc';
 import getPreviewData from '@salesforce/apex/DesignSuggestionGcpController.getPreviewData';
 import generateDesignSuggestionAgent from '@salesforce/apex/DesignSuggestionGcpController.generateDesignSuggestionAgent';
 
-// エージェントの実際のツール呼出順に対応した進捗ステップ
+// エージェントの実際のツール呼出順に対応した進捗ステップ（RAG実装）
 const STEPS = [
     { key: 1, label: 'Salesforce から施策情報・紐付くニーズを取得' },
-    { key: 2, label: 'Cloud Storage から仕様書PDF・図面を取得' },
-    { key: 3, label: 'Vertex AI Gemini が仕様書・図面と照合して推論中' },
+    { key: 2, label: 'BigQuery Vector Search で関連仕様書セクションを検索' },
+    { key: 3, label: 'Vertex AI Gemini が検索結果を解釈し設計改善提案を生成' },
     { key: 4, label: '製品改善提案を Salesforce へ書き戻し' }
 ];
 
