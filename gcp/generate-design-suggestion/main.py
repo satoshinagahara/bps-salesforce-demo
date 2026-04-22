@@ -584,6 +584,7 @@ def _aggregate_today(runs: list[dict]) -> dict:
         return {
             "count": 0, "avg_elapsed": 0, "success_rate": 0,
             "total_tool_calls": 0, "total_tokens": 0, "gemini_calls": 0,
+            "baseline_count": 0, "rag_count": 0,
         }
     total = len(todays)
     success = sum(1 for r in todays if r.get("status") == "completed")
