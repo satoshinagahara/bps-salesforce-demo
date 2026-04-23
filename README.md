@@ -1,5 +1,9 @@
 # BPS Corporation - Salesforce Demo Environment
 
+> **Disclaimer**: 本リポジトリは個人が学習・検証目的で構築したSalesforceおよび周辺技術のデモ環境です。
+> **Salesforce, Inc.** および日本法人・関連会社とは一切関係がなく、**Salesforce社の公式見解・公式サンプル・製品ロードマップ・推奨実装を示すものではありません**。
+> 本リポジトリの内容から同社の将来の機能・方針を推測することはできません。詳細は末尾の [免責事項](#免責事項-disclaimer) を参照してください。
+
 BPS Corporation（架空の再生可能エネルギー機器メーカー）のSalesforceデモ環境です。
 製造業における調達・品質・設計・営業の業務プロセスをカスタム実装で再現しています。
 
@@ -195,3 +199,24 @@ sf org assign permset --name BOM_Full_Access --target-org bps-demo
 | [needs-correlation-network-design.md](docs/design/needs-correlation-network-design.md) | ニーズ相関ネットワーク設計 |
 | [gcp_demo_design_concept.md](docs/concepts/gcp_demo_design_concept.md) | GCP連携デモ設計仕様書 |
 | [gcp-demo-build-log.md](docs/in-progress/gcp-demo-build-log.md) | GCP連携デモ構築ログ |
+
+## 免責事項 (Disclaimer)
+
+- 本リポジトリは **個人が制作した非公式のデモ環境** であり、いかなる企業・組織の公式成果物でもありません。
+- 特に **Salesforce, Inc.**（米 salesforce.com, inc. および Salesforce Japan 株式会社を含む）とは一切関係がなく、同社の公式見解・サポート対象・製品ロードマップ・将来の機能提供を示すものではありません。本リポジトリに含まれる実装、アーキテクチャ、Agentforce / Data Cloud / Prompt Template 等の利用方法は、すべて個人の解釈と試行に基づく非公式のサンプルです。
+- 登場する **BPS Corporation** は架空の企業です。製品名、取引先名、サプライヤー名、人物名、金額、数量、所在地等のデータはすべてデモ用に創作・生成したものであり、実在の個人・団体・取引とは一切関係ありません。
+- 本コードは **現状有姿 (AS IS) で提供** され、明示的・黙示的を問わずいかなる保証も行いません。商品性、特定目的適合性、非侵害性、正確性、最新性、セキュリティについての保証を含みません。
+- **本番環境での利用は想定していません**。デプロイ、データ利用、外部サービス（GCP / Vertex AI 等）連携による課金・情報漏えい・業務影響等、本リポジトリの利用に起因する一切の損害について作者は責任を負いません。
+- LLM・生成AIを用いた機能は、出力の正確性・一貫性を保証しません。業務判断・顧客対応等に利用する場合は、利用者の責任において結果を検証してください。
+
+## 商標 (Trademarks)
+
+- Salesforce, Agentforce, Einstein, Data Cloud, Lightning Web Components, Apex, Experience Cloud, Manufacturing Cloud は salesforce.com, inc. の登録商標または商標です。
+- Google Cloud, Vertex AI, Gemini, Imagen, Cloud Functions は Google LLC の登録商標または商標です。
+- その他、本リポジトリに記載の製品名・サービス名は、各社の登録商標または商標です。
+- 本リポジトリは上記各社から後援・承認・提携を受けているものではありません。
+
+## ライセンス (License)
+
+本リポジトリのソースコードおよびメタデータは **MIT License** の下で公開しています。詳細は [LICENSE](LICENSE) を参照してください。
+ただし、生成された製品画像（`gcp/assets/` 配下等、Imagen 3.0 等により生成）の再配布・利用条件は、生成元サービスの利用規約に従います。
