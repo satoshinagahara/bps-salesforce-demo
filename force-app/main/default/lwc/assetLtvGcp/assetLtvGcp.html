@@ -1,0 +1,119 @@
+<template>
+    <lightning-card icon-name="standard:opportunity_contact_role">
+        <div slot="title" class="card-title-row">
+            <span>納入商品LTV</span>
+            <button class="refresh-btn" onclick={handleRefresh} title="再計算">
+                <lightning-icon icon-name="utility:refresh" size="xx-small"></lightning-icon>
+            </button>
+        </div>
+
+        <template lwc:if={hasError}>
+            <div class="error-box">{error}</div>
+        </template>
+
+        <template lwc:if={hasData}>
+            <div class="ltv-body">
+
+                <!-- ヘッダー: Projected LTV 大表示 + 倍率バッジ -->
+                <div class="hero">
+                    <div class="hero-main">
+                        <div class="hero-label">予測LTV</div>
+                        <div class="hero-value">{data.projectedLtvFormatted}</div>
+                        <div class="hero-sub">実績 {data.realizedLtvFormatted}</div>
+                    </div>
+                    <div class={multipleBadgeClass}>
+                        <div class="badge-num">×{data.ltvMultiple}</div>
+                        <div class="badge-label">LTV倍率</div>
+                    </div>
+                </div>
+
+                <!-- スタックバー: 4要素の構成 -->
+                <div class="stack-section">
+                    <div class="stack-bar">
+                        <template for:each={stackSegments} for:item="s">
+                            <template lwc:if={s.visible}>
+                                <div key={s.key} class={s.cls} style={s.style} title={s.label}></div>
+                            </template>
+                        </template>
+                    </div>
+                    <div class="stack-legend">
+                        <template for:each={stackSegments} for:item="s">
+                            <template lwc:if={s.visible}>
+                                <div key={s.key} class="legend-item">
+                                    <span class={s.cls}></span>
+                                    <span class="legend-label">{s.label}</span>
+                                    <span class="legend-value">{s.formatted}</span>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 年次累積グラフ -->
+                <template lwc:if={chartData}>
+                    <div class="chart-section">
+                        <div class="chart-header">
+                            <span class="chart-title">年度別 累積売上</span>
+                            <span class="chart-max">最大 {chartData.maxFormatted}</span>
+                        </div>
+                        <svg class="chart-svg" viewBox={chartData.viewBox} preserveAspectRatio="none">
+                            <!-- 軸ライン -->
+                            <line x1="0" y1={chartData.axisY} x2="600" y2={chartData.axisY}
+                                  stroke="#d8dde6" stroke-width="1"></line>
+                            <!-- 面 -->
+                            <path d={chartData.areaPath} fill="url(#ltvGradient)" opacity="0.35"></path>
+                            <!-- 線 -->
+                            <path d={chartData.linePath} fill="none" stroke="#1589ee" stroke-width="2"></path>
+                            <!-- 本日ライン -->
+                            <template lwc:if={chartData.todayX}>
+                                <line x1={chartData.todayX} y1={chartData.todayY1}
+                                      x2={chartData.todayX} y2={chartData.todayY2}
+                                      stroke="#c23934" stroke-width="1" stroke-dasharray="3,2"></line>
+                            </template>
+                            <!-- 各年ポイント -->
+                            <template for:each={chartData.points} for:item="p">
+                                <circle key={p.year} cx={p.x} cy={p.y} r="2.5" fill={p.fill}></circle>
+                            </template>
+                            <defs>
+                                <linearGradient id="ltvGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#1589ee"></stop>
+                                    <stop offset="100%" stop-color="#1589ee" stop-opacity="0.1"></stop>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="chart-xaxis">
+                            <template for:each={chartData.points} for:item="p">
+                                <span key={p.year} class="xaxis-year">{p.year}</span>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- KPI 下段 -->
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">年平均サービス売上</div>
+                        <div class="kpi-value">{data.annualAvgServiceFormatted}</div>
+                    </div>
+                    <template lwc:if={hasNextEvent}>
+                        <div class="kpi-item">
+                            <div class="kpi-label">次の大型支出イベント</div>
+                            <div class="kpi-value kpi-value-sm">{data.nextMajorEvent.milestoneType}</div>
+                            <div class="kpi-sub">
+                                <lightning-formatted-date-time value={data.nextMajorEvent.scheduledDate}
+                                    year="numeric" month="2-digit" day="2-digit">
+                                </lightning-formatted-date-time>
+                                <span class="kpi-amt">{data.nextMajorEvent.plannedAmountFormatted}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- 脚注 -->
+                <div class="footnote">
+                    予測LTV = 納入価額 + 実施済マイルストーン実績 + 予定マイルストーン計画 + 未処理アラートの想定商談機会
+                </div>
+            </div>
+        </template>
+    </lightning-card>
+</template>

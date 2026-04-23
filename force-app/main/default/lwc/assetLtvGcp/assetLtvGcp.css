@@ -1,0 +1,231 @@
+:host {
+    display: block;
+}
+
+.card-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.refresh-btn {
+    background: transparent;
+    border: 1px solid #d8dde6;
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+.refresh-btn:hover {
+    background: #f4f6f9;
+}
+
+.error-box {
+    color: #c23934;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+}
+
+.ltv-body {
+    padding: 0.5rem 1rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Hero */
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+    border-radius: 6px;
+    border: 1px solid #e5ecf5;
+}
+.hero-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.hero-label {
+    font-size: 0.75rem;
+    color: #706e6b;
+    font-weight: 500;
+}
+.hero-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #16325c;
+    line-height: 1;
+}
+.hero-sub {
+    font-size: 0.75rem;
+    color: #706e6b;
+    margin-top: 0.25rem;
+}
+
+.multiple-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    min-width: 80px;
+}
+.multiple-high {
+    background: #e7f5ec;
+    color: #027e46;
+    border: 1px solid #2e844a;
+}
+.multiple-mid {
+    background: #fef5e6;
+    color: #8a6204;
+    border: 1px solid #dca941;
+}
+.multiple-low {
+    background: #fdeded;
+    color: #c23934;
+    border: 1px solid #c23934;
+}
+.badge-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.badge-label {
+    font-size: 0.65rem;
+    margin-top: 0.15rem;
+    opacity: 0.85;
+}
+
+/* Stack bar */
+.stack-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.stack-bar {
+    display: flex;
+    height: 16px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f4f6f9;
+}
+.seg {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+.seg-initial { background: #1589ee; }
+.seg-realized { background: #2e844a; }
+.seg-planned { background: #9da0a4; }
+.seg-alert { background: #ffb75d; }
+
+.stack-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.legend-item > .seg {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.legend-label {
+    color: #3e3e3c;
+}
+.legend-value {
+    color: #16325c;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* Chart */
+.chart-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #706e6b;
+}
+.chart-title {
+    font-weight: 600;
+    color: #3e3e3c;
+}
+.chart-svg {
+    width: 100%;
+    height: 120px;
+}
+.chart-xaxis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: #706e6b;
+    padding: 0 2px;
+}
+.xaxis-year {
+    flex: 1;
+    text-align: center;
+}
+
+/* KPI */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid #e5ecf5;
+}
+.kpi-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.35rem 0;
+}
+.kpi-label {
+    font-size: 0.7rem;
+    color: #706e6b;
+}
+.kpi-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #16325c;
+}
+.kpi-value-sm {
+    font-size: 0.9rem;
+}
+.kpi-sub {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #706e6b;
+}
+.kpi-amt {
+    color: #8a6204;
+    font-weight: 600;
+}
+
+.footnote {
+    font-size: 0.65rem;
+    color: #a8a8a8;
+    line-height: 1.4;
+    padding-top: 0.25rem;
+    border-top: 1px dashed #e5ecf5;
+}

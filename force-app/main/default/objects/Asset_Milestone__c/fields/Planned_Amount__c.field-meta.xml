@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Planned_Amount__c</fullName>
+    <label>予定金額</label>
+    <description>このマイルストーンで発生する予定の売上金額（保守契約・点検・部品交換等）</description>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <type>Currency</type>
+</CustomField>
