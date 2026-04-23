@@ -273,27 +273,40 @@ def tool_calculate_severity(value: float, threshold: float, sensor_type: str) ->
 def tool_estimate_opportunity(asset_price: float, severity: str, sensor_type: str) -> dict:
     """設備の納入価格と重要度から、想定商談機会金額を試算する。
 
-    ロジック: 納入価格 × 重要度係数
-      - 高: 1.5（即時の設備更新 + 3年保守契約相当）
-      - 中: 0.6（部分修理 + 延長保守契約）
-      - 低: 0.15（点検サービスのみ）
+    前提: 1件のIoT異常イベントは製品リプレースではなく、部品交換・工賃・延長保守契約・
+    アップグレード提案の合算ビジネスとして捉える。納入価額の数%〜15%程度が業務相場。
+
+    ロジック: 納入価格 × 重要度係数（業務相場ベース）
+      - 高: 0.15（大型修理 + 3年保守延長 + アップグレード提案）
+      - 中: 0.07（部分修理 + 延長保守契約 + 小規模アップグレード）
+      - 低: 0.02（点検サービス + 軽微な部品交換）
+
+    ※ 本番版ではサービスBOM（sBOM）+ サービスカタログから明細見積を生成する
+      (参照: docs/concepts/service-bom-and-catalog.md)
     """
     log.info("[tool] estimate_opportunity: price=%s severity=%s", asset_price, severity)
     if not asset_price or asset_price <= 0:
         return {"error": "asset_price required (>0)"}
-    multiplier = {"高": 1.5, "中": 0.6, "低": 0.15}.get(severity, 0.6)
-    multiplier_label = {
-        "高": "設備更新＋3年保守契約相当",
-        "中": "部分修理＋延長保守契約",
-        "低": "点検サービス相当",
+    multiplier = {"高": 0.15, "中": 0.07, "低": 0.02}.get(severity, 0.07)
+    scope_label = {
+        "高": "大型修理 + 3年保守延長 + アップグレード提案",
+        "中": "部分修理 + 延長保守契約 + 小規模アップグレード",
+        "低": "点検サービス + 軽微な部品交換",
     }.get(severity, "")
     estimated = int(asset_price * multiplier)
+    # 想定内訳の目安（デモ用の概算比率。本番はsBOMから明細算出）
+    parts_amt = int(estimated * 0.30)         # 部品交換・工賃
+    contract_amt = int(estimated * 0.45)      # 延長保守契約
+    upgrade_amt = estimated - parts_amt - contract_amt  # アップグレード提案
     return {
         "estimatedOpportunity": estimated,
         "currency": "JPY",
         "rationale": (
-            f"納入価格 ¥{int(asset_price):,} × {multiplier}（{multiplier_label}）"
-            f" = ¥{estimated:,}"
+            f"納入価格 ¥{int(asset_price):,} × {int(multiplier*100)}%"
+            f"（{scope_label}） = ¥{estimated:,}"
+            f"（想定内訳: 部品交換・工賃 約¥{parts_amt:,} / "
+            f"延長保守契約 約¥{contract_amt:,} / "
+            f"アップグレード提案 約¥{upgrade_amt:,}）"
         ),
     }
 
