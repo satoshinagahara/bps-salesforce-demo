@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <accessMappings>
+        <accessLevel>Edit</accessLevel>
+        <object>Manufacturing_Site__c</object>
+        <objectField>Supplier__c</objectField>
+        <userField>Account</userField>
+    </accessMappings>
+    <accessMappings>
+        <accessLevel>Edit</accessLevel>
+        <object>Supplier_Certification__c</object>
+        <objectField>Supplier__c</objectField>
+        <userField>Account</userField>
+    </accessMappings>
+    <accessMappings>
+        <accessLevel>Edit</accessLevel>
+        <object>Corrective_Action__c</object>
+        <objectField>Supplier__c</objectField>
+        <userField>Account</userField>
+    </accessMappings>
+    <accessMappings>
+        <accessLevel>Edit</accessLevel>
+        <object>Supplier_Investigation__c</object>
+        <objectField>Supplier__c</objectField>
+        <userField>Account</userField>
+    </accessMappings>
+    <description>SRMポータル: サプライヤーが自社Account紐付きのレコードのみアクセスできるようにする。Supplier_Capacity__c(Manufacturing_Site子)はControlledByParent伝播。Supplier_Investigation__cはクロス会社8D対応のためPrivate OWD化し直接マッピング。</description>
+    <name>Supplier Portal Access</name>
+    <profiles>Partner Community User</profiles>
+</SharingSet>

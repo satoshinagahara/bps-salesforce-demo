@@ -12,5 +12,6 @@
         <type>AutoNumber</type>
     </nameField>
     <pluralLabel>サプライヤー調査</pluralLabel>
-    <sharingModel>ControlledByParent</sharingModel>
+    <sharingModel>Private</sharingModel>
+    <externalSharingModel>Private</externalSharingModel>
 </CustomObject>
