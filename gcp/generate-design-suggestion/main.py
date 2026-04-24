@@ -445,6 +445,27 @@ def _handle_signed_url(request):
         return (json.dumps({"error": str(e)}), 500, _cors_headers())
 
 
+def _signed_url_for_path(path: str, expiration: int = 3600) -> str:
+    """指定GCSパスのV4 Signed URLを返す。失敗時は空文字。"""
+    import google.auth
+    from google.auth.transport import requests as auth_requests
+    try:
+        credentials, _ = google.auth.default()
+        if hasattr(credentials, "refresh"):
+            credentials.refresh(auth_requests.Request())
+        sa_email = os.environ.get("SA_EMAIL", "bps-demo-sa@ageless-lamp-251200.iam.gserviceaccount.com")
+        client = storage.Client(project=GCP_PROJECT)
+        blob = client.bucket(GCS_BUCKET).blob(path)
+        return blob.generate_signed_url(
+            version="v4", expiration=expiration, method="GET",
+            service_account_email=sa_email,
+            access_token=credentials.token,
+        )
+    except Exception as e:
+        log.warning("signed_url failed for %s: %s", path, e)
+        return ""
+
+
 def _handle_trigger_html(request):
     """HTMLトリガーページ。シナリオ2のデモ用にIoTイベントを発火する画面"""
     html = _build_trigger_html()
@@ -1103,8 +1124,20 @@ def _html_escape_attr(s: str) -> str:
 
 
 def _build_trigger_html() -> str:
-    """シナリオ2用HTMLトリガーページのHTML文字列を返す"""
-    return TRIGGER_HTML
+    """シナリオ2用HTMLトリガーページのHTML文字列を返す。
+    設備サムネイルのSigned URLは要求のたびに発行する（1時間有効）。
+    """
+    img_e2000 = _signed_url_for_path("products/enercharge_pro_e2000.png")
+    img_a1000 = _signed_url_for_path("products/a1000_wind_turbine.png")
+    return _TRIGGER_HTML_TEMPLATE.replace(
+        "__DEMO_ASSET_E2000_ID__", DEMO_ASSET_E2000_ID
+    ).replace(
+        "__DEMO_ASSET_A1000_ID__", DEMO_ASSET_A1000_ID
+    ).replace(
+        "__IMG_E2000__", img_e2000
+    ).replace(
+        "__IMG_A1000__", img_a1000
+    )
 
 
 @functions_framework.http
@@ -1291,7 +1324,7 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>BPS 設備監視シミュレーター</title>
+<title>BPS IoTイベントシミュレーター</title>
 <style>
   body {
     font-family: 'Hiragino Sans', 'Yu Gothic', -apple-system, sans-serif;
@@ -1304,24 +1337,24 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 36px 48px;
-    max-width: 720px;
-    width: 90%;
+    padding: 28px 36px;
+    max-width: 780px;
+    width: 92%;
     margin: 0 auto;
     box-shadow: 0 4px 24px rgba(0,0,0,0.06);
   }
-  h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: 0.05em; color: #0f172a; }
-  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 28px; }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: 0.05em; color: #0f172a; }
+  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 20px; }
   .scenario {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    padding: 18px 22px;
-    margin-bottom: 18px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
   }
   .scenario-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
   .scenario-title { font-size: 15px; font-weight: 700; color: #1e293b; }
   .scenario-tag {
@@ -1330,9 +1363,27 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
     padding: 3px 8px; border-radius: 3px;
     font-weight: 600;
   }
+  .scenario-body {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .thumb {
+    flex: 0 0 168px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #e2e8f0;
+    border: 1px solid #d1d5db;
+    aspect-ratio: 16 / 10;
+  }
+  .thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+  .scenario-info { flex: 1; min-width: 0; }
   .row {
     display: flex; justify-content: space-between;
-    padding: 6px 0; font-size: 13px;
+    padding: 3px 0; font-size: 13px;
   }
   .row-label { color: #94a3b8; }
   .row-value { color: #1e293b; font-weight: 600; }
@@ -1342,7 +1393,7 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
   .threshold { color: #94a3b8; font-size: 13px; font-weight: normal; margin-left: 6px; }
   .btn {
     width: 100%;
-    padding: 12px; margin-top: 12px;
+    padding: 10px; margin-top: 10px;
     font-size: 14px; font-weight: 600;
     background: #0ca678; color: white;
     border: none; border-radius: 6px;
@@ -1364,8 +1415,8 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
   .status.err { border-left: 4px solid #dc2626; background: #fef2f2; }
 
   .input-row {
-    margin: 12px 0;
-    padding: 10px 12px;
+    margin: 8px 0 0;
+    padding: 8px 10px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
@@ -1374,7 +1425,7 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
     display: block;
     font-size: 11px;
     color: #64748b;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: 0.05em;
   }
   .input-pair { display: flex; align-items: center; gap: 8px; }
@@ -1479,7 +1530,7 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
 <div class="container">
-  <h1>⚡ BPS 設備監視シミュレーター</h1>
+  <h1>⚡ BPS IoTイベントシミュレーター</h1>
   <div class="subtitle">IoT センサーイベント発火デモ（複数シナリオ）</div>
 
   <!-- シナリオA: E-2000 -->
@@ -1488,15 +1539,20 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
       <span class="scenario-title">シナリオA: 蓄電システム高温異常</span>
       <span class="scenario-tag">E-2000</span>
     </div>
-    <div class="row"><span class="row-label">設備</span><span class="row-value">EnerCharge Pro #001 (Bangkok Plant B)</span></div>
-    <div class="row"><span class="row-label">顧客</span><span class="row-value">東亜電子工業</span></div>
-    <div class="input-row">
-      <label class="input-label">センサー: セル温度</label>
-      <div class="input-pair">
-        <input type="number" step="0.1" id="value-e2000" value="47.5" class="input-num"/>
-        <span class="input-sep">/ 閾値</span>
-        <input type="number" step="0.1" id="threshold-e2000" value="45.0" class="input-num"/>
-        <span class="input-unit">℃</span>
+    <div class="scenario-body">
+      <div class="thumb"><img src="__IMG_E2000__" alt="EnerCharge Pro E-2000"/></div>
+      <div class="scenario-info">
+        <div class="row"><span class="row-label">設備</span><span class="row-value">EnerCharge Pro #001 (Bangkok Plant B)</span></div>
+        <div class="row"><span class="row-label">顧客</span><span class="row-value">東亜電子工業</span></div>
+        <div class="input-row">
+          <label class="input-label">センサー: セル温度</label>
+          <div class="input-pair">
+            <input type="number" step="0.1" id="value-e2000" value="47.5" class="input-num"/>
+            <span class="input-sep">/ 閾値</span>
+            <input type="number" step="0.1" id="threshold-e2000" value="45.0" class="input-num"/>
+            <span class="input-unit">℃</span>
+          </div>
+        </div>
       </div>
     </div>
     <button class="btn" id="trigger-e2000" onclick="fireEvent('e2000')">⚠ 異常イベントを発火</button>
@@ -1508,15 +1564,20 @@ _TRIGGER_HTML_TEMPLATE = """<!DOCTYPE html>
       <span class="scenario-title">シナリオB: 風力タービン振動異常</span>
       <span class="scenario-tag">A-1000</span>
     </div>
-    <div class="row"><span class="row-label">設備</span><span class="row-value">A-1000 大型風力タービン #003 (中部第3拠点)</span></div>
-    <div class="row"><span class="row-label">顧客</span><span class="row-value">アライドパワー株式会社</span></div>
-    <div class="input-row">
-      <label class="input-label">センサー: ブレード振動値</label>
-      <div class="input-pair">
-        <input type="number" step="0.1" id="value-a1000" value="8.7" class="input-num"/>
-        <span class="input-sep">/ 閾値</span>
-        <input type="number" step="0.1" id="threshold-a1000" value="7.0" class="input-num"/>
-        <span class="input-unit">mm/s</span>
+    <div class="scenario-body">
+      <div class="thumb"><img src="__IMG_A1000__" alt="A-1000 風力タービン"/></div>
+      <div class="scenario-info">
+        <div class="row"><span class="row-label">設備</span><span class="row-value">A-1000 大型風力タービン #003 (中部第3拠点)</span></div>
+        <div class="row"><span class="row-label">顧客</span><span class="row-value">アライドパワー株式会社</span></div>
+        <div class="input-row">
+          <label class="input-label">センサー: ブレード振動値</label>
+          <div class="input-pair">
+            <input type="number" step="0.1" id="value-a1000" value="8.7" class="input-num"/>
+            <span class="input-sep">/ 閾値</span>
+            <input type="number" step="0.1" id="threshold-a1000" value="7.0" class="input-num"/>
+            <span class="input-unit">mm/s</span>
+          </div>
+        </div>
       </div>
     </div>
     <button class="btn" id="trigger-a1000" onclick="fireEvent('a1000')">⚠ 異常イベントを発火</button>
@@ -1704,8 +1765,3 @@ async function fireEvent(scenarioKey) {
 </body>
 </html>
 """
-TRIGGER_HTML = _TRIGGER_HTML_TEMPLATE.replace(
-    "__DEMO_ASSET_E2000_ID__", DEMO_ASSET_E2000_ID
-).replace(
-    "__DEMO_ASSET_A1000_ID__", DEMO_ASSET_A1000_ID
-)
