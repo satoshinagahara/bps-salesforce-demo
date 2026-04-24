@@ -1,6 +1,9 @@
 ## LWC
 - **App Builder表示名**: meta.xmlの`masterLabel`でApp Builder表示名が変わる。混乱を避けるため使わないか、設定時はユーザーに伝える
 - **targets指定は配置場所ごとに必須**: `lightning__RecordPage`のみ指定したLWCはホームページのApp Builderに表示されない
+- **`@wire` は `cacheable=true` 必須**: Apex wireで `@AuraEnabled(cacheable=false)` のメソッドを `@wire` すると callback が発火せず、LWCにデータが来ない(無言で黙る)。imperative呼び出しは cacheable に関係なく可能。`refreshApex` は cacheable=true wireでも正常動作する。検証日: 2026-04-24 (idpQuoteDualEntry で発覚、画面にレコード項目が全く表示されない症状)
+- **複数LWC間の wire cache 共有パターン**: 同じApex method + 同じ引数で wire すると、異なるLWCでもキャッシュが共有される。1つのLWCで Apex DML 後に `refreshApex` すると、他LWCの wire も同時に最新値で再発火する。複数LWCでの状態同期を実現するシンプルな方法。Lightning Message Service よりも軽量(検証日: 2026-04-24、idpQuoteFileUploader と idpQuoteDualEntry のステータス同期で採用)
+- **業務ステータスと処理状態の分離**: ピックリストに「処理中」「エラー」等の一時状態を混ぜず、業務ステータスのみに絞ると認知負荷が下がる。処理状態は派生可能なフィールド(DateTime null/not-nullや Error_Message の有無)から LWC で導出する方が保守性高い(検証日: 2026-04-24、IDP_Review_Status__c を7値→4値に簡素化)
 
 ## Metadata API / Deploy
 - **OpportunityStage等のlabelはMetadata APIで変更不可**: 翻訳ワークベンチ（Translation Settings）を使う
@@ -91,3 +94,30 @@ Salesforce Hosted MCP Server（`api.salesforce.com/platform/mcp/v1/...`）を外
 ### 権限セットの罠
 - `C2CMcpServicePermSet` は **Cloud Integration User ライセンス専用**（サーバー間C2C連携用）。Claude Desktop等のユーザーOAuthフローには無関係。割り当てようとするとライセンスミスマッチエラー
 - ユーザー側OAuthフローでは追加の権限セット不要（`mcp_api` scopeのみで可）
+
+## Cloud Monitoring Dashboard (BigQuery メトリクス)
+
+Cloud Monitoring でカスタムダッシュボードを作るときの BigQuery メトリクス特有の詰まりポイント（検証日: 2026-04-23, BPS × GCP Live Operations ダッシュボード構築時）。
+
+### metric kind と aligner の組み合わせ
+- **GAUGE に `ALIGN_RATE` は適用不可**: `bigquery.googleapis.com/query/count` は GAUGE/INT64。`ALIGN_RATE` を指定すると "Field aggregation.perSeriesAligner had an invalid value of ALIGN_RATE: The aligner cannot be applied to..." エラー
+- **クエリ件数を rate で可視化したい場合は `query/execution_count` を使う**: こちらは DELTA/INT64 なので `ALIGN_RATE` / `ALIGN_DELTA` が通る
+
+### resource type の落とし穴（BQ は metric ごとに `bigquery_project` / `global` が混在）
+- **`query/scanned_bytes`・`query/scanned_bytes_billed` は resource type = `global`** のみ。`bigquery_project` を指定すると "The supplied filter does not specify a valid combination of metric and monitored resource descriptors" エラー
+- **`slots/allocated_for_project`・`slots/allocated_for_reservation` も resource type = `global`** のみ
+- **`query/count`・`query/execution_times` は両方対応**（`bigquery_project`, `global` どちらでも OK）
+- **`query/execution_count`・`query/statement_scanned_bytes` は `bigquery_project` のみ**
+
+### 確認手順（迷ったら REST で引く）
+`gcloud` には metric-descriptors list サブコマンドが無いので、REST で引くのが早い:
+```bash
+TOKEN=$(gcloud auth print-access-token)
+curl -s "https://monitoring.googleapis.com/v3/projects/PROJECT/metricDescriptors?filter=metric.type%3Dstarts_with%28%22bigquery.googleapis.com%22%29&pageSize=100" \
+  -H "Authorization: Bearer $TOKEN" \
+  | jq -r '.metricDescriptors[] | "\(.type) \(.metricKind) \(.valueType) \(.monitoredResourceTypes)"'
+```
+
+### Dashboard update 時の etag
+- `gcloud monitoring dashboards update` は `etag` 必須。JSON に `etag` と `name` を埋めてから渡す
+- etag は `gcloud monitoring dashboards describe <id> --format="value(etag)"` で取得

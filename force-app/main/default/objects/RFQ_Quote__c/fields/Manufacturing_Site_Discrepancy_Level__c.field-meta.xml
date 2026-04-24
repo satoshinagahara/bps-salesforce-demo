@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Manufacturing_Site_Discrepancy_Level__c</fullName>
+    <label>製造拠点相違レベル</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetName>IDP_Discrepancy_Level</valueSetName>
+    </valueSet>
+</CustomField>

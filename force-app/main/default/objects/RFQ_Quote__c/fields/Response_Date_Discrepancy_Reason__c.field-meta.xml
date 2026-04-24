@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Response_Date_Discrepancy_Reason__c</fullName>
+    <label>回答日相違根拠</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>false</required>
+</CustomField>

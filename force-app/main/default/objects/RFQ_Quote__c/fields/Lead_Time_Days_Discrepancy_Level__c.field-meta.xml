@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lead_Time_Days_Discrepancy_Level__c</fullName>
+    <label>納期日数相違レベル</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetName>IDP_Discrepancy_Level</valueSetName>
+    </valueSet>
+</CustomField>

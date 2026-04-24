@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GlobalValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customValue>
+        <fullName>未判定</fullName>
+        <default>true</default>
+        <label>未判定</label>
+    </customValue>
+    <customValue>
+        <fullName>一致</fullName>
+        <default>false</default>
+        <label>一致</label>
+    </customValue>
+    <customValue>
+        <fullName>表記差</fullName>
+        <default>false</default>
+        <label>表記差</label>
+    </customValue>
+    <customValue>
+        <fullName>読み取り差</fullName>
+        <default>false</default>
+        <label>読み取り差</label>
+    </customValue>
+    <customValue>
+        <fullName>単位換算差</fullName>
+        <default>false</default>
+        <label>単位換算差</label>
+    </customValue>
+    <customValue>
+        <fullName>致命差</fullName>
+        <default>false</default>
+        <label>致命差</label>
+    </customValue>
+    <masterLabel>IDP_Discrepancy_Level</masterLabel>
+    <sorted>false</sorted>
+</GlobalValueSet>

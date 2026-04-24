@@ -1,0 +1,107 @@
+<template>
+    <lightning-card title="IDP 見積書ファイルアップロード" icon-name="utility:upload">
+        <div class="slds-p-around_medium">
+
+            <!-- Error banner -->
+            <template lwc:if={hasErrorMessage}>
+                <div class="slds-box slds-theme_error slds-m-bottom_small">
+                    <lightning-icon icon-name="utility:error" size="x-small" variant="inverse"></lightning-icon>
+                    &nbsp;<b>IDP処理エラー:</b> {errorBannerMessage}
+                </div>
+            </template>
+
+            <!-- Completion note (抽出完了後) -->
+            <template lwc:if={showCompletionNote}>
+                <div class="slds-box slds-theme_success_texture slds-m-bottom_small">
+                    <p class="slds-text-body_regular">
+                        <lightning-icon icon-name="utility:success" size="x-small" variant="inverse"></lightning-icon>
+                        &nbsp; 抽出完了。比較表コンポーネントで確認してください。別のPDFをアップロードして再抽出することもできます。
+                    </p>
+                </div>
+            </template>
+
+            <!-- Drop zone -->
+            <div class={dropZoneClass}
+                 ondragover={handleDragOver}
+                 ondragleave={handleDragLeave}
+                 ondrop={handleDrop}>
+                <div class="slds-file-selector__body">
+                    <lightning-icon icon-name="utility:upload" size="large"
+                                    alternative-text="アップロード"
+                                    class="slds-m-bottom_small"></lightning-icon>
+                    <p class="slds-text-body_regular slds-m-bottom_x-small">
+                        見積書PDFをドラッグ&ドロップ
+                    </p>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
+                        または
+                    </p>
+                    <lightning-button label="ファイルを選択" variant="neutral"
+                                      onclick={handleFileSelectClick}
+                                      disabled={isProcessing}></lightning-button>
+                    <input type="file" class="file-input slds-hide"
+                           accept=".pdf,.png,.jpg,.jpeg"
+                           onchange={handleFileChange}/>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_small">
+                        対応形式: PDF / PNG / JPG
+                    </p>
+                </div>
+            </div>
+
+            <!-- Selected file info -->
+            <template lwc:if={selectedFile}>
+                <div class="slds-m-top_medium slds-box slds-box_x-small slds-theme_default">
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col slds-grow">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-gutters_x-small">
+                                <lightning-icon icon-name={fileIconName} size="small"
+                                                class="slds-m-right_x-small"></lightning-icon>
+                                <div>
+                                    <p class="slds-text-body_regular slds-text-title_bold">{selectedFile.name}</p>
+                                    <p class="slds-text-body_small slds-text-color_weak">{formattedFileSize}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-shrink">
+                            <lightning-button-icon icon-name="utility:close"
+                                                   alternative-text="削除" variant="bare"
+                                                   onclick={handleRemoveFile}
+                                                   disabled={isProcessing}></lightning-button-icon>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Upload button -->
+            <template lwc:if={showUploadButton}>
+                <div class="slds-m-top_medium slds-text-align_center">
+                    <lightning-button label="アップロード開始" variant="brand"
+                                      onclick={handleUpload} disabled={isProcessing}
+                                      icon-name="utility:upload"></lightning-button>
+                </div>
+            </template>
+
+            <!-- Progress display -->
+            <template lwc:if={isProcessing}>
+                <div class="slds-m-top_medium">
+                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_x-small">
+                        <lightning-spinner alternative-text="処理中" size="small"
+                                           class="slds-m-right_small spinner-inline"></lightning-spinner>
+                        <p class="slds-text-body_regular">{statusMessage}</p>
+                    </div>
+                    <template lwc:if={showProgressBar}>
+                        <lightning-progress-bar value={uploadProgress} size="large"
+                                                variant="circular"></lightning-progress-bar>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Error display -->
+            <template lwc:if={errorMessage}>
+                <div class="slds-m-top_medium slds-notify slds-notify_alert slds-alert_error" role="alert">
+                    <span class="slds-assistive-text">エラー</span>
+                    <p class="slds-text-body_regular">{errorMessage}</p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,127 @@
+<template>
+    <lightning-card title="IDP デュアル入力・比較" icon-name="utility:compare">
+        <lightning-button-icon slot="actions" icon-name="utility:refresh"
+                               alternative-text="再読み込み" title="再読み込み"
+                               onclick={handleReload} disabled={isBusy}></lightning-button-icon>
+
+        <div class="slds-p-around_medium">
+
+            <!-- Header: overall judgment only (status badge removed per design) -->
+            <div class="slds-grid slds-grid_align-end slds-m-bottom_small">
+                <div>
+                    全体判定:
+                    <span class={overallLevelClass}>{overallLevelLabel}</span>
+                </div>
+            </div>
+
+            <!-- Error banner -->
+            <template lwc:if={hasErrorMessage}>
+                <div class="slds-box slds-theme_error slds-m-bottom_small">
+                    <lightning-icon icon-name="utility:error" size="x-small" variant="inverse"></lightning-icon>
+                    &nbsp;<b>IDP処理エラー:</b> {errorBannerMessage}
+                </div>
+            </template>
+
+            <!-- Ready alert -->
+            <template lwc:if={readyAlertVisible}>
+                <div class="slds-box slds-theme_warning slds-m-bottom_small">
+                    <lightning-icon icon-name="utility:info" size="x-small"></lightning-icon>
+                    &nbsp;<b>ダブルチェック準備完了。</b> 担当者入力を確定(保存)してから「相違判定を実行」を押してください。
+                </div>
+            </template>
+
+            <!-- Form: dual-entry table -->
+            <lightning-record-edit-form
+                record-id={recordId}
+                object-api-name="RFQ_Quote__c"
+                onsuccess={handleFormSuccess}
+                onerror={handleFormError}>
+
+                <div class="dual-table">
+                    <div class="dual-header">
+                        <div class="col-label">項目</div>
+                        <div class="col-human">担当者</div>
+                        <div class="col-ai">IDP抽出 (信頼度)</div>
+                        <div class="col-judgment">AI判定結果</div>
+                    </div>
+
+                    <template for:each={fieldRows} for:item="row">
+                        <div key={row.key} class={row.rowClass}>
+                            <div class="col-label">{row.label}</div>
+                            <div class="col-human">
+                                <lightning-input-field
+                                    field-name={row.humanApiName}
+                                    variant="label-hidden"
+                                    disabled={isReadOnly}></lightning-input-field>
+                            </div>
+                            <div class="col-ai">
+                                <template lwc:if={row.hasAiValue}>
+                                    <span class="ai-value">{row.aiDisplay}</span>
+                                    <template lwc:if={row.hasConfidence}>
+                                        <span class="confidence">({row.confidence}%)</span>
+                                    </template>
+                                </template>
+                                <template lwc:else>
+                                    <span class="ai-empty">—</span>
+                                </template>
+                            </div>
+                            <div class="col-judgment">
+                                <span class={row.levelClass}>{row.levelLabel}</span>
+                                <template lwc:if={row.reason}>
+                                    <div class="reason">{row.reason}</div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Review note (担当者確認中 / 担当者確認済 で表示) -->
+                <template lwc:if={showNoteField}>
+                    <div class="slds-m-top_medium">
+                        <lightning-input-field
+                            field-name="IDP_Review_Note__c"
+                            disabled={noteFieldDisabled}></lightning-input-field>
+                    </div>
+                </template>
+
+            </lightning-record-edit-form>
+
+            <!-- Judgment summary -->
+            <template lwc:if={hasJudgmentSummary}>
+                <div class="slds-box slds-m-top_small">
+                    <b>📝 判定サマリ:</b> {record.IDP_Judgment_Summary__c}
+                </div>
+            </template>
+
+            <!-- Action buttons -->
+            <div class="slds-m-top_medium slds-grid slds-grid_align-spread slds-wrap">
+                <div>
+                    <template lwc:if={showSaveButton}>
+                        <lightning-button variant="neutral" label="保存" icon-name="utility:save"
+                                          onclick={handleSave} disabled={isBusy}></lightning-button>
+                    </template>
+                </div>
+                <div>
+                    <template lwc:if={showJudgeButton}>
+                        <lightning-button variant="brand" label="相違判定を実行"
+                                          icon-name="utility:check"
+                                          onclick={handleJudge} disabled={isBusy}></lightning-button>
+                        &nbsp;
+                    </template>
+                    <template lwc:if={showConfirmButton}>
+                        <lightning-button variant="brand" label="確認完了"
+                                          icon-name="utility:check"
+                                          onclick={handleConfirm} disabled={isBusy}></lightning-button>
+                        &nbsp;
+                    </template>
+                    <template lwc:if={showResetButton}>
+                        <lightning-button variant="neutral" label="やり直す"
+                                          icon-name="utility:refresh"
+                                          onclick={handleReset} disabled={isBusy}></lightning-button>
+                    </template>
+                </div>
+            </div>
+
+        </div>
+    </lightning-card>
+</template>
