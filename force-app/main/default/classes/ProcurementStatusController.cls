@@ -82,6 +82,7 @@ public with sharing class ProcurementStatusController {
                 for (RFQ_Quote__c q : rfq.Quotes__r) {
                     if (q.Response_Date__c != null && q.Status__c == '回答済') {
                         Map<String, Object> qMap = new Map<String, Object>();
+                        qMap.put('rfqId', rfq.Id);
                         qMap.put('rfqName', rfq.Name);
                         qMap.put('partNumber', rfq.Part_Number__c);
                         qMap.put('supplierName', q.Supplier__r?.Name);

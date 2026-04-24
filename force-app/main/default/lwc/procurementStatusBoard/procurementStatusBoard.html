@@ -1,95 +1,128 @@
 <template>
     <lightning-card title="調達ステータスボード" icon-name="standard:orders">
+        <div class="board-container">
 
-        <!-- サマリーカード -->
-        <div class="kpi-summary">
-            <div class="kpi-card">
-                <div class="kpi-value">{openCount}</div>
-                <div class="kpi-label">オープンRFQ</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value kpi-value--warning">{evaluatingCount}</div>
-                <div class="kpi-label">評価中</div>
-            </div>
-            <div class={dueSoonClass}>
-                <div class="kpi-value kpi-value--danger">{dueSoonCount}</div>
-                <div class="kpi-label">期限間近/超過</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-value kpi-value--success">{decidedCount}</div>
-                <div class="kpi-label">決定済</div>
-            </div>
-        </div>
-
-        <!-- カテゴリ別 -->
-        <template if:true={hasCategories}>
-            <div class="kpi-section">
-                <h3 class="section-title">調達カテゴリ（オープン中）</h3>
-                <div class="category-row">
-                    <template for:each={categoryItems} for:item="item">
-                        <div key={item.label} class="category-badge" style={item.style}>
-                            <span class="category-count">{item.count}</span>
-                            <span class="category-label">{item.label}</span>
-                        </div>
+            <!-- フィルタバー -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <span class="filter-row-label">ステータス</span>
+                    <template for:each={statusChips} for:item="chip">
+                        <button key={chip.key}
+                                class={chip.cssClass}
+                                data-key={chip.key}
+                                onclick={handleStatusChip}>
+                            <span class="chip-count">{chip.count}</span>
+                            <span class="chip-label">{chip.label}</span>
+                        </button>
                     </template>
                 </div>
+                <template if:true={hasCategoriesAvailable}>
+                    <div class="filter-row">
+                        <span class="filter-row-label">カテゴリ</span>
+                        <template for:each={categoryChips} for:item="chip">
+                            <button key={chip.key}
+                                    class={chip.cssClass}
+                                    style={chip.style}
+                                    data-key={chip.key}
+                                    onclick={handleCategoryChip}>
+                                <span class="chip-count">{chip.count}</span>
+                                <span class="chip-label">{chip.label}</span>
+                            </button>
+                        </template>
+                    </div>
+                </template>
+                <template if:true={hasActiveFilter}>
+                    <div class="filter-row filter-row--clear">
+                        <button class="clear-filter-btn" onclick={handleClearFilters}>
+                            すべて解除（標準ビューに戻す）
+                        </button>
+                    </div>
+                </template>
             </div>
-        </template>
 
-        <!-- オープンRFQ一覧 -->
-        <template if:true={hasRFQs}>
-            <div class="kpi-section">
-                <h3 class="section-title">オープンRFQ一覧</h3>
-                <div class="rfq-list">
-                    <template for:each={rfqItems} for:item="item">
-                        <div key={item.id} class={item.rowClass} data-id={item.id} onclick={handleRFQClick}>
-                            <div class="rfq-header">
-                                <span class="rfq-name">{item.name}</span>
-                                <span class="status-badge" style={item.statusStyle}>{item.status}</span>
-                                <template if:true={item.hasDueBadge}>
-                                    <span class={item.dueBadgeClass}>{item.dueBadge}</span>
+            <!-- メイン2カラム -->
+            <div class="main-grid">
+                <!-- 左: RFQ一覧 -->
+                <div class="rfq-pane">
+                    <h3 class="pane-title">{rfqHeaderText}</h3>
+                    <div class="rfq-scroll">
+                        <template if:true={hasFilteredRfqs}>
+                            <div class="rfq-list">
+                                <template for:each={filteredRfqItems} for:item="item">
+                                    <div key={item.id} class={item.rowClass}
+                                         data-id={item.id} onclick={handleRFQClick}>
+                                        <div class="rfq-header">
+                                            <span class="rfq-name">{item.name}</span>
+                                            <span class="status-badge" style={item.statusStyle}>{item.status}</span>
+                                            <template if:true={item.hasDueBadge}>
+                                                <span class={item.dueBadgeClass}>{item.dueBadge}</span>
+                                            </template>
+                                            <template if:true={item.hasCategory}>
+                                                <span class="rfq-category">{item.categoryDisplay}</span>
+                                            </template>
+                                        </div>
+                                        <div class="rfq-title">{item.title}</div>
+                                        <div class="rfq-details">
+                                            <span class="rfq-detail">部品: {item.partNumber}</span>
+                                            <span class="rfq-detail">回答: {item.responseRate}</span>
+                                            <span class="rfq-detail">最安値: {item.lowestPrice}</span>
+                                            <span class="rfq-detail">目標: {item.targetPrice}</span>
+                                            <span class="rfq-detail">期限: {item.dueDate}</span>
+                                        </div>
+                                    </div>
                                 </template>
                             </div>
-                            <div class="rfq-title">{item.title}</div>
-                            <div class="rfq-details">
-                                <span class="rfq-detail">部品: {item.partNumber}</span>
-                                <span class="rfq-detail">回答: {item.responseRate}</span>
-                                <span class="rfq-detail">最安値: {item.lowestPrice}</span>
-                                <span class="rfq-detail">目標: {item.targetPrice}</span>
-                                <span class="rfq-detail">期限: {item.dueDate}</span>
+                        </template>
+                        <template if:true={hasNoFilteredRfqs}>
+                            <div class="empty-state">
+                                条件に該当するRFQはありません。
+                                <template if:true={hasActiveFilter}>
+                                    <button class="empty-clear-btn" onclick={handleClearFilters}>
+                                        フィルタを解除
+                                    </button>
+                                </template>
                             </div>
-                        </div>
-                    </template>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 右: 見積回答フィード -->
+                <div class="quote-pane">
+                    <h3 class="pane-title">見積回答フィード</h3>
+                    <div class="quote-scroll">
+                        <template if:true={hasQuotes}>
+                            <template for:each={quoteItems} for:item="item">
+                                <div key={item.key} class={item.rowClass}
+                                     data-rfq-id={item.rfqId} onclick={handleQuoteClick}>
+                                    <div class="quote-line1">
+                                        <template if:true={item.isCheapest}>
+                                            <span class="quote-best">★</span>
+                                        </template>
+                                        <span class="quote-supplier">{item.supplierName}</span>
+                                        <span class="quote-time">{item.relativeDate}</span>
+                                    </div>
+                                    <div class="quote-line2">
+                                        <span class="quote-rfq">{item.rfqName}</span>
+                                        <span class="quote-price">{item.priceDisplay}</span>
+                                        <span class="quote-lt">{item.leadTimeDays}</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                        <template if:true={hasNoQuotes}>
+                            <div class="empty-state">直近の見積回答はありません。</div>
+                        </template>
+                    </div>
                 </div>
             </div>
-        </template>
 
-        <!-- 最新見積回答 -->
-        <template if:true={hasQuotes}>
-            <div class="kpi-section">
-                <h3 class="section-title">最新の見積回答</h3>
-                <div class="quote-list">
-                    <template for:each={quoteItems} for:item="item">
-                        <div key={item.key} class="quote-row">
-                            <div class="quote-supplier">{item.supplierName}</div>
-                            <div class="quote-details">
-                                <span class="quote-detail">{item.rfqName} — {item.partNumber}</span>
-                                <span class={item.priceClass}>{item.priceDisplay}</span>
-                                <span class="quote-detail">LT: {item.leadTimeDays}</span>
-                                <span class="quote-detail">{item.responseDate}</span>
-                            </div>
-                        </div>
-                    </template>
+            <!-- エラー -->
+            <template if:true={error}>
+                <div class="slds-text-color_error slds-p-around_small">
+                    データの取得中にエラーが発生しました。
                 </div>
-            </div>
-        </template>
+            </template>
 
-        <!-- エラー -->
-        <template if:true={error}>
-            <div class="slds-text-color_error slds-p-around_small">
-                データの取得中にエラーが発生しました。
-            </div>
-        </template>
-
+        </div>
     </lightning-card>
 </template>
