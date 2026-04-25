@@ -110,6 +110,7 @@ private class IdpSupplierQuoteControllerTest {
         RFQ_Quote__c q = setupQuote();
         q.AI_Unit_Price__c = 999;
         q.AI_Supplier_Text__c = 'AI抽出値';
+        q.AI_Notes__c = 'AI抽出備考';
         q.IDP_Review_Status__c = '担当者確認中';
         update q;
 
@@ -117,9 +118,10 @@ private class IdpSupplierQuoteControllerTest {
         IdpSupplierQuoteController.clearIdpResult(q.Id);
         Test.stopTest();
 
-        RFQ_Quote__c reloaded = [SELECT IDP_Review_Status__c, AI_Unit_Price__c, AI_Supplier_Text__c FROM RFQ_Quote__c WHERE Id = :q.Id];
+        RFQ_Quote__c reloaded = [SELECT IDP_Review_Status__c, AI_Unit_Price__c, AI_Supplier_Text__c, AI_Notes__c FROM RFQ_Quote__c WHERE Id = :q.Id];
         System.assertEquals('担当者入力完了', reloaded.IDP_Review_Status__c);
         System.assertEquals(null, reloaded.AI_Unit_Price__c);
         System.assertEquals(null, reloaded.AI_Supplier_Text__c);
+        System.assertEquals(null, reloaded.AI_Notes__c);
     }
 }

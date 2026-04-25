@@ -7,6 +7,10 @@
 
     <!-- ===== Apex Class Access ===== -->
     <classAccesses>
+        <apexClass>IdpSupplierQuoteController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>SupplierPortalController</apexClass>
         <enabled>true</enabled>
     </classAccesses>

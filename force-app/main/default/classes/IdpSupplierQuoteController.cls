@@ -14,6 +14,7 @@ public with sharing class IdpSupplierQuoteController {
     private static final String API_GATEWAY_BASE = 'https://vdydb45kz5.execute-api.ap-northeast-1.amazonaws.com/prod';
     private static final String PRESIGN_ENDPOINT = API_GATEWAY_BASE + '/idp/presign';
     private static final String EXTRACT_ENDPOINT = API_GATEWAY_BASE + '/idp/extract';
+    private static final String EXTRACT_SYNC_ENDPOINT = API_GATEWAY_BASE + '/idp/extract-sync';
 
     private static final String PROMPT_TEMPLATE_NAME = 'IDP_Supplier_Quote_Judge';
 
@@ -51,6 +52,88 @@ public with sharing class IdpSupplierQuoteController {
             throw e;
         } catch (Exception e) {
             throw new AuraHandledException('Presigned URL取得中にエラー: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * 同期モードでの IDP 抽出(サプライヤーポータル用途)。
+     * Salesforceに書き戻さず、抽出結果のJSONをそのまま返す。
+     * - 戻り値: { extraction: {...}, sf_fields: {...}, bucket, s3_key, document_url }
+     */
+    @AuraEnabled
+    public static Map<String, Object> extractPdfSync(String bucket, String s3Key) {
+        try {
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint(EXTRACT_SYNC_ENDPOINT);
+            req.setMethod('POST');
+            req.setHeader('Content-Type', 'application/json');
+            req.setTimeout(120000);  // Claudeマルチモーダル抽出は10-30秒程度
+            req.setBody(JSON.serialize(new Map<String, String>{
+                'bucket' => bucket,
+                'key' => s3Key
+            }));
+
+            HttpResponse res = new Http().send(req);
+            if (res.getStatusCode() != 200) {
+                throw new AuraHandledException(
+                    'IDP抽出に失敗しました (HTTP ' + res.getStatusCode() + '): ' + res.getBody()
+                );
+            }
+            return (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+        } catch (AuraHandledException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AuraHandledException('IDP抽出中にエラー: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * 既存ドキュメント閲覧用の Presigned GET URL を生成する。
+     * IDP_Document_URL__c に格納された s3://bucket/key を読み、Lambda に渡してGET URLを取得。
+     */
+    @AuraEnabled
+    public static String getDocumentViewUrl(String rfqQuoteId) {
+        try {
+            List<RFQ_Quote__c> records = [
+                SELECT Id, IDP_Document_URL__c FROM RFQ_Quote__c WHERE Id = :rfqQuoteId LIMIT 1
+            ];
+            if (records.isEmpty() || String.isBlank(records[0].IDP_Document_URL__c)) {
+                throw new AuraHandledException('ドキュメントURLが見つかりません。');
+            }
+            String docUrl = records[0].IDP_Document_URL__c;
+            // 's3://bucket/key' 形式から key 部分を抽出
+            if (!docUrl.startsWith('s3://')) {
+                throw new AuraHandledException('不正なドキュメントURL形式: ' + docUrl);
+            }
+            String stripped = docUrl.substring(5); // remove "s3://"
+            Integer slashIdx = stripped.indexOf('/');
+            if (slashIdx < 0) {
+                throw new AuraHandledException('不正なドキュメントURL形式: ' + docUrl);
+            }
+            String s3Key = stripped.substring(slashIdx + 1);
+
+            // Lambda呼び出し(view mode)
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint(PRESIGN_ENDPOINT);
+            req.setMethod('POST');
+            req.setHeader('Content-Type', 'application/json');
+            req.setTimeout(15000);
+            req.setBody(JSON.serialize(new Map<String, String>{
+                'mode' => 'view',
+                's3_key' => s3Key
+            }));
+            HttpResponse res = new Http().send(req);
+            if (res.getStatusCode() != 200) {
+                throw new AuraHandledException(
+                    '署名付きURLの生成に失敗しました (HTTP ' + res.getStatusCode() + '): ' + res.getBody()
+                );
+            }
+            Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+            return (String) body.get('view_url');
+        } catch (AuraHandledException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AuraHandledException('PDF表示URL取得エラー: ' + e.getMessage());
         }
     }
 
@@ -134,7 +217,7 @@ public with sharing class IdpSupplierQuoteController {
                    Supplier__c, Supplier__r.Name,
                    Unit_Price__c, Lead_Time_Days__c, MOQ__c,
                    Manufacturing_Site__c, Manufacturing_Site__r.Name,
-                   Valid_Until__c, Response_Date__c,
+                   Valid_Until__c, Response_Date__c, Notes__c,
                    AI_Supplier_Text__c, AI_Supplier_Confidence__c,
                    AI_Unit_Price__c, AI_Unit_Price_Confidence__c,
                    AI_Lead_Time_Days__c, AI_Lead_Time_Days_Confidence__c,
@@ -142,6 +225,7 @@ public with sharing class IdpSupplierQuoteController {
                    AI_Manufacturing_Site__c, AI_Manufacturing_Site_Confidence__c,
                    AI_Valid_Until__c, AI_Valid_Until_Confidence__c,
                    AI_Response_Date__c, AI_Response_Date_Confidence__c,
+                   AI_Notes__c, AI_Notes_Confidence__c,
                    Supplier_Discrepancy_Level__c, Supplier_Discrepancy_Reason__c,
                    Unit_Price_Discrepancy_Level__c, Unit_Price_Discrepancy_Reason__c,
                    Lead_Time_Days_Discrepancy_Level__c, Lead_Time_Days_Discrepancy_Reason__c,
@@ -149,6 +233,7 @@ public with sharing class IdpSupplierQuoteController {
                    Manufacturing_Site_Discrepancy_Level__c, Manufacturing_Site_Discrepancy_Reason__c,
                    Valid_Until_Discrepancy_Level__c, Valid_Until_Discrepancy_Reason__c,
                    Response_Date_Discrepancy_Level__c, Response_Date_Discrepancy_Reason__c,
+                   Notes_Discrepancy_Level__c, Notes_Discrepancy_Reason__c,
                    IDP_Document_URL__c, IDP_Review_Status__c,
                    IDP_Extracted_At__c, IDP_Judged_At__c, IDP_Confirmed_At__c,
                    IDP_Overall_Discrepancy_Level__c, IDP_Judgment_Summary__c,
@@ -204,9 +289,10 @@ public with sharing class IdpSupplierQuoteController {
                    Supplier__c, Supplier__r.Name,
                    Unit_Price__c, Lead_Time_Days__c, MOQ__c,
                    Manufacturing_Site__c, Manufacturing_Site__r.Name,
-                   Valid_Until__c, Response_Date__c,
+                   Valid_Until__c, Response_Date__c, Notes__c,
                    AI_Supplier_Text__c, AI_Unit_Price__c, AI_Lead_Time_Days__c,
-                   AI_MOQ__c, AI_Manufacturing_Site__c, AI_Valid_Until__c, AI_Response_Date__c
+                   AI_MOQ__c, AI_Manufacturing_Site__c, AI_Valid_Until__c, AI_Response_Date__c,
+                   AI_Notes__c
             FROM RFQ_Quote__c
             WHERE Id = :rfqQuoteId
             LIMIT 1
@@ -232,6 +318,7 @@ public with sharing class IdpSupplierQuoteController {
         fields.add(buildFieldPair('response_date', '回答日',
             q.Response_Date__c != null ? String.valueOf(q.Response_Date__c) : null,
             q.AI_Response_Date__c != null ? String.valueOf(q.AI_Response_Date__c) : null));
+        fields.add(buildFieldPair('notes', '備考', q.Notes__c, q.AI_Notes__c));
 
         return JSON.serialize(new Map<String, Object>{ 'fields' => fields });
     }
@@ -264,9 +351,13 @@ public with sharing class IdpSupplierQuoteController {
             ConnectApi.EinsteinLLM.generateMessagesForPromptTemplate(PROMPT_TEMPLATE_NAME, input);
 
         if (result == null || result.generations == null || result.generations.isEmpty()) {
-            throw new AuraHandledException(
-                'Prompt Templateから応答が得られませんでした。Prompt Builderで Activate 済みか確認してください。'
-            );
+            // Setup → Prompt Builder で IDP_Supplier_Quote_Judge を再Activate要
+            String errMsg = 'Prompt Templateから応答が得られませんでした。';
+            if (result != null && result.generationErrors != null && !result.generationErrors.isEmpty()) {
+                errMsg += ' [' + result.generationErrors[0].messageCode + '] ' + result.generationErrors[0].errorMessage;
+            }
+            errMsg += ' (Prompt Builderで再Activateが必要かもしれません)';
+            throw new AuraHandledException(errMsg);
         }
         return result.generations[0].text;
     }
@@ -307,6 +398,7 @@ public with sharing class IdpSupplierQuoteController {
         setDiscrepancy(q, 'manufacturing_site', 'Manufacturing_Site', byField);
         setDiscrepancy(q, 'valid_until', 'Valid_Until', byField);
         setDiscrepancy(q, 'response_date', 'Response_Date', byField);
+        setDiscrepancy(q, 'notes', 'Notes', byField);
 
         q.IDP_Overall_Discrepancy_Level__c = overall;
         q.IDP_Judgment_Summary__c = summary;
@@ -360,6 +452,7 @@ public with sharing class IdpSupplierQuoteController {
                 AI_Manufacturing_Site__c = null, AI_Manufacturing_Site_Confidence__c = null,
                 AI_Valid_Until__c = null, AI_Valid_Until_Confidence__c = null,
                 AI_Response_Date__c = null, AI_Response_Date_Confidence__c = null,
+                AI_Notes__c = null, AI_Notes_Confidence__c = null,
                 Supplier_Discrepancy_Level__c = null, Supplier_Discrepancy_Reason__c = null,
                 Unit_Price_Discrepancy_Level__c = null, Unit_Price_Discrepancy_Reason__c = null,
                 Lead_Time_Days_Discrepancy_Level__c = null, Lead_Time_Days_Discrepancy_Reason__c = null,
@@ -367,6 +460,7 @@ public with sharing class IdpSupplierQuoteController {
                 Manufacturing_Site_Discrepancy_Level__c = null, Manufacturing_Site_Discrepancy_Reason__c = null,
                 Valid_Until_Discrepancy_Level__c = null, Valid_Until_Discrepancy_Reason__c = null,
                 Response_Date_Discrepancy_Level__c = null, Response_Date_Discrepancy_Reason__c = null,
+                Notes_Discrepancy_Level__c = null, Notes_Discrepancy_Reason__c = null,
                 IDP_Document_URL__c = null,
                 IDP_Extracted_At__c = null, IDP_Judged_At__c = null, IDP_Confirmed_At__c = null,
                 IDP_Overall_Discrepancy_Level__c = null,

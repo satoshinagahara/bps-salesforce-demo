@@ -5,6 +5,10 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getRfqQuote from '@salesforce/apex/SupplierPortalController.getRfqQuote';
 import submitQuote from '@salesforce/apex/SupplierPortalController.submitQuote';
 import declineQuote from '@salesforce/apex/SupplierPortalController.declineQuote';
+import getPresignedUrl from '@salesforce/apex/IdpSupplierQuoteController.getPresignedUrl';
+import extractPdfSync from '@salesforce/apex/IdpSupplierQuoteController.extractPdfSync';
+
+const ALLOWED_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg'];
 
 /**
  * RFQ見積回答フォーム
@@ -51,6 +55,14 @@ export default class RfqQuoteResponseForm extends LightningElement {
     isSubmitting = false;
     showDeclineDialog = false;
     declineNotes = '';
+
+    // --- IDP file upload state ---
+    selectedFile = null;
+    isDragOver = false;
+    isExtracting = false;
+    uploadProgress = 0;
+    extractionError = '';
+    @track idpData = null;  // 抽出結果(submit時に併送)
 
     @wire(getRfqQuote, { rfqId: '$targetRfqId', accountId: '$accountId' })
     wiredDetail(result) {
@@ -194,15 +206,156 @@ export default class RfqQuoteResponseForm extends LightningElement {
                 leadTimeDays: this.formLeadTime ? Number(this.formLeadTime) : null,
                 validUntil: this.formValidUntil || null,
                 siteId: this.formSiteId || null,
-                notes: this.formNotes || null
+                notes: this.formNotes || null,
+                idpDataJson: this.idpData ? JSON.stringify(this.idpData) : null
             });
             this.showToast('見積を提出しました', '貴社の回答が購買側に送信されました。', 'success');
+            this.idpData = null;
+            this.selectedFile = null;
             await refreshApex(this.wiredResult);
         } catch (err) {
             this.showToast('エラー', this.extractError(err), 'error');
         } finally {
             this.isSubmitting = false;
         }
+    }
+
+    // ==== IDP ファイルアップロード ====
+    get dropZoneClass() {
+        return this.isDragOver ? 'rqf-dropzone rqf-dropzone--active' : 'rqf-dropzone';
+    }
+    get hasIdpExtraction() {
+        return !!this.idpData;
+    }
+    get extractedFileName() {
+        return this.selectedFile?.name || (this.idpData ? '見積書(アップ済)' : '');
+    }
+    get formattedFileSize() {
+        if (!this.selectedFile) return '';
+        const b = this.selectedFile.size;
+        if (b < 1024) return b + ' B';
+        if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+        return (b / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+    get showUploadButton() {
+        return this.selectedFile && !this.isExtracting;
+    }
+    get fileIconName() {
+        if (!this.selectedFile) return 'doctype:unknown';
+        const n = this.selectedFile.name.toLowerCase();
+        if (n.endsWith('.pdf')) return 'doctype:pdf';
+        if (n.endsWith('.png') || n.endsWith('.jpg') || n.endsWith('.jpeg')) return 'doctype:image';
+        return 'doctype:unknown';
+    }
+
+    handleIdpDragOver(e) { e.preventDefault(); e.stopPropagation(); this.isDragOver = true; }
+    handleIdpDragLeave(e) { e.preventDefault(); e.stopPropagation(); this.isDragOver = false; }
+    handleIdpDrop(e) {
+        e.preventDefault(); e.stopPropagation(); this.isDragOver = false;
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) this._validateAndSetFile(files[0]);
+    }
+    handleIdpFileSelectClick() {
+        const inp = this.template.querySelector('input.rqf-file-input');
+        if (inp) inp.click();
+    }
+    handleIdpFileChange(e) {
+        const files = e.target.files;
+        if (files && files.length > 0) this._validateAndSetFile(files[0]);
+        e.target.value = '';
+    }
+    handleIdpRemoveFile() {
+        this.selectedFile = null;
+        this.extractionError = '';
+        this.idpData = null;
+    }
+
+    _validateAndSetFile(file) {
+        this.extractionError = '';
+        const lower = file.name.toLowerCase();
+        const ok = ALLOWED_EXTENSIONS.some(ext => lower.endsWith(ext));
+        if (!ok) {
+            this.extractionError = '対応していないファイル形式です。PDF / PNG / JPG のいずれかを選択してください。';
+            this.selectedFile = null;
+            return;
+        }
+        this.selectedFile = file;
+    }
+
+    async handleIdpExtract() {
+        if (!this.selectedFile || this.isExtracting) return;
+        this.isExtracting = true;
+        this.extractionError = '';
+        this.uploadProgress = 0;
+        try {
+            // 1. Presigned URL取得
+            const presign = await getPresignedUrl({
+                fileName: this.selectedFile.name,
+                contentType: this._getContentType(this.selectedFile.name)
+            });
+            // 2. S3にアップロード
+            await this._uploadToS3(presign.presignedUrl, this.selectedFile);
+            // 3. 同期抽出
+            const result = await extractPdfSync({
+                bucket: presign.bucket,
+                s3Key: presign.s3Key
+            });
+            this.idpData = result;
+            // 4. 抽出値をフォームに反映
+            this._applyExtractionToForm(result.extraction);
+            this.showToast('IDP抽出完了', '抽出値をフォームに反映しました。内容をご確認の上、必要に応じて修正してください。', 'success');
+        } catch (err) {
+            this.extractionError = this.extractError(err);
+            this.showToast('IDPエラー', this.extractionError, 'error');
+        } finally {
+            this.isExtracting = false;
+        }
+    }
+
+    _uploadToS3(url, file) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', url, true);
+            xhr.setRequestHeader('Content-Type', this._getContentType(file.name));
+            xhr.upload.onprogress = (evt) => {
+                if (evt.lengthComputable) this.uploadProgress = Math.round((evt.loaded / evt.total) * 100);
+            };
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) resolve();
+                else reject(new Error(`S3アップロード失敗 (HTTP ${xhr.status})`));
+            };
+            xhr.onerror = () => reject(new Error('ネットワークエラー'));
+            xhr.send(file);
+        });
+    }
+
+    _applyExtractionToForm(extraction) {
+        if (!extraction) return;
+        const v = (key) => (extraction[key] || {}).value;
+        // 担当者(=サプライヤー)の入力欄に AI抽出値を反映
+        // ※ サプライヤー名は Account Lookup で確定しているため上書きしない
+        if (v('unit_price') != null) this.formUnitPrice = v('unit_price');
+        if (v('moq') != null) this.formMoq = v('moq');
+        if (v('lead_time_days') != null) this.formLeadTime = v('lead_time_days');
+        if (v('valid_until')) this.formValidUntil = v('valid_until');
+        // 製造拠点は siteOptions と一致するものを fuzzy match
+        if (v('manufacturing_site') && this.detail?.siteOptions) {
+            const aiSite = String(v('manufacturing_site')).trim();
+            const match = this.detail.siteOptions.find(o =>
+                aiSite.includes(o.siteName) || o.siteName.includes(aiSite)
+            );
+            if (match) this.formSiteId = match.siteId;
+        }
+        // 備考: IDPが抽出した備考をフォームに反映(サプライヤーが編集自由)
+        if (v('notes')) this.formNotes = v('notes');
+    }
+
+    _getContentType(fileName) {
+        const l = fileName.toLowerCase();
+        if (l.endsWith('.pdf')) return 'application/pdf';
+        if (l.endsWith('.png')) return 'image/png';
+        if (l.endsWith('.jpg') || l.endsWith('.jpeg')) return 'image/jpeg';
+        return 'application/octet-stream';
     }
 
     validateInputs() {

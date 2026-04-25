@@ -38,7 +38,12 @@ s3_client = boto3.client(
 def lambda_handler(event, context):
     try:
         body = _parse_body(event)
+        mode = body.get("mode", "upload")  # "upload" (default) or "view"
 
+        if mode == "view":
+            return _handle_view(body)
+
+        # === Upload mode (default) ===
         file_name = body.get("file_name")
         content_type = body.get("content_type")
 
@@ -67,7 +72,7 @@ def lambda_handler(event, context):
             ExpiresIn=EXPIRATION_SECONDS,
         )
 
-        logger.info("IDP Presigned URL生成成功: bucket=%s, key=%s", BUCKET_NAME, s3_key)
+        logger.info("IDP Presigned URL生成成功(upload): bucket=%s, key=%s", BUCKET_NAME, s3_key)
 
         return _success_response(
             {
@@ -85,6 +90,29 @@ def lambda_handler(event, context):
     except Exception as e:
         logger.error("予期しないエラー: %s", str(e))
         return _error_response(500, "内部エラーが発生しました")
+
+
+def _handle_view(body):
+    """GETメソッド用 Presigned URL生成(ドキュメント閲覧用、有効期限15分)"""
+    s3_key = body.get("s3_key")
+    if not s3_key:
+        return _error_response(400, "s3_key は必須です")
+
+    try:
+        view_url = s3_client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": BUCKET_NAME,
+                "Key": s3_key,
+            },
+            ExpiresIn=900,  # 15分
+        )
+    except ClientError as e:
+        logger.error("View URL生成エラー: %s", str(e))
+        return _error_response(500, f"View URL生成失敗: {str(e)}")
+
+    logger.info("IDP Presigned URL生成成功(view): bucket=%s, key=%s", BUCKET_NAME, s3_key)
+    return _success_response({"view_url": view_url, "expires_in_sec": 900})
 
 
 def _parse_body(event):

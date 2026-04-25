@@ -1597,6 +1597,16 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>RFQ_Quote__c.AI_Notes_Confidence__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>RFQ_Quote__c.AI_Notes__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>RFQ_Quote__c.AI_Response_Date_Confidence__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -1708,6 +1718,16 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>RFQ_Quote__c.Manufacturing_Site_Discrepancy_Reason__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>RFQ_Quote__c.Notes_Discrepancy_Level__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>RFQ_Quote__c.Notes_Discrepancy_Reason__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

@@ -382,3 +382,125 @@
     --slds-c-input-color-border-focus: var(--bps-accent);
     --slds-c-input-shadow-focus: 0 0 0 1px var(--bps-accent);
 }
+
+/* ===== IDP File Upload Section ===== */
+.rqf-idp {
+    background: linear-gradient(180deg, #fafafa 0%, #f3f6fa 100%);
+    border: 1px solid var(--bps-border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.rqf-idp__head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--bps-text);
+    margin-bottom: 0.3rem;
+}
+.rqf-idp__icon {
+    --sds-c-icon-color-foreground: #5867E8;
+}
+.rqf-idp__title {
+    font-size: 0.95rem;
+}
+.rqf-idp__desc {
+    font-size: 0.8rem;
+    color: var(--bps-text-sub);
+    margin: 0 0 0.75rem 0;
+}
+.rqf-dropzone {
+    border: 2px dashed #c9d1da;
+    border-radius: 6px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    background: #fff;
+    color: var(--bps-text-sub);
+    transition: all 0.15s ease;
+}
+.rqf-dropzone:hover {
+    border-color: #5867E8;
+    background: #f5f7ff;
+}
+.rqf-dropzone--active {
+    border-color: #5867E8;
+    background: #eef1fe;
+}
+.rqf-dropzone__text {
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+}
+.rqf-idp__file {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #fff;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--bps-border);
+    border-radius: 6px;
+}
+.rqf-idp__file-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.rqf-idp__file-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.rqf-idp__file-size {
+    font-size: 0.7rem;
+    color: var(--bps-text-muted);
+}
+.rqf-idp__progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--bps-text-sub);
+}
+.rqf-idp__extracted {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #e8f5ee;
+    color: var(--bps-ok);
+    padding: 0.55rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+.rqf-idp__error {
+    background: var(--bps-accent-bg-soft);
+    color: var(--bps-accent);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+}
+.rqf-link {
+    background: none;
+    border: none;
+    color: var(--bps-accent);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+}
+.rqf-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem;
+    display: flex;
+    align-items: center;
+}
+.rqf-btn--sm {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+}

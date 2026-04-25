@@ -149,10 +149,7 @@ def _build_tool_schema() -> list[dict]:
                     "manufacturing_site": field_object(["string", "null"]),
                     "valid_until": field_object(["string", "null"]),
                     "response_date": field_object(["string", "null"]),
-                    "notes": {
-                        "type": "string",
-                        "description": "抽出中の特記事項(任意)",
-                    },
+                    "notes": field_object(["string", "null"]),
                 },
                 "required": [
                     "supplier_name",
@@ -162,6 +159,7 @@ def _build_tool_schema() -> list[dict]:
                     "manufacturing_site",
                     "valid_until",
                     "response_date",
+                    "notes",
                 ],
             },
         }
@@ -182,6 +180,11 @@ def _build_system_prompt() -> str:
         "- manufacturing_site: 製造拠点名(工場名、所在地等)\n"
         "- valid_until: 見積有効期限。ISO 8601形式(YYYY-MM-DD)。和暦は西暦変換\n"
         "- response_date: 見積書発行日。ISO 8601形式(YYYY-MM-DD)\n"
+        "- notes: 見積書に記載されている **備考・特記事項・注意事項・補足条件** 等の自由記述部分を要約。\n"
+        "  典型的な内容: 値引き条件(○個以上で○円)、税抜/税込の明示、サンプル提供条件、\n"
+        "  証明書同梱、支払条件補足、納入仕様、保証条件など。\n"
+        "  単なる挨拶文・宛先・FAX番号・送信エラー時連絡先などの定型文は除外。\n"
+        "  500文字以内に圧縮し、箇条書きをそのまま「・」で繋げてもよい。\n"
         "\n"
         "- 読み取れない項目は value=null, confidence=0.0\n"
         "- 各項目に 0-1 の信頼度スコアを付与(自信度)\n"
@@ -278,6 +281,8 @@ def _extraction_to_sf_fields(extraction: dict) -> dict:
         "AI_Valid_Until_Confidence__c": conf("valid_until"),
         "AI_Response_Date__c": val("response_date"),
         "AI_Response_Date_Confidence__c": conf("response_date"),
+        "AI_Notes__c": val("notes"),
+        "AI_Notes_Confidence__c": conf("notes"),
         "IDP_Extracted_At__c": time.strftime(
             "%Y-%m-%dT%H:%M:%S.000+0000", time.gmtime()
         ),
@@ -292,6 +297,12 @@ def _extraction_to_sf_fields(extraction: dict) -> dict:
 # ============================================================
 
 def lambda_handler(event, context):
+    """
+    モード:
+    - 非同期モード(rfq_quote_id 指定あり): 抽出結果をSalesforce REST APIで影フィールドに書き戻し
+    - 同期モード(rfq_quote_id 指定なし or null): 抽出結果をJSONレスポンスでそのまま返却
+      (サプライヤーポータルでの自動入力用途。最終保存はLWC→Apex側で実施)
+    """
     rfq_quote_id = None
     sf_token = None
     sf_instance_url = None
@@ -304,12 +315,17 @@ def lambda_handler(event, context):
 
         bucket = body["bucket"]
         key = body["key"]
-        rfq_quote_id = body["rfq_quote_id"]
+        rfq_quote_id = body.get("rfq_quote_id")  # 同期モードでは省略可
+        sync_mode = not rfq_quote_id
 
-        logger.info("IDP抽出開始: rfq_quote_id=%s, s3=%s/%s", rfq_quote_id, bucket, key)
+        logger.info(
+            "IDP抽出開始: mode=%s, rfq_quote_id=%s, s3=%s/%s",
+            "sync" if sync_mode else "async", rfq_quote_id, bucket, key
+        )
 
-        # Salesforce認証
-        sf_token, sf_instance_url = _get_salesforce_access_token()
+        # Salesforce認証(非同期モードのみ必要)
+        if not sync_mode:
+            sf_token, sf_instance_url = _get_salesforce_access_token()
 
         # S3からドキュメント取得
         content_bytes, content_type = _download_from_s3(bucket, key)
@@ -329,7 +345,31 @@ def lambda_handler(event, context):
         extraction = _call_claude(content_bytes, content_type)
         logger.info("Claude抽出完了: %s", json.dumps(extraction, ensure_ascii=False)[:500])
 
-        # Salesforceに書き戻し
+        if sync_mode:
+            # 同期モード: 抽出結果と影フィールド形式の両方を返す
+            sf_fields = _extraction_to_sf_fields(extraction)
+            # 内部用フィールドはサプライヤー側送信時には不要なので除外
+            sf_fields.pop("IDP_Review_Status__c", None)
+            sf_fields.pop("IDP_Error_Message__c", None)
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                "body": json.dumps(
+                    {
+                        "extraction": extraction,
+                        "sf_fields": sf_fields,
+                        "bucket": bucket,
+                        "s3_key": key,
+                        "document_url": f"s3://{bucket}/{key}",
+                    },
+                    ensure_ascii=False,
+                ),
+            }
+
+        # 非同期モード: Salesforceに書き戻し
         fields = _extraction_to_sf_fields(extraction)
         _patch_rfq_quote(sf_token, sf_instance_url, rfq_quote_id, fields)
 
@@ -341,7 +381,7 @@ def lambda_handler(event, context):
             "body": json.dumps(
                 {
                     "rfq_quote_id": rfq_quote_id,
-                    "status": "ダブルチェック待ち",
+                    "status": "AI判定待ち",
                     "extraction": extraction,
                 },
                 ensure_ascii=False,

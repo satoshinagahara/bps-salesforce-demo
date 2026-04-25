@@ -5,6 +5,7 @@ import getFullRecord from '@salesforce/apex/IdpSupplierQuoteController.getFullRe
 import startJudgment from '@salesforce/apex/IdpSupplierQuoteController.startJudgment';
 import markAsConfirmed from '@salesforce/apex/IdpSupplierQuoteController.markAsConfirmed';
 import clearIdpResult from '@salesforce/apex/IdpSupplierQuoteController.clearIdpResult';
+import getDocumentViewUrl from '@salesforce/apex/IdpSupplierQuoteController.getDocumentViewUrl';
 
 const STATUS_ENTERED = '担当者入力完了';
 const STATUS_AWAITING_CHECK = 'AI判定待ち';
@@ -39,7 +40,11 @@ const FIELD_SPECS = [
     { key: 'Response_Date', label: '回答日', type: 'date',
       humanApiName: 'Response_Date__c',
       aiField: 'AI_Response_Date__c', confField: 'AI_Response_Date_Confidence__c',
-      levelField: 'Response_Date_Discrepancy_Level__c', reasonField: 'Response_Date_Discrepancy_Reason__c' }
+      levelField: 'Response_Date_Discrepancy_Level__c', reasonField: 'Response_Date_Discrepancy_Reason__c' },
+    { key: 'Notes', label: '備考', type: 'longtext',
+      humanApiName: 'Notes__c',
+      aiField: 'AI_Notes__c', confField: 'AI_Notes_Confidence__c',
+      levelField: 'Notes_Discrepancy_Level__c', reasonField: 'Notes_Discrepancy_Reason__c' }
 ];
 
 export default class IdpQuoteDualEntry extends LightningElement {
@@ -138,6 +143,10 @@ export default class IdpQuoteDualEntry extends LightningElement {
         if (type === 'currency') return '¥' + Number(v).toLocaleString('ja-JP');
         if (type === 'number') return Number(v).toLocaleString('ja-JP');
         if (type === 'date') return v;
+        if (type === 'longtext') {
+            const s = String(v);
+            return s.length > 200 ? s.substring(0, 200) + '...' : s;
+        }
         return String(v);
     }
 
@@ -231,6 +240,21 @@ export default class IdpQuoteDualEntry extends LightningElement {
             this._handleError(err);
         } finally {
             this.isBusy = false;
+        }
+    }
+
+    get hasDocumentUrl() {
+        return !!(this.record && this.record.IDP_Document_URL__c);
+    }
+
+    async handleViewPdf() {
+        try {
+            const url = await getDocumentViewUrl({ rfqQuoteId: this.recordId });
+            if (url) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+        } catch (err) {
+            this._handleError(err);
         }
     }
 

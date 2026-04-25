@@ -1,5 +1,9 @@
 <template>
     <lightning-card title="IDP デュアル入力・比較" icon-name="utility:compare">
+        <template lwc:if={hasDocumentUrl}>
+            <lightning-button slot="actions" variant="neutral" label="PDF表示"
+                              icon-name="utility:preview" onclick={handleViewPdf}></lightning-button>
+        </template>
         <lightning-button-icon slot="actions" icon-name="utility:refresh"
                                alternative-text="再読み込み" title="再読み込み"
                                onclick={handleReload} disabled={isBusy}></lightning-button-icon>

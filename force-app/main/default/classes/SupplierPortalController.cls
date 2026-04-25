@@ -456,7 +456,8 @@ public with sharing class SupplierPortalController {
         Decimal leadTimeDays,
         Date validUntil,
         Id siteId,
-        String notes
+        String notes,
+        String idpDataJson
     ) {
         if (quoteId == null) {
             throw new AuraHandledException('Quote IDが指定されていません。');
@@ -473,9 +474,94 @@ public with sharing class SupplierPortalController {
         q.Manufacturing_Site__c = siteId;
         q.Notes__c = notes;
         q.Status__c = '回答済';
-        q.Response_Date__c = Date.today();
+        q.Response_Date__c = Date.today();  // IDPデータがあれば下記で上書き
+
+        // IDPアップロード由来のデータを併せて保存(任意)
+        // Response_Date__c は IDP抽出値があればそれで上書き(=見積書発行日)
+        if (String.isNotBlank(idpDataJson)) {
+            applyIdpDataToQuote(q, idpDataJson);
+        }
+
         new ElevatedOps().updateQuote(q);
         return q.Id;
+    }
+
+    /**
+     * IDP抽出JSON(extractPdfSync の戻り値)から RFQ_Quote__c のAI影フィールドを設定する。
+     * idpData = { extraction: {supplier_name: {value, confidence}, ...}, bucket, s3_key, ... }
+     */
+    private static void applyIdpDataToQuote(RFQ_Quote__c q, String idpDataJson) {
+        Map<String, Object> idpData = (Map<String, Object>) JSON.deserializeUntyped(idpDataJson);
+        Map<String, Object> extraction = (Map<String, Object>) idpData.get('extraction');
+        String bucket = (String) idpData.get('bucket');
+        String s3Key = (String) idpData.get('s3_key');
+
+        if (extraction != null) {
+            q.AI_Supplier_Text__c = strVal(extraction, 'supplier_name');
+            q.AI_Supplier_Confidence__c = confPct(extraction, 'supplier_name');
+            q.AI_Unit_Price__c = decVal(extraction, 'unit_price');
+            q.AI_Unit_Price_Confidence__c = confPct(extraction, 'unit_price');
+            q.AI_Lead_Time_Days__c = decVal(extraction, 'lead_time_days');
+            q.AI_Lead_Time_Days_Confidence__c = confPct(extraction, 'lead_time_days');
+            q.AI_MOQ__c = decVal(extraction, 'moq');
+            q.AI_MOQ_Confidence__c = confPct(extraction, 'moq');
+            q.AI_Manufacturing_Site__c = strVal(extraction, 'manufacturing_site');
+            q.AI_Manufacturing_Site_Confidence__c = confPct(extraction, 'manufacturing_site');
+            q.AI_Valid_Until__c = dateVal(extraction, 'valid_until');
+            q.AI_Valid_Until_Confidence__c = confPct(extraction, 'valid_until');
+            q.AI_Response_Date__c = dateVal(extraction, 'response_date');
+            q.AI_Response_Date_Confidence__c = confPct(extraction, 'response_date');
+            q.AI_Notes__c = strVal(extraction, 'notes');
+            q.AI_Notes_Confidence__c = confPct(extraction, 'notes');
+            q.IDP_Extracted_At__c = Datetime.now();
+            // Response_Date__c のセマンティック修正:
+            // submitQuote で Date.today() がセット済だが、IDPで見積書発行日が抽出できた場合はそれで上書き
+            // (担当者値=PDF発行日、AI値=PDF発行日 となり判定が"一致"になる)
+            Date extractedResponseDate = dateVal(extraction, 'response_date');
+            if (extractedResponseDate != null) {
+                q.Response_Date__c = extractedResponseDate;
+            }
+        }
+
+        if (String.isNotBlank(bucket) && String.isNotBlank(s3Key)) {
+            q.IDP_Document_URL__c = 's3://' + bucket + '/' + s3Key;
+        }
+    }
+
+    private static String strVal(Map<String, Object> ext, String key) {
+        Map<String, Object> field = (Map<String, Object>) ext.get(key);
+        if (field == null) return null;
+        Object v = field.get('value');
+        return v == null ? null : String.valueOf(v);
+    }
+    private static Decimal decVal(Map<String, Object> ext, String key) {
+        Map<String, Object> field = (Map<String, Object>) ext.get(key);
+        if (field == null) return null;
+        Object v = field.get('value');
+        if (v == null) return null;
+        if (v instanceof Decimal) return (Decimal) v;
+        if (v instanceof Integer) return (Decimal) v;
+        if (v instanceof Long) return Decimal.valueOf((Long) v);
+        if (v instanceof Double) return Decimal.valueOf((Double) v);
+        try { return Decimal.valueOf(String.valueOf(v)); } catch (Exception e) { return null; }
+    }
+    private static Date dateVal(Map<String, Object> ext, String key) {
+        Map<String, Object> field = (Map<String, Object>) ext.get(key);
+        if (field == null) return null;
+        Object v = field.get('value');
+        if (v == null) return null;
+        try { return Date.valueOf(String.valueOf(v)); } catch (Exception e) { return null; }
+    }
+    private static Decimal confPct(Map<String, Object> ext, String key) {
+        Map<String, Object> field = (Map<String, Object>) ext.get(key);
+        if (field == null) return null;
+        Object c = field.get('confidence');
+        if (c == null) return 0;
+        Decimal d;
+        if (c instanceof Decimal) d = (Decimal) c;
+        else if (c instanceof Double) d = Decimal.valueOf((Double) c);
+        else { try { d = Decimal.valueOf(String.valueOf(c)); } catch (Exception e) { return 0; } }
+        return (d * 100).setScale(0, RoundingMode.HALF_UP);
     }
 
     /**

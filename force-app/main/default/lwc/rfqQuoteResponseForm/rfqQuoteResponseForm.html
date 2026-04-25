@@ -95,6 +95,65 @@
                         <p class="rqf-empty">このRFQは貴社に送付されていません。</p>
                     </template>
 
+                    <!-- IDP ファイルアップロード(任意・編集可時のみ) -->
+                    <template if:true={isEditable}>
+                        <div class="rqf-idp">
+                            <div class="rqf-idp__head">
+                                <lightning-icon icon-name="utility:einstein" size="x-small" class="rqf-idp__icon"></lightning-icon>
+                                <span class="rqf-idp__title">見積書ファイルから自動入力（任意）</span>
+                            </div>
+                            <p class="rqf-idp__desc">
+                                貴社の見積書PDF/画像をアップロードすると、IDPが各項目を読み取り下のフォームに自動入力します。値の修正は自由です。
+                            </p>
+                            <input type="file" class="rqf-file-input slds-hide" accept=".pdf,.png,.jpg,.jpeg" onchange={handleIdpFileChange}/>
+                            <template if:false={selectedFile}>
+                                <template if:false={hasIdpExtraction}>
+                                    <div class={dropZoneClass}
+                                         ondragover={handleIdpDragOver}
+                                         ondragleave={handleIdpDragLeave}
+                                         ondrop={handleIdpDrop}
+                                         onclick={handleIdpFileSelectClick}>
+                                        <lightning-icon icon-name="utility:upload" size="small"></lightning-icon>
+                                        <span class="rqf-dropzone__text">PDF/PNG/JPGをドラッグ&amp;ドロップ、またはクリックして選択</span>
+                                    </div>
+                                </template>
+                                <template if:true={hasIdpExtraction}>
+                                    <div class="rqf-idp__extracted">
+                                        <lightning-icon icon-name="utility:success" size="x-small"></lightning-icon>
+                                        <span>抽出済 — 別のPDFをアップロードする場合は</span>
+                                        <button type="button" class="rqf-link" onclick={handleIdpFileSelectClick}>こちらをクリック</button>
+                                    </div>
+                                </template>
+                            </template>
+                            <template if:true={selectedFile}>
+                                <div class="rqf-idp__file">
+                                    <lightning-icon icon-name={fileIconName} size="small"></lightning-icon>
+                                    <div class="rqf-idp__file-info">
+                                        <span class="rqf-idp__file-name">{selectedFile.name}</span>
+                                        <span class="rqf-idp__file-size">{formattedFileSize}</span>
+                                    </div>
+                                    <template if:true={showUploadButton}>
+                                        <button type="button" class="rqf-btn rqf-btn--primary rqf-btn--sm" onclick={handleIdpExtract}>
+                                            読み取り開始
+                                        </button>
+                                    </template>
+                                    <button type="button" class="rqf-icon-btn" onclick={handleIdpRemoveFile} disabled={isExtracting} title="削除">
+                                        <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
+                                    </button>
+                                </div>
+                            </template>
+                            <template if:true={isExtracting}>
+                                <div class="rqf-idp__progress">
+                                    <lightning-spinner size="small" alternative-text="抽出中"></lightning-spinner>
+                                    <span>IDPが見積書を読み取り中...</span>
+                                </div>
+                            </template>
+                            <template if:true={extractionError}>
+                                <div class="rqf-idp__error">{extractionError}</div>
+                            </template>
+                        </div>
+                    </template>
+
                     <!-- 編集可能 -->
                     <template if:true={isEditable}>
                         <div class="rqf-form">
