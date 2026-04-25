@@ -178,7 +178,7 @@ def _generate_signed_urls(req: dict) -> dict:
             blob = bucket.blob(obj_name)
             url = blob.generate_signed_url(
                 version="v4",
-                expiration=3600,
+                expiration=604800,
                 method="GET",
                 service_account_email=_SA_EMAIL,
                 access_token=credentials.token,
@@ -435,7 +435,7 @@ def _handle_signed_url(request):
         client = storage.Client(project=GCP_PROJECT)
         blob = client.bucket(GCS_BUCKET).blob(path)
         url = blob.generate_signed_url(
-            version="v4", expiration=3600, method="GET",
+            version="v4", expiration=604800, method="GET",
             service_account_email=sa_email,
             access_token=credentials.token,
         )
@@ -445,7 +445,7 @@ def _handle_signed_url(request):
         return (json.dumps({"error": str(e)}), 500, _cors_headers())
 
 
-def _signed_url_for_path(path: str, expiration: int = 3600) -> str:
+def _signed_url_for_path(path: str, expiration: int = 604800) -> str:
     """指定GCSパスのV4 Signed URLを返す。失敗時は空文字。"""
     import google.auth
     from google.auth.transport import requests as auth_requests

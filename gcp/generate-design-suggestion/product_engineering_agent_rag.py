@@ -101,7 +101,7 @@ def tool_get_original_asset_url(
     bucket = storage_client.bucket(GCS_BUCKET)
     blob = bucket.blob(gcs_path)
     url = blob.generate_signed_url(
-        version="v4", expiration=3600, method="GET",
+        version="v4", expiration=604800, method="GET",
         service_account_email=sa_email,
         access_token=credentials.token,
     )
@@ -290,6 +290,8 @@ SYSTEM_INSTRUCTION_DESIGN_SUGGESTION = """\
    - expanded_figures に展開された図面が提案に関連すれば reference_diagram に図面タイトルを記載
 5. get_original_asset_url で document_id の原本仕様書PDF（asset_type='spec'）と
    原本図面PNG（asset_type='diagram'）のSigned URLを取得
+   （取得したURLはサーバ側で自動的に保持し、後続の書き戻しに使われるので
+    あなた自身がURL文字列を覚えたり次のツール呼出に転記する必要はない）
 6. write_design_suggestion で Salesforce に提案を書き戻す
 7. 完了応答を返す
 
@@ -456,6 +458,16 @@ def _run_inner(
         for fc in function_calls:
             fname = fc.name
             fargs = dict(fc.args) if fc.args else {}
+
+            # サーバー側で署名URLを注入（LLMに長文の署名URL文字列を引数としてリレーさせない）。
+            # 直前までに get_original_asset_url で取得済のURLを design_result から取り出して
+            # write_design_suggestion の引数に強制セットする。LLMによる文字化けリスクを排除する設計。
+            if fname == "write_design_suggestion":
+                if "specUrl" in design_result:
+                    fargs["spec_url"] = design_result["specUrl"]
+                if "diagramUrl" in design_result:
+                    fargs["diagram_url"] = design_result["diagramUrl"]
+
             log.info("[%s] tool_call: %s args=%s", request_id, fname,
                      {k: (v[:80] + "...") if isinstance(v, str) and len(v) > 80 else v
                       for k, v in fargs.items()})
@@ -598,6 +610,8 @@ def _dispatch_tool(
             sf_access_token=sf_access_token,
             sf_instance_url=sf_instance_url,
             request_id=request_id,
+            spec_url=fargs.get("spec_url"),
+            diagram_url=fargs.get("diagram_url"),
         )
     if fname == "write_equipment_alert":
         return tool_write_equipment_alert(

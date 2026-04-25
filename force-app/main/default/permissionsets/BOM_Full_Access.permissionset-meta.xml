@@ -722,12 +722,22 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>DesignSuggestion__c.DiagramUrl__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>DesignSuggestion__c.GcpRequestId__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
         <field>DesignSuggestion__c.GeneratedAt__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>DesignSuggestion__c.SpecUrl__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

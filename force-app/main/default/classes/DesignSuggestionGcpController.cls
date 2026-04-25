@@ -44,6 +44,37 @@ public with sharing class DesignSuggestionGcpController {
     }
 
     @AuraEnabled(cacheable=true)
+    public static DesignSuggestionResult getLatestSuggestion(Id initiativeId) {
+        List<DesignSuggestion__c> records = [
+            SELECT Id, SuggestionText__c, TargetProduct__c, TargetComponent__c,
+                   Priority__c, ReferenceSpec__c, ReferenceDiagram__c,
+                   SpecUrl__c, DiagramUrl__c, GeneratedAt__c, GcpRequestId__c, ProcessedBy__c
+            FROM DesignSuggestion__c
+            WHERE Initiative__c = :initiativeId
+            ORDER BY CreatedDate DESC
+            LIMIT 1
+        ];
+        if (records.isEmpty()) {
+            return null;
+        }
+        DesignSuggestion__c r = records[0];
+        DesignSuggestionResult result = new DesignSuggestionResult();
+        result.designSuggestionId = r.Id;
+        result.suggestionText = r.SuggestionText__c;
+        result.targetProduct = r.TargetProduct__c;
+        result.targetComponent = r.TargetComponent__c;
+        result.priority = r.Priority__c;
+        result.referenceSpec = r.ReferenceSpec__c;
+        result.referenceDiagram = r.ReferenceDiagram__c;
+        result.specUrl = r.SpecUrl__c;
+        result.diagramUrl = r.DiagramUrl__c;
+        result.generatedAt = r.GeneratedAt__c != null ? r.GeneratedAt__c.format('yyyy-MM-dd HH:mm') : null;
+        result.gcpRequestId = r.GcpRequestId__c;
+        result.processedBy = r.ProcessedBy__c;
+        return result;
+    }
+
+    @AuraEnabled(cacheable=true)
     public static InitiativePreview getPreviewData(Id initiativeId) {
         Product_Initiative__c pi = [
             SELECT Id, Title__c, Why_Rationale__c, What_Description__c,

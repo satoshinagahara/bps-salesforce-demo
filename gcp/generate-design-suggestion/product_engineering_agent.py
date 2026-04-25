@@ -142,7 +142,7 @@ def tool_generate_signed_urls(product_name: str, storage_client: storage.Client)
     for key, obj_name in [("specUrl", spec_path), ("diagramUrl", diagram_path)]:
         blob = bucket.blob(obj_name)
         urls[key] = blob.generate_signed_url(
-            version="v4", expiration=3600, method="GET",
+            version="v4", expiration=604800, method="GET",
             service_account_email=sa_email,
             access_token=credentials.token,
         )
@@ -160,6 +160,8 @@ def tool_write_design_suggestion(
     sf_access_token: str,
     sf_instance_url: str,
     request_id: str,
+    spec_url: str | None = None,
+    diagram_url: str | None = None,
 ) -> dict:
     """Salesforceに DesignSuggestion__c レコードを作成する（シナリオ1用）。"""
     log.info("[tool] write_design_suggestion: initiative=%s", initiative_id)
@@ -175,6 +177,10 @@ def tool_write_design_suggestion(
         "GeneratedAt__c": datetime.now(timezone.utc).isoformat(),
         "GcpRequestId__c": request_id,
     }
+    if spec_url:
+        record["SpecUrl__c"] = spec_url
+    if diagram_url:
+        record["DiagramUrl__c"] = diagram_url
     url = f"{sf_instance_url}/services/data/v62.0/sobjects/DesignSuggestion__c"
     resp = http_requests.post(
         url,
