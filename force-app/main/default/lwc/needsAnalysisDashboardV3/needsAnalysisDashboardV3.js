@@ -551,13 +551,22 @@ export default class NeedsAnalysisDashboardV3 extends NavigationMixin(LightningE
     parseInsight(text) {
         if (!text) { this.insightLines = []; return; }
         const lines = text.split('\n').filter(l => l.trim().length > 0);
+        const riskPattern = /リスク|懸念|警告/;
+        let inRiskSection = false;
         this.insightLines = lines.map((line, idx) => {
-            let className = 'insight-line';
             const trimmed = line.trim();
-            if (trimmed.startsWith('##') || trimmed.startsWith('**')) className = 'insight-heading';
-            else if (trimmed.startsWith('- ') || trimmed.startsWith('・')) className = 'insight-bullet';
-            else if (trimmed.includes('リスク') || trimmed.includes('懸念') || trimmed.includes('警告')) className = 'insight-risk';
-            return { key: 'l-' + idx, text: trimmed, className };
+            let className = 'insight-line';
+            let displayText = trimmed;
+            if (trimmed.startsWith('##') || trimmed.startsWith('**')) {
+                className = 'insight-heading';
+                inRiskSection = riskPattern.test(trimmed);
+                displayText = trimmed.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '');
+            } else if (trimmed.startsWith('- ') || trimmed.startsWith('・')) {
+                className = inRiskSection ? 'insight-risk' : 'insight-bullet';
+            } else if (riskPattern.test(trimmed)) {
+                className = 'insight-risk';
+            }
+            return { key: 'l-' + idx, text: displayText, className };
         });
     }
 
