@@ -282,13 +282,15 @@ Needs_Card_Source__c（ソース面談） MD→Needs_Card, Lookup→Meeting_Reco
 
 ### 画面
 
-- **`needsAnalysisDashboard`** — ホームページ/AppPage。5タブの多軸分析ダッシュボード（製品Family/製品x種別/製品x業種/業種x種別/顧客Top10）。セグメント切替＋時間フィルタ＋指標切替（件数/金額）。バー/セルクリックで**AIがそのセグメントの定性分析をインライン表示**
+- **`needsAnalysisDashboardPT`** — ホームページ/AppPage。5タブの多軸分析ダッシュボード（製品Family/製品x種別/製品x業種/業種x種別/顧客Top10）。セグメント切替＋時間フィルタ＋指標切替（件数/金額）。バー/セルクリックで**AIがそのセグメントの定性分析（シグナル/機会/リスクの3セクション）と施策ドラフト（タイトル/概要/根拠）をインライン表示**。結果は`Needs_Analysis_Cache__c`にキャッシュされ、再クリックは瞬時表示
+  - **バックアップ系統**: `needsAnalysisDashboardV3`（Vertex AI直叩き、デモ当日にPT版が不調の場合の予備として保持）
 - **鮮度機能**: Fresh(3M以内)/Aging(3-6M)/Stale(6M超)の3区分でカード鮮度をスタックバー表示
 
 ### AI連携
 - **ニーズ抽出**: `NeedsCardExtractionAction` — 面談記録からニーズカードを自動生成（重複判定付き）
 - **アンケートニーズ抽出**: `EventSurveyNeedsAction` — Data Cloudのイベントアンケートから取引先別にニーズカード自動生成
-- **分析インサイト**: `NeedsAnalysisInsight` Prompt Template — セグメント別の定性分析
+- **分析インサイト**: `NeedsAnalysisInsight` Prompt Template（Claude 4.6 Sonnet, Trust Layer経由） — セグメント別の3セクション分析
+- **施策ドラフト**: `InitiativeSuggestion` Prompt Template（Claude 4.6 Sonnet） — 分析と並走でタイトル/概要/根拠を生成、技術手段は記述しないルール
 
 ### バッチ処理
 - **`NeedsCardBatch`** — バッチランチャーの「面談＋アンケート → ニーズカード生成」ボタンで起動。未抽出の面談記録を一括処理し、完了後に`EventSurveyNeedsBatch`をチェーン起動してアンケートからのニーズ生成も実行

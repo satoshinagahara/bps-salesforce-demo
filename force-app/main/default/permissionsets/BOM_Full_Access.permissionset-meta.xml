@@ -89,7 +89,7 @@
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
-        <apexClass>NeedsAnalysisV2Controller</apexClass>
+        <apexClass>NeedsAnalysisPTController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
@@ -126,10 +126,6 @@
     </classAccesses>
     <classAccesses>
         <apexClass>ManufacturingSiteMapController</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>NeedsAnalysisController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>

@@ -233,7 +233,7 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 
 ## 4. 画面構成
 
-### 4.1 ニーズ分析ダッシュボード（needsAnalysisDashboard）
+### 4.1 ニーズ分析ダッシュボード（needsAnalysisDashboardPT）
 
 **配置:** ホームページ / アプリケーションページ
 **対象ユーザー:** 製品企画、営業企画、マネジメント
@@ -262,14 +262,15 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 │                                                      │
 │ ← バー/セルクリックでAI分析起動                         │
 ├──────────────────────────────────────────────────────┤
-│ ▼ AI分析: ソーラーパネル × 顧客セグメント               │
+│ ▼ AI分析: ソーラーパネル × 顧客セグメント   [cached] [↻] │
 │                                           [施策を起案] │
-│  ## 共通テーマ                                        │
-│  ・大型パネル高効率化の要望が3社から集中...               │
-│  ## 顧客温度感                                        │
-│  ・丸菱商事: 直近3ヶ月で2回言及、緊急度高い...           │
-│  ## 潜在機会                                          │
-│  ・東南アジア市場向け...                                │
+│  ### シグナル                                         │
+│  ・3社（NC-0512他）から大型パネル高効率化要望、計¥7.7億...│
+│  ・丸菱商事は直近3ヶ月で2回言及、優先度高（NC-0346）...   │
+│  ### 機会                                             │
+│  ・対象¥7.7億セグメントに低風速対応提案で受注基盤構築...   │
+│  ### リスク                                           │
+│  ・NC-0349の5%ディスカウント要求に9月末までに合意必要...   │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -284,8 +285,9 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
   3. 製品×業種クロス集計
   4. 業種×ニーズ種別クロス集計
   5. 顧客Top10バーチャート
-- **AI分析:** バー/セルクリックで該当セグメントのニーズをLLMが分析、インサイトをインライン表示
-- **施策起案:** AI分析結果から「施策を起案」ボタンでモーダルを開き、AIが施策提案を自動生成
+- **AI分析（3セクション構造）:** バー/セルクリックで該当セグメントのニーズをLLMが分析。出力は「シグナル / 機会 / リスク」の3セクション固定（カードID併記、顧客名・金額具体化、鉤括弧は顧客発話引用のみ等のスタイルルール込み）
+- **AI施策ドラフト:** 分析と同時に施策ドラフト（タイトル / 概要 / 根拠）を自動生成。「施策を確認・作成」ボタンでモーダルを開き編集後に保存
+- **キャッシュ:** 分析結果は `Needs_Analysis_Cache__c` に Filter_Key__c 単位で保存。同セグメント再クリック時は瞬時表示、リロードボタン（↻）で強制再分析可能
 
 ### 4.2 関連ニーズ候補（initiativeNeedsMatcher）
 
@@ -373,21 +375,21 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 
 | 項目 | 内容 |
 |---|---|
-| トリガー | ダッシュボードのバー/セルクリック |
-| 入力 | 該当セグメントのニーズカード群（タイトル・詳細・顧客の声・金額・鮮度情報） + 関連施策の状況 |
-| モデル | GPT-4o mini（コスト効率重視） |
-| 出力 | 共通テーマ / 注目シグナル / 顧客温度感 / 鮮度シグナル / 関連施策状況 / 潜在機会 / リスク |
-| 設計方針 | 事実のみ出力（提案・推薦は含めない）、400文字以内 |
+| トリガー | ダッシュボードのバー/セルクリック（cache miss時のみLLM呼出） |
+| 入力 | 該当セグメントのニーズカード群（タイトル・詳細・顧客の声・金額・鮮度・関連施策） |
+| モデル | Claude 4.6 Sonnet（Bedrock、Trust Layer経由） |
+| 出力 | `### シグナル` / `### 機会` / `### リスク` の3セクション固定 |
+| 設計方針 | カード数に応じて項目数調整（1件→1項目、4件以上→2〜3項目）。各項目にカードID(NC-XXXX)を必ず明記。顧客名・金額は具体的に。鉤括弧「」は顧客発話引用のみ。「複数顧客で共通する声」を最優先。リスクは失う案件名/金額を1つ含む。推測禁止、ダッシュボード既出KPIの繰り返し禁止 |
 
 ### 5.3 施策起案サジェスト（InitiativeSuggestion）
 
 | 項目 | 内容 |
 |---|---|
-| トリガー | AI分析パネルの「施策を起案」ボタン |
+| トリガー | NeedsAnalysisInsight と同タイミングで自動実行（同じcache miss時に並走、結果は同じcacheレコードへ） |
 | 入力 | セグメントのニーズカード群（分析コンテキストと同等） |
-| モデル | GPT-4o mini |
-| 出力 | 【タイトル】（30文字以内）/ 【概要】（200文字、What）/ 【根拠】（200文字、Why） |
-| 設計方針 | データドリブン（件数・顧客数・金額・鮮度を根拠に使用）、推測を含めない |
+| モデル | Claude 4.6 Sonnet（Bedrock、Trust Layer経由） |
+| 出力 | 【タイトル】（30文字以内、対象製品名+市場課題）/ 【概要】（200文字、What=顧客が求める成果）/ 【根拠】（200文字、Why=件数/顧客数/金額/鮮度） |
+| 設計方針 | データドリブン（件数・顧客数・金額・鮮度を根拠に使用）、推測禁止。**★具体的な技術手段（アルゴリズム/部品改良等のHow）への言及禁止** — 技術詳細は別途エンジニアリング分析（Engineering Agent）で特定するため、ビジネス上のWhatとWhyのみ |
 
 ### 5.4 施策ニーズ関連度分析（InitiativeNeedsRelevance）
 
@@ -477,7 +479,7 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 | NeedsCardBatch | Batchable + AllowsCallouts | 未抽出面談記録の一括ニーズ抽出。完了後にEventSurveyNeedsBatchをチェーン起動 |
 | EventSurveyNeedsAction | @InvocableMethod | イベントアンケート（Data Cloud DMO）→ 取引先別ニーズカード自動生成 |
 | EventSurveyNeedsBatch | Batchable + Schedulable + AllowsCallouts | キャンペーン単位のアンケートニーズ自動生成（差分検出付き） |
-| NeedsAnalysisController | AuraEnabled | ダッシュボードLWCバックエンド（集計・フィルタ・AI分析・施策起案・施策作成） |
+| NeedsAnalysisPTController | AuraEnabled | ダッシュボードLWCバックエンド（集計・フィルタ・AI分析・施策ドラフト・施策作成・キャッシュ管理） |
 | InitiativeNeedsMatcherController | AuraEnabled | ニーズ候補LWCバックエンド（多層検索・AI関連度分析・紐付け） |
 | OpportunityRoadmapController | AuraEnabled | ロードマップLWCバックエンド（Product Family経由の施策/DP検索） |
 
@@ -485,7 +487,7 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 
 | コンポーネント名 | 配置先 | 機能 |
 |---|---|---|
-| needsAnalysisDashboard | ホームページ / アプリページ | ニーズ分析ダッシュボード（セグメント切替/5ビュー/AI分析/施策起案） |
+| needsAnalysisDashboardPT | ホームページ / アプリページ | ニーズ分析ダッシュボード（セグメント切替/5ビュー/AI分析3セクション/施策ドラフト/キャッシュ表示） |
 | initiativeNeedsMatcher | Product_Initiative__c レコードページ | 関連ニーズ候補（多層検索/関連度バッジ/AI分析/一括紐付け） |
 | opportunityRoadmap | Opportunity レコードページ | 製品ロードマップ（施策/DP一覧） |
 
@@ -495,8 +497,8 @@ Product2（製品）── Lookup ──→ Needs_Card__c, Product_Initiative__c
 |---|---|---|---|
 | NeedsCardExtraction | GPT-4o | meetingContext (String) | 0.2 |
 | EventSurveyAccountNeeds | GPT-4o | accountSurveyData (String) | 0.2 |
-| NeedsAnalysisInsight | Claude 4.5 Sonnet | needsData (String) | 0.2 |
-| InitiativeSuggestion | GPT-4o mini | analysisData (String) | 0.2 |
+| NeedsAnalysisInsight | Claude 4.6 Sonnet | needsData (String) | 0.2 |
+| InitiativeSuggestion | Claude 4.6 Sonnet | analysisData (String) | 0.2 |
 | InitiativeNeedsRelevance | Claude 4.5 Sonnet | analysisData (String) | 0.2 |
 
 ### その他メタデータ

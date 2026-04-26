@@ -1,10 +1,9 @@
 import { LightningElement, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getAnalysisData from '@salesforce/apex/NeedsAnalysisV2Controller.getAnalysisData';
-import analyzeSegment from '@salesforce/apex/NeedsAnalysisV2Controller.analyzeSegment';
-import suggestInitiative from '@salesforce/apex/NeedsAnalysisV2Controller.suggestInitiative';
-import createInitiativeFromDashboard from '@salesforce/apex/NeedsAnalysisV2Controller.createInitiativeFromDashboard';
+import getAnalysisData from '@salesforce/apex/NeedsAnalysisPTController.getAnalysisData';
+import getOrAnalyze from '@salesforce/apex/NeedsAnalysisPTController.getOrAnalyze';
+import createInitiativeFromDashboard from '@salesforce/apex/NeedsAnalysisPTController.createInitiativeFromDashboard';
 
 const NEED_TYPE_COLORS = {
     '製品ニーズ': '#3498db',
@@ -29,7 +28,7 @@ const INDUSTRY_JP = {
 };
 const FRESHNESS = { fresh: '#10b981', aging: '#f59e0b', stale: '#9ca3af' };
 
-export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningElement) {
+export default class NeedsAnalysisDashboardPT extends NavigationMixin(LightningElement) {
     // Data
     totalCount = 0;
     highPriorityCount = 0;
@@ -44,8 +43,8 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     productIndustryMatrix = { rows: [], headers: [] };
 
     // Drill-down state
-    _productToFamily = {};   // { productName: familyName }
-    _drillFamily = null;     // null = family level, 'xxx' = drilled into that family
+    _productToFamily = {};
+    _drillFamily = null;
 
     get isDrilled() { return this._drillFamily !== null; }
     get drillBreadcrumb() { return this._drillFamily; }
@@ -62,6 +61,10 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     hasInsight = false;
     insightTitle = '';
     insightLines = [];
+
+    // Cache info
+    cachedAt = null;
+    fromCache = false;
 
     // Initiative modal state
     showInitiativeModal = false;
@@ -80,10 +83,10 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
 
     // Controls
     activeChart = 'productIndustry';
-    metric = 'count'; // 'count' or 'impact'
-    monthsBack = 0;   // 0=all, 3, 6, 12
-    segment = 'all';  // 初回は全体で取得→セグメント一覧確定後にデフォルト設定
-    _segments = [];    // Apexから動的に取得
+    metric = 'count';
+    monthsBack = 0;
+    segment = 'all';
+    _segments = [];
     _defaultSet = false;
 
     get segmentOptions() {
@@ -98,10 +101,9 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 });
             }
         }
-        // ORDER以外のセグメント（未分類等）は「その他」として集約
         const others = this._segments.filter(s => !ORDER.includes(s));
         if (others.length > 0) {
-            const otherValue = others[0]; // Apex側の値をそのまま使う
+            const otherValue = others[0];
             opts.push({
                 label: 'その他',
                 value: otherValue,
@@ -118,7 +120,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         return opts;
     }
 
-    // Time filter options
     get timeFilterOptions() {
         return [
             { label: '全期間', value: 0, cls: this.monthsBack === 0 ? 'filter-btn filter-btn--active' : 'filter-btn' },
@@ -145,17 +146,15 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     }
 
     processData(data) {
-        // 動的セグメント一覧
         if (data.segments) {
             this._segments = data.segments;
         }
-        // 初回ロード時: セグメントが複数あれば最初の非サプライヤー値をデフォルトに
         if (!this._defaultSet && this._segments.length > 1) {
             const defaultSeg = this._segments.includes('顧客') ? '顧客' : this._segments[0];
             if (defaultSeg && this.segment === 'all') {
                 this._defaultSet = true;
-                this.segment = defaultSeg; // reactive → wire再発火
-                return; // 再発火されるのでここでは処理しない
+                this.segment = defaultSeg;
+                return;
             }
         }
         this._defaultSet = true;
@@ -167,7 +166,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         this.agingCount = data.agingCount || 0;
         this.staleCount = data.staleCount || 0;
 
-        // 製品名→ファミリーマッピング保存
         this._productToFamily = data.productToFamily || {};
 
         const useImpact = this.metric === 'impact';
@@ -233,7 +231,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
 
     _buildProductMatrix(countMap, impactMap, filterType, rowColors, fixedCols) {
         if (this._drillFamily) {
-            // ドリルダウンモード: 選択されたファミリー内の製品名だけでマトリクス構築
             const filtered = {};
             const filteredImpact = {};
             for (const [key, val] of Object.entries(countMap)) {
@@ -246,7 +243,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
             }
             return this.buildMatrix(filtered, impactMap ? filteredImpact : null, filterType, rowColors, fixedCols);
         }
-        // ファミリーレベル: 製品名をファミリーに集約
         const familyCount = {};
         const familyImpact = {};
         for (const [key, val] of Object.entries(countMap)) {
@@ -259,7 +255,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
             }
         }
         const result = this.buildMatrix(familyCount, impactMap ? familyImpact : null, filterType, rowColors, fixedCols);
-        // ファミリー行にドリルダウンマーカーを追加
         result.rows = result.rows.map(row => ({
             ...row,
             isDrillable: true,
@@ -292,7 +287,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
             ? fixedCols.filter(c => colSet.has(c)).concat([...colSet].filter(c => !fixedCols.includes(c)).sort())
             : [...colSet].sort();
 
-        // Find max for color intensity
         let maxVal = 1;
         for (const key of Object.keys(dataMap)) {
             const v = useImpact ? (impactDataMap[key] || 0) : dataMap[key];
@@ -301,14 +295,10 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
 
         const headers = colList.map(col => {
             const jp = INDUSTRY_JP[col] || col;
-            return {
-                key: col,
-                label: jp,
-                fullLabel: jp
-            };
+            return { key: col, label: jp, fullLabel: jp };
         });
 
-        const rows = rowList.map((row, rowIdx) => {
+        const rows = rowList.map((row) => {
             const cells = colList.map(col => {
                 const key = row + '|' + col;
                 const count = dataMap[key] || 0;
@@ -332,12 +322,7 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 };
             });
             const rowJp = INDUSTRY_JP[row] || row;
-            return {
-                key: row,
-                rowLabel: rowJp,
-                fullRowLabel: rowJp,
-                cells
-            };
+            return { key: row, rowLabel: rowJp, fullRowLabel: rowJp, cells };
         });
 
         return { headers, rows };
@@ -351,7 +336,7 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 const vb = useImpact ? (impactMap[b[0]] || 0) : b[1];
                 return vb - va;
             })
-            .slice(0, 10); // Top 10
+            .slice(0, 10);
 
         const max = entries.length > 0
             ? Math.max(...entries.map(([k]) => useImpact ? (impactMap[k] || 0) : countMap[k]), 1)
@@ -405,7 +390,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     get industryNeedTypeTabClass() { return this.tabClass('industryNeedType'); }
     get accountTabClass() { return this.tabClass('account'); }
 
-    // Show cross hint only on matrix tabs
     get isMatrixTab() {
         return ['productNeedType', 'productIndustry', 'industryNeedType'].includes(this.activeChart);
     }
@@ -413,13 +397,13 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     // --- Event handlers ---
     handleTabClick(event) {
         this.activeChart = event.currentTarget.dataset.tab;
-        this._drillFamily = null; // タブ切替時はドリルダウン解除
+        this._drillFamily = null;
         if (this._rawData) this.processData(this._rawData);
     }
 
     handleRowLabelClick(event) {
         const rowKey = event.currentTarget.dataset.family;
-        if (!rowKey || this._drillFamily) return; // 既にドリルダウン中なら無視
+        if (!rowKey || this._drillFamily) return;
         this._drillFamily = rowKey;
         if (this._rawData) this.processData(this._rawData);
     }
@@ -431,14 +415,14 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
 
     handleTimeFilter(event) {
         const val = parseInt(event.currentTarget.dataset.value, 10);
-        if (val === this.monthsBack) return; // 同じ値の再クリックは無視
+        if (val === this.monthsBack) return;
         this.monthsBack = val;
         this.isLoading = true;
     }
 
     handleSegmentToggle(event) {
         const val = event.currentTarget.dataset.value;
-        if (val === this.segment) return; // 同じセグメント再クリックは無視
+        if (val === this.segment) return;
         this.segment = val;
         this.isLoading = true;
     }
@@ -454,7 +438,7 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         const filterType = event.currentTarget.dataset.type;
         const filterValue = event.currentTarget.dataset.value;
         const count = event.currentTarget.dataset.count || '';
-        this.runAnalysis(filterType, filterValue, count);
+        this.runAnalysis(filterType, filterValue, count, false);
     }
 
     handleCellClick(event) {
@@ -462,27 +446,51 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         const filterType = event.currentTarget.dataset.filtertype;
         const count = event.currentTarget.dataset.count || '0';
         if (count === '0') return;
-        this.runAnalysis(filterType, key, count);
+        this.runAnalysis(filterType, key, count, false);
+    }
+
+    // V3: リロードボタン — キャッシュを無視して再取得
+    handleRefreshAnalysis() {
+        if (!this._lastFilterType || !this._lastFilterValue) return;
+        this.runAnalysis(this._lastFilterType, this._lastFilterValue, this._lastCardCount || '?', true);
     }
 
     // 分析中サマリ
     analysisSummary = null;
 
     // 分析フェーズ管理
-    analysisPhase = 0; // 0=idle, 1=analyzing, 2=suggesting, 3=done
+    analysisPhase = 0; // 0=idle, 1=analyzing, 3=done
 
     get isPhaseAnalyzing() { return this.analysisPhase === 1; }
-    get isPhaseSuggesting() { return this.analysisPhase === 2; }
     get isPhaseComplete() { return this.analysisPhase === 3; }
     get initiativeReady() { return this.isPhaseComplete && !!this.initTitle; }
 
-    runAnalysis(filterType, filterValue, cardCount) {
+    // V3: cachedAt の表示用フォーマット
+    get cachedAtFormatted() {
+        if (!this.cachedAt) return '';
+        try {
+            const d = new Date(this.cachedAt);
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mi = String(d.getMinutes()).padStart(2, '0');
+            return `${mm}/${dd} ${hh}:${mi}`;
+        } catch {
+            return '';
+        }
+    }
+
+    // V3: 統合された分析実行
+    runAnalysis(filterType, filterValue, cardCount, forceRefresh) {
         this.isAnalyzing = true;
         this.analysisPhase = 1;
         this.hasInsight = false;
         this.insightLines = [];
         this._lastFilterType = filterType;
         this._lastFilterValue = filterValue;
+        this._lastCardCount = cardCount;
+        this.fromCache = false;
+        this.cachedAt = null;
 
         // 施策ドラフトをリセット
         this.initTitle = '';
@@ -504,15 +512,29 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
         };
         this.insightTitle = (typeLabels[filterType] || '') + '「' + displayValue + '」の分析';
 
-        analyzeSegment({ filterType, filterValue })
+        getOrAnalyze({ filterType, filterValue, forceRefresh: forceRefresh === true })
             .then(result => {
-                this.parseInsight(result);
+                // 分析テキスト
+                this.parseInsight(result.analysisText || '');
                 this.isAnalyzing = false;
                 this.hasInsight = true;
 
-                // ステップ2: 分析結果が出たら裏で施策起案を自動開始
-                this.analysisPhase = 2;
-                this._autoSuggestInitiative(filterType, filterValue);
+                // 施策ドラフト
+                this.initTitle = result.suggestedTitle || '';
+                this.initWhat = result.suggestedWhat || '';
+                this.initWhy = result.suggestedWhy || '';
+                this.initProductId = result.defaultProductId || '';
+                this.initCardIds = result.cardIds || [];
+                this.initCardCount = result.cardCount || 0;
+                this.initProductOptions = (result.products || []).map(p => ({
+                    label: p.label, value: p.value
+                }));
+
+                // キャッシュ情報
+                this.fromCache = result.fromCache === true;
+                this.cachedAt = result.cachedAt || null;
+
+                this.analysisPhase = 3;
             })
             .catch(err => {
                 this.insightLines = [{
@@ -526,35 +548,25 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
             });
     }
 
-    _autoSuggestInitiative(filterType, filterValue) {
-        suggestInitiative({ filterType, filterValue })
-            .then(result => {
-                this.initTitle = result.suggestedTitle || '';
-                this.initWhat = result.suggestedWhat || '';
-                this.initWhy = result.suggestedWhy || '';
-                this.initProductId = result.defaultProductId || '';
-                this.initCardIds = result.cardIds || [];
-                this.initCardCount = result.cardCount || 0;
-                this.initProductOptions = (result.products || []).map(p => ({
-                    label: p.label, value: p.value
-                }));
-                this.analysisPhase = 3;
-            })
-            .catch(() => {
-                this.analysisPhase = 3;
-            });
-    }
-
     parseInsight(text) {
         if (!text) { this.insightLines = []; return; }
         const lines = text.split('\n').filter(l => l.trim().length > 0);
+        const riskPattern = /リスク|懸念|警告/;
+        let inRiskSection = false;
         this.insightLines = lines.map((line, idx) => {
-            let className = 'insight-line';
             const trimmed = line.trim();
-            if (trimmed.startsWith('##') || trimmed.startsWith('**')) className = 'insight-heading';
-            else if (trimmed.startsWith('- ') || trimmed.startsWith('・')) className = 'insight-bullet';
-            else if (trimmed.includes('リスク') || trimmed.includes('懸念') || trimmed.includes('警告')) className = 'insight-risk';
-            return { key: 'l-' + idx, text: trimmed, className };
+            let className = 'insight-line';
+            let displayText = trimmed;
+            if (trimmed.startsWith('##') || trimmed.startsWith('**')) {
+                className = 'insight-heading';
+                inRiskSection = riskPattern.test(trimmed);
+                displayText = trimmed.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '');
+            } else if (trimmed.startsWith('- ') || trimmed.startsWith('・')) {
+                className = inRiskSection ? 'insight-risk' : 'insight-bullet';
+            } else if (riskPattern.test(trimmed)) {
+                className = 'insight-risk';
+            }
+            return { key: 'l-' + idx, text: displayText, className };
         });
     }
 
@@ -566,7 +578,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
     // --- Initiative creation from dashboard ---
 
     handleCreateInitiative() {
-        // データは _autoSuggestInitiative で既に取得済み。モーダルを開くだけ
         this.isSuggesting = false;
         this.showInitiativeModal = true;
         this.initPriority = '中';
@@ -612,7 +623,6 @@ export default class NeedsAnalysisDashboardV2 extends NavigationMixin(LightningE
                 message: `${this.initCardCount}件のニーズカードを紐付けました`,
                 variant: 'success'
             }));
-            // Navigate to the new record
             this[NavigationMixin.Navigate]({
                 type: 'standard__recordPage',
                 attributes: { recordId, actionName: 'view' }

@@ -54,13 +54,14 @@
 | オブジェクト | Initiative_Need__c | 施策⇔ニーズカードの中間オブジェクト（MD） |
 | Apex | NeedsCardExtractionAction | 面談記録→ニーズカード抽出（Invocable） |
 | Apex | NeedsCardBatch | 未抽出面談を一括処理するバッチ |
-| Apex | NeedsAnalysisController | ニーズ分析ダッシュボードのバックエンド |
+| Apex | NeedsAnalysisPTController | ニーズ分析ダッシュボードのバックエンド（Prompt Template経由） |
 | Apex | InitiativeNeedsMatcherController | 施策⇔ニーズの紐付け支援 |
 | Flow | Needs_Card_Extraction | 面談記録から手動でニーズ抽出を起動 |
-| LWC | needsAnalysisDashboard | ニーズ分析ダッシュボード |
+| LWC | needsAnalysisDashboardPT | ニーズ分析ダッシュボード |
 | LWC | initiativeNeedsMatcher | 施策⇔ニーズ紐付けUI |
 | PT | NeedsCardExtraction | 面談内容→ニーズJSON変換プロンプト |
-| PT | NeedsAnalysisInsight | ニーズ集合の分析インサイト生成 |
+| PT | NeedsAnalysisInsight | ニーズ集合の分析インサイト生成（3セクション構造） |
+| PT | InitiativeSuggestion | 分析結果から製品施策をドラフト |
 | PT | InitiativeNeedsRelevance | 施策⇔ニーズ関連度分析 |
 
 ---
@@ -304,7 +305,8 @@ sf project deploy start \
 | テンプレート | 使用元 | 入力パラメータ | モデル |
 |------------|-------|-------------|-------|
 | NeedsCardExtraction | NeedsCardExtractionAction.cls | `Input:meetingContext` (String) | Claude 4.5 Sonnet |
-| NeedsAnalysisInsight | NeedsAnalysisController.cls | `Input:needsData` (String) | Claude 4.5 Sonnet |
+| NeedsAnalysisInsight | NeedsAnalysisPTController.cls | `Input:needsData` (String) | Claude 4.6 Sonnet |
+| InitiativeSuggestion | NeedsAnalysisPTController.cls | `Input:analysisData` (String) | Claude 4.6 Sonnet |
 | InitiativeNeedsRelevance | InitiativeNeedsMatcherController.cls | `Input:analysisData` (String) | Claude 4.5 Sonnet |
 
 ### デプロイ
@@ -313,6 +315,7 @@ sf project deploy start \
 sf project deploy start \
   --source-dir force-app/main/default/genAiPromptTemplates/NeedsCardExtraction \
   --source-dir force-app/main/default/genAiPromptTemplates/NeedsAnalysisInsight \
+  --source-dir force-app/main/default/genAiPromptTemplates/InitiativeSuggestion \
   --source-dir force-app/main/default/genAiPromptTemplates/InitiativeNeedsRelevance \
   --target-org YOUR_USERNAME
 ```
@@ -320,9 +323,11 @@ sf project deploy start \
 ### デプロイ後の手動設定
 
 1. **Setup > Einstein > Prompt Builder** を開く
-2. 各テンプレートを開き、**Activate（有効化）** する
-3. モデルが `sfdc_ai__DefaultBedrockAnthropicClaude45Sonnet`（Claude 4.5 Sonnet）に設定されていることを確認
-4. **Setup > Einstein > Generative AI** で Claude 4.5 Sonnet が有効化されていることを確認
+2. 各テンプレートを開き、**最新バージョンを Activate（有効化）** する
+   - `NeedsAnalysisInsight` は複数バージョンが含まれる。V3準拠（3セクション構造: シグナル/機会/リスク）の最新バージョンを Activate すること
+   - `InitiativeSuggestion` も同様に最新バージョン（タイトル/概要/根拠の3項目構造、技術手段への言及禁止ルール入り）を Activate
+3. モデルが `sfdc_ai__DefaultBedrockAnthropicClaude46Sonnet`（Claude 4.6 Sonnet）に設定されていることを確認
+4. **Setup > Einstein > Generative AI** で Claude 4.6 Sonnet が有効化されていることを確認
 
 > **注意**: Prompt Templateはデプロイしただけでは動作しない。必ずActivateが必要。
 > Activateされていないと `Prompt Templateからの応答が空です` エラーが発生する。
@@ -336,7 +341,7 @@ sf project deploy start \
 ```
 ① NeedsCardExtractionAction.cls      ← Prompt Template "NeedsCardExtraction" に依存
 ② NeedsCardBatch.cls                 ← NeedsCardExtractionAction に依存
-③ NeedsAnalysisController.cls        ← Prompt Template "NeedsAnalysisInsight" に依存
+③ NeedsAnalysisPTController.cls      ← Prompt Template "NeedsAnalysisInsight" + "InitiativeSuggestion" に依存
 ④ InitiativeNeedsMatcherController.cls ← Prompt Template "InitiativeNeedsRelevance" に依存
 ```
 
@@ -348,8 +353,8 @@ sf project deploy start \
   --source-dir force-app/main/default/classes/NeedsCardExtractionAction.cls-meta.xml \
   --source-dir force-app/main/default/classes/NeedsCardBatch.cls \
   --source-dir force-app/main/default/classes/NeedsCardBatch.cls-meta.xml \
-  --source-dir force-app/main/default/classes/NeedsAnalysisController.cls \
-  --source-dir force-app/main/default/classes/NeedsAnalysisController.cls-meta.xml \
+  --source-dir force-app/main/default/classes/NeedsAnalysisPTController.cls \
+  --source-dir force-app/main/default/classes/NeedsAnalysisPTController.cls-meta.xml \
   --source-dir force-app/main/default/classes/InitiativeNeedsMatcherController.cls \
   --source-dir force-app/main/default/classes/InitiativeNeedsMatcherController.cls-meta.xml \
   --target-org YOUR_USERNAME
@@ -414,7 +419,7 @@ sf project deploy start \
 
 ```bash
 sf project deploy start \
-  --source-dir force-app/main/default/lwc/needsAnalysisDashboard \
+  --source-dir force-app/main/default/lwc/needsAnalysisDashboardPT \
   --source-dir force-app/main/default/lwc/initiativeNeedsMatcher \
   --target-org YOUR_USERNAME
 ```
@@ -423,20 +428,20 @@ sf project deploy start \
 
 | LWC | 機能 | Apexコントローラー | 配置先 |
 |----|------|-----------------|-------|
-| needsAnalysisDashboard | ニーズの集計・可視化・AI分析・施策起案 | NeedsAnalysisController | App Page / Home Page |
+| needsAnalysisDashboardPT | ニーズの集計・可視化・AI分析・施策起案 | NeedsAnalysisPTController | App Page / Home Page |
 | initiativeNeedsMatcher | 施策レコードにニーズカードを紐付け | InitiativeNeedsMatcherController | Product_Initiative__c Record Page |
 
-### needsAnalysisDashboard のコントローラー確認
+### needsAnalysisDashboardPT のコントローラー確認
 
-LWCの先頭で import しているコントローラーが `NeedsAnalysisController`（V1）であることを確認:
+LWCの先頭で import しているコントローラーが `NeedsAnalysisPTController` であることを確認:
 
 ```javascript
-// NeedsAnalysisController（V1）を使用
-import getAnalysisData from '@salesforce/apex/NeedsAnalysisController.getAnalysisData';
-import analyzeSegment from '@salesforce/apex/NeedsAnalysisController.analyzeSegment';
-import suggestInitiative from '@salesforce/apex/NeedsAnalysisController.suggestInitiative';
-import createInitiativeFromDashboard from '@salesforce/apex/NeedsAnalysisController.createInitiativeFromDashboard';
+import getAnalysisData from '@salesforce/apex/NeedsAnalysisPTController.getAnalysisData';
+import getOrAnalyze from '@salesforce/apex/NeedsAnalysisPTController.getOrAnalyze';
+import createInitiativeFromDashboard from '@salesforce/apex/NeedsAnalysisPTController.createInitiativeFromDashboard';
 ```
+
+> `getOrAnalyze` はキャッシュ付きの統合メソッド。`Needs_Analysis_Cache__c` に Filter_Key__c 単位で保存され、2回目以降の同じセグメント分析は即返される。
 
 ---
 
@@ -460,7 +465,7 @@ sf project deploy start \
 
 1. **Setup > Object Manager > Meeting_Record > Lightning Record Pages** で FlexiPage8 をデフォルトに設定
 2. **Setup > Object Manager > Product_Initiative > Lightning Record Pages** で FlexiPage12 をデフォルトに設定
-3. needsAnalysisDashboard は Lightning App Page を作成して配置（またはHomeページに配置）
+3. needsAnalysisDashboardPT は Lightning App Page を作成して配置（またはHomeページに配置）
 
 ---
 
@@ -521,9 +526,10 @@ System.schedule('NeedsCardBatch Daily', '0 0 2 * * ?', new Schedulable() {
 
 ### Step 4: 分析ダッシュボード確認
 
-1. needsAnalysisDashboard を配置したページを開く
+1. needsAnalysisDashboardPT を配置したページを開く
 2. ニーズカードの集計が表示されることを確認
-3. セグメントをクリックしてAI分析が動作することを確認
+3. セグメント（バー/セル）をクリックしてAI分析（3セクション: シグナル/機会/リスク）が動作することを確認
+4. 同じセグメントを再度クリックしてキャッシュから瞬時に表示されることを確認（cached バッジが付く）
 
 ### Step 5: 施策起案フロー確認
 
@@ -599,16 +605,17 @@ force-app/main/default/objects/Initiative_Need__c/
 # Apexクラス（4個）
 force-app/main/default/classes/NeedsCardExtractionAction.cls
 force-app/main/default/classes/NeedsCardBatch.cls
-force-app/main/default/classes/NeedsAnalysisController.cls
+force-app/main/default/classes/NeedsAnalysisPTController.cls
 force-app/main/default/classes/InitiativeNeedsMatcherController.cls
 
 # LWC（2個）
-force-app/main/default/lwc/needsAnalysisDashboard/
+force-app/main/default/lwc/needsAnalysisDashboardPT/
 force-app/main/default/lwc/initiativeNeedsMatcher/
 
-# Prompt Template（3個）
+# Prompt Template（4個）
 force-app/main/default/genAiPromptTemplates/NeedsCardExtraction/
 force-app/main/default/genAiPromptTemplates/NeedsAnalysisInsight/
+force-app/main/default/genAiPromptTemplates/InitiativeSuggestion/
 force-app/main/default/genAiPromptTemplates/InitiativeNeedsRelevance/
 
 # Flow

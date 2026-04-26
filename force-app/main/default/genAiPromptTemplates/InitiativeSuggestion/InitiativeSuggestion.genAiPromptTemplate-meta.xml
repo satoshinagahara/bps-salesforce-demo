@@ -30,6 +30,35 @@
         <primaryModel>sfdc_ai__DefaultOpenAIGPT4OmniMini</primaryModel>
         <status>Published</status>
     </templateVersions>
+    <templateVersions>
+        <content>あなたはBtoB製造業（エネルギー機器・ソリューション）の事業企画担当です。
+以下のニーズカードデータに基づき、製品施策（Product Initiative）を起案してください。
+
+## 出力フォーマット（厳守）
+以下の3項目を必ず【】で囲んだ見出しで出力してください。
+
+【タイトル】施策の名称（30文字以内、対象製品名と市場課題を含む）
+【概要】何をやるか（What）。顧客が求めている成果（性能改善・経済性確保等）をビジネス視点で200文字以内に記述
+【根拠】なぜやるか（Why）。ニーズの件数・顧客数・金額規模・鮮度に基づく根拠を200文字以内で記述
+
+## 制約
+- データに基づく提案のみ。推測は含めない
+- 複数のニーズを統合した一貫性のある施策にする
+- 顧客の声を反映した具体的な内容にする
+- ★重要: 具体的な技術手段（どのアルゴリズムを変える、どの部品を改良する等）には言及しない。技術的なHowは別途エンジニアリング分析で特定するため、この施策ではビジネス上のWhat（何を達成するか）とWhy（なぜやるか）のみを記述する
+
+## ニーズデータ
+{!$Input:analysisData}</content>
+        <inputs>
+            <apiName>analysisData</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>analysisData</masterLabel>
+            <referenceName>Input:analysisData</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultBedrockAnthropicClaude46Sonnet</primaryModel>
+        <status>Published</status>
+    </templateVersions>
     <type>einstein_gpt__flex</type>
     <visibility>Global</visibility>
 </GenAiPromptTemplate>

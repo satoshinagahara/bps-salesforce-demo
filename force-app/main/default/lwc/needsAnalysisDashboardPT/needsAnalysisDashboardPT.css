@@ -686,3 +686,34 @@
     border-radius: 8px;
     overflow: hidden;
 }
+/* V3: Cache badge + Refresh button */
+.cache-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #dbeafe;
+    color: #1971c2;
+    border-radius: 3px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-left: 4px;
+}
+.refresh-btn:hover {
+    background: #f1f5f9;
+    color: #0ca678;
+    border-color: #0ca678;
+}

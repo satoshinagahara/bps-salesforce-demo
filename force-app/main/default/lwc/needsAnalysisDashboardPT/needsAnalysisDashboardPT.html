@@ -229,7 +229,7 @@
                 </template>
             </div>
 
-            <!-- AI Insight Panel -->
+            <!-- AI Insight Panel: Loading -->
             <template if:true={isAnalyzing}>
                 <div class="insight-panel">
                     <div class="insight-header">
@@ -250,17 +250,22 @@
                         </template>
                         <div class="waiting-indicator">
                             <span class="css-spinner-sm"></span>
-                            <span class="waiting-text">Vertex AI Gemini が分析しています（約10〜15秒）</span>
+                            <span class="waiting-text">Salesforce Prompt Builder (Claude 4.6 Sonnet) が分析しています</span>
                         </div>
                     </div>
                 </div>
             </template>
 
+            <!-- AI Insight Panel: Results -->
             <template if:true={hasInsight}>
                 <div class="insight-panel">
                     <div class="insight-header">
                         <h3 class="insight-title">{insightTitle}</h3>
                         <div class="insight-actions">
+                            <template if:true={fromCache}>
+                                <span class="cache-badge" title="キャッシュから取得">cached {cachedAtFormatted}</span>
+                            </template>
+                            <button class="refresh-btn" onclick={handleRefreshAnalysis} title="最新データで再分析">↻</button>
                             <button class="close-btn" onclick={handleCloseInsight}>✕</button>
                         </div>
                     </div>
@@ -269,13 +274,7 @@
                             <p key={line.key} class={line.className}>{line.text}</p>
                         </template>
                     </div>
-                    <!-- 施策ドラフト自動生成の進捗 -->
-                    <template if:true={isPhaseSuggesting}>
-                        <div class="initiative-progress">
-                            <span class="css-spinner-sm"></span>
-                            <span class="waiting-text">Vertex AI Gemini が施策ドラフトを作成しています...</span>
-                        </div>
-                    </template>
+                    <!-- 施策ドラフト -->
                     <template if:true={initiativeReady}>
                         <div class="initiative-draft">
                             <div class="draft-header">

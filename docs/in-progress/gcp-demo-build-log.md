@@ -149,7 +149,7 @@ IoTイベント(HTMLトリガー) → Product Engineering Agent → Asset レコ
 | `DesignSuggestionGcpController` | シナリオ1用。`getPreviewData` / `generateDesignSuggestion`（旧固定版）/ `generateDesignSuggestionAgent`（新エージェント版） |
 | `EquipmentAlertController` | Asset 情報 + 過去アラート一覧を取得（LWC wire 用） |
 | `AssetShowcaseController` | 納入商品LWC用。Asset情報 + 地図座標（ハードコード） + 画像 Signed URL |
-| `NeedsAnalysisV2Controller` | （シナリオ外）ニーズ分析ダッシュボードV2。Vertex AI 直接呼出 |
+| `NeedsAnalysisV3Controller` | （シナリオ外、現在はバックアップ系統）ニーズ分析ダッシュボードV3。Vertex AI 直接呼出。本番系はPrompt Template経由の `NeedsAnalysisPTController` |
 
 ### 2.3 LWC
 
@@ -158,7 +158,7 @@ IoTイベント(HTMLトリガー) → Product Engineering Agent → Asset レコ
 | `designSuggestionGcp` | Product_Initiative__c ページ | シナリオ1のUI。施策プレビュー + 4ステップ進捗 + 結果カード + PDF/図面プレビュー + Agent tool_history |
 | `equipmentAlertGcp` | Asset ページ | シナリオ2の結果表示。最新アラート + 過去アラート一覧 |
 | `assetShowcaseGcp` | Asset ページ | 納入商品情報。Imagen生成画像 + lightning-map で設置ロケーション表示 |
-| `needsAnalysisDashboardV2` | アプリページ | （参考）ニーズ分析ダッシュボード（Trust Layer バイパス版） |
+| `needsAnalysisDashboardV3` | （未配置） | （参考、バックアップ系統）ニーズ分析ダッシュボード（Vertex AI直叩き版）。本番系は `needsAnalysisDashboardPT`（Prompt Template経由） |
 
 ### 2.4 FlexiPage
 
@@ -403,7 +403,7 @@ gcp/generate-design-suggestion/
 | 2026-04-12 | 初版作成。UI/UX決定、実装ステップ定義、シナリオ1（固定パイプライン）完成 |
 | 2026-04-12 | LWC配置先を Needs_Card__c → Product_Initiative__c に変更。Initiative + 複数ニーズ対応 |
 | 2026-04-13 | GCS Signed URL 生成 + LWC インラインプレビュー実装 |
-| 2026-04-13 | ニーズ分析ダッシュボードV2（Trust Layer バイパス版）追加 |
+| 2026-04-13 | ニーズ分析ダッシュボードV2（Trust Layer バイパス版）追加 → 後にV3（Vertex AI直叩き、本番採用）へ進化、さらに2026-04-26にPT版（Prompt Template経由、本番系）へ移行。V3はバックアップ系統として保持、無印・V2は廃止 |
 | 2026-04-14 | シナリオ2（Product Engineering Agent）着手・完成。Equipment_Alert__c、HTMLトリガー、LWC 一式 |
 | 2026-04-14 | A-1000 シナリオ追加、検知値編集UI、5ステップ進捗演出、tool_history表示 |
 | 2026-04-15 | シナリオ1 エージェント化完了。統一エージェント10ツール体制に移行 |
