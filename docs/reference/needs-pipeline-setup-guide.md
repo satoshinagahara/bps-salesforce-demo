@@ -445,27 +445,29 @@ import createInitiativeFromDashboard from '@salesforce/apex/NeedsAnalysisPTContr
 
 ---
 
-## 10. Phase 8: FlexiPage配置
+## 10. Phase 8: FlexiPage配置（App Builder で手動作成）
 
-### レコードページ
+> **注意**: FlexiPage はソース管理対象外（`.forceignore` で除外）。リッチテキストに認証情報等が混入するリスクと、UI で手動編集する運用が多いため。各環境で App Builder から手動で作成すること。
 
-```bash
-sf project deploy start \
-  --source-dir force-app/main/default/flexipages/FlexiPage8.flexipage-meta.xml \
-  --source-dir force-app/main/default/flexipages/FlexiPage12.flexipage-meta.xml \
-  --target-org YOUR_USERNAME
-```
+### Meeting_Record__c レコードページ
 
-| FlexiPage | 用途 |
-|-----------|------|
-| FlexiPage8 | Meeting_Record__c レコードページ |
-| FlexiPage12 | Product_Initiative__c レコードページ |
+1. **Setup > Object Manager > Meeting_Record > Lightning Record Pages > New** で Record Page を作成
+2. ヘッダ・関連リスト・詳細を配置
+3. クイックアクション「ニーズ抽出」を表示できるレイアウトにする
+4. Activate → Org Default に設定
 
-### 手動設定（デプロイ後）
+### Product_Initiative__c レコードページ
 
-1. **Setup > Object Manager > Meeting_Record > Lightning Record Pages** で FlexiPage8 をデフォルトに設定
-2. **Setup > Object Manager > Product_Initiative > Lightning Record Pages** で FlexiPage12 をデフォルトに設定
-3. needsAnalysisDashboardPT は Lightning App Page を作成して配置（またはHomeページに配置）
+1. **Setup > Object Manager > Product_Initiative > Lightning Record Pages > New** で Record Page を作成
+2. **タブ構成例**: 「施策説明」「施策トレーサビリティ」「製品改善提案 by GCP」（GCP連携不要なら省略可）
+3. `initiativeNeedsMatcher` LWC を「施策トレーサビリティ」タブに配置
+4. Activate → Org Default に設定
+
+### ニーズ分析ダッシュボードの配置
+
+1. **Setup > Lightning App Builder > New > App Page or Home Page** で配置先ページを作成（または既存Homeを編集）
+2. `needsAnalysisDashboardPT` をドラッグ＆ドロップ
+3. Activate → 必要なProfileに割当
 
 ---
 
@@ -634,9 +636,7 @@ force-app/main/default/quickActions/Meeting_Record__c.Extract_Needs.quickAction-
 # Path Assistant
 force-app/main/default/pathAssistants/ProductInitiative.pathAssistant-meta.xml
 
-# FlexiPage
-force-app/main/default/flexipages/FlexiPage8.flexipage-meta.xml
-force-app/main/default/flexipages/FlexiPage12.flexipage-meta.xml
+# FlexiPage は .forceignore で source管理外（App Builder で手動作成）
 
 # 権限セット
 force-app/main/default/permissionsets/BOM_Full_Access.permissionset-meta.xml

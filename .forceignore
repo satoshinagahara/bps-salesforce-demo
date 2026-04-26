@@ -10,3 +10,8 @@ package.xml
 
 # LWC Jest
 **/__tests__/**
+
+# FlexiPage はApp Builderで手動編集する運用。リッチテキストに認証情報等が
+# 紛れ込むリスクもあり、ローカル/git管理対象から外す。必要時は個別retrieve:
+#   sf project retrieve start --metadata FlexiPage:<Name>
+force-app/main/default/flexipages/
